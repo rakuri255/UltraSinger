@@ -1,6 +1,8 @@
 import os
 import wave
 import re
+
+from moduls.os_helper import create_folder
 from moduls.Ultrastar.ultrastar_converter import get_start_time_from_ultrastar, get_end_time_from_ultrastar
 from pydub import AudioSegment
 
@@ -32,12 +34,6 @@ def export_chunks_from_vosk_data(wf, vosk_words, output_folder_name):
 
         chunk = get_chunk(end_byte, start_byte, wf)
         export_chunk_to_wav_file(chunk, output_folder_name, i, vosk_words[i].word, wf)
-
-
-def create_folder(folder_name):
-    is_exist = os.path.exists(folder_name)
-    if not is_exist:
-        os.makedirs(folder_name)
 
 
 def export_chunks_from_ultrastar_data(audio_filename, ultrastar_data, folder_name):

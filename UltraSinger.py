@@ -11,6 +11,7 @@ from moduls.Pitcher import pitcher
 from moduls.Pitcher.pitcher import get_frequency_with_high_confidance
 from moduls.Ultrastar import ultrastar_parser, ultrastar_converter, ultrastar_writer
 from moduls.Speech_Recognition.Vosk import transcribe_with_vosk
+from moduls.os_helper import create_folder
 
 
 def convert_frequencies_to_notes(frequency):
@@ -197,14 +198,15 @@ def main(argv):
         elif opt in ("-v"):
             model_path = arg
 
-    # todo: args for disable
-    output_mono_audio = 'output/mono.wav'
-    convert_audio_to_mono_wav(input_file, output_mono_audio)
-    input_file = output_mono_audio
-
     if ".txt" in input_file:
         do_ultrastar_stuff(input_file, chunk_folder_name, do_create_midi)
     else:
+        # todo: args for disable
+        output_mono_audio = 'output/mono.wav'
+        create_folder('output')
+        create_folder(chunk_folder_name)
+        convert_audio_to_mono_wav(input_file, output_mono_audio)
+        input_file = output_mono_audio
         do_audio_stuff(input_file, chunk_folder_name, model_path, do_create_midi)
 
     sys.exit()
