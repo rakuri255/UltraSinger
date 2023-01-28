@@ -2,6 +2,7 @@ crepe==0.0.13
 librosa==0.9.2
 pretty_midi==0.2.9
 pydub==0.25.1
-python_Levenshtein==0.20.9
+Levenshtein==0.20.9
 scipy==1.10.0
 vosk==0.3.45
+tensorflow==2.11.0
