@@ -4,18 +4,23 @@ import csv
 
 from vosk import Model, KaldiRecognizer
 from moduls.Speech_Recognition.VoskTranscribedData import VoskTranscribedData
-from moduls.Audio.vocal_chunks import export_chunks_from_vosk_data
+from moduls.Audio.vocal_chunks import export_chunks_from_vosk_data, remove_silence_from_vosk_data
+
 
 # todo: Rename to Transcoder?
 
-def write_lists_to_csv(list_of_vosk_words, filename):
+def export_vosk_data_to_csv(vosk_transcribed_data, filename):
+    """Export vosk data to csv"""
+    print("Exporting Vosk data to CSV")
+
     with open(filename, 'w', newline='') as csvfile:
         writer = csv.writer(csvfile)
         header = ["word", "start", "end", "confidence"]
         writer.writerow(header)
-        for i in range(len(list_of_vosk_words)):
+        for i in range(len(vosk_transcribed_data)):
             writer.writerow(
-                [list_of_vosk_words[i].word, list_of_vosk_words[i].start, list_of_vosk_words[i].end, list_of_vosk_words[i].conf])
+                [vosk_transcribed_data[i].word, vosk_transcribed_data[i].start, vosk_transcribed_data[i].end,
+                 vosk_transcribed_data[i].conf])
 
 
 def transcribe_with_vosk(audio_filename, folder_name, model_path):
@@ -27,6 +32,7 @@ def transcribe_with_vosk(audio_filename, folder_name, model_path):
     model = Model(model_path)
     wf = wave.open(audio_filename, "rb")
     recognizer = KaldiRecognizer(model, wf.getframerate())
+
     recognizer.SetWords(True)
 
     # get the list of JSON dictionaries
@@ -39,11 +45,12 @@ def transcribe_with_vosk(audio_filename, folder_name, model_path):
         if recognizer.AcceptWaveform(data):
             part_result = json.loads(recognizer.Result())
             results.append(part_result)
+    wf.close()  # close audiofile
     part_result = json.loads(recognizer.FinalResult())
     results.append(part_result)
 
     # convert list of JSON dictionaries to list of 'Word' objects
-    list_of_words = []
+    vosk_transcribed_data = []
     for sentence in results:
         if len(sentence) == 1:
             # sometimes there are bugs in recognition
@@ -51,21 +58,22 @@ def transcribe_with_vosk(audio_filename, folder_name, model_path):
             # {'text': ''}
             continue
         for obj in sentence['result']:
-            w = VoskTranscribedData(obj)  # create custom Word object
-            list_of_words.append(w)  # and add it to list
+            vtd = VoskTranscribedData(obj)  # create custom Word object
+            vosk_transcribed_data.append(vtd)  # and add it to list
+
+    # Todo: remove silent part from each word
 
     # output to the screen
-    #todo: progress?
-    #for word in list_of_words:
+    # todo: progress?
+    # for word in vosk_transcribed_data:
     #    print(word.to_string())
 
-    # todo: to own function
-    export_chunks_from_vosk_data(wf, list_of_words, folder_name)
-    write_lists_to_csv(list_of_words, csv_filename)
+    # todo: to own method
+    vosk_transcribed_data = remove_silence_from_vosk_data(audio_filename, vosk_transcribed_data)
+    export_chunks_from_vosk_data(audio_filename, vosk_transcribed_data, folder_name)
+    export_vosk_data_to_csv(vosk_transcribed_data, csv_filename)
 
-    wf.close()  # close audiofile
-
-    return list_of_words
+    return vosk_transcribed_data
 
 
 class SpeechToText:

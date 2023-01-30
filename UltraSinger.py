@@ -124,6 +124,8 @@ def do_ultrastar_stuff(input_file, chunk_folder_name, do_create_midi):
     # todo: input folder
     ultrastar_audio_input_path = 'input/' + ultrastar_class.mp3.replace('\n', '')
     # todo: check if chunk folder is empty
+    # todo: here we have to remove all silance, and dont need to store it!
+    #ultrastar_class = remove_silence_from_ultrastar_data(ultrastar_audio_input_path, ultrastar_class)
     export_chunks_from_ultrastar_data(ultrastar_audio_input_path, ultrastar_class, chunk_folder_name)
 
     # Pitch the audio
@@ -146,7 +148,7 @@ def do_ultrastar_stuff(input_file, chunk_folder_name, do_create_midi):
 def do_audio_stuff(input_file, chunk_folder_name, model_path, do_create_midi):
     # Audio transcription
     # todo: convert to mono wav
-    list_of_vosk_words = transcribe_with_vosk(input_file, chunk_folder_name, model_path)
+    vosk_transcribed_data = transcribe_with_vosk(input_file, chunk_folder_name, model_path)
     # todo: do we need to correct words?
     # lyric = 'input/faber_lyric.txt'
     # --corrected_words = correct_words(vosk_speech, lyric)
@@ -158,7 +160,7 @@ def do_audio_stuff(input_file, chunk_folder_name, model_path, do_create_midi):
     real_bpm = get_bpm_from_file(input_file)
     # todo: filename from audio / yt title
     ultrastar_file_output = 'output/ultrastar.txt'
-    ultrastar_writer.create_txt_from_transcription(list_of_vosk_words, note_numbers, ultrastar_file_output, real_bpm)
+    ultrastar_writer.create_txt_from_transcription(vosk_transcribed_data, note_numbers, ultrastar_file_output, real_bpm)
 
     if do_create_midi:
         ultrastar_class = ultrastar_parser.parse_ultrastar_txt(ultrastar_file_output)
