@@ -207,6 +207,7 @@ def main(argv):
         output_mono_audio = 'output/mono.wav'
         create_folder('output')
         create_folder(chunk_folder_name)
+        # todo: different sample rates for different models
         convert_audio_to_mono_wav(input_file, output_mono_audio)
         input_file = output_mono_audio
         do_audio_stuff(input_file, chunk_folder_name, model_path, do_create_midi)
