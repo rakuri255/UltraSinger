@@ -7,3 +7,4 @@ scipy==1.10.0
 vosk==0.3.45
 tensorflow==2.11.0
 matplotlib~=3.6.3
+numpy~=1.22.4

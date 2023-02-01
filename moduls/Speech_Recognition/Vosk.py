@@ -4,7 +4,7 @@ import csv
 
 from vosk import Model, KaldiRecognizer
 from moduls.Speech_Recognition.VoskTranscribedData import VoskTranscribedData
-from moduls.Audio.vocal_chunks import export_chunks_from_vosk_data, remove_silence_from_vosk_data
+from moduls.Audio.vocal_chunks import remove_silence_from_vosk_data
 
 
 # todo: Rename to Transcoder?
@@ -26,8 +26,6 @@ def export_vosk_data_to_csv(vosk_transcribed_data, filename):
 def transcribe_with_vosk(audio_filename, folder_name, model_path):
     # Code from here: https://towardsdatascience.com/speech-recognition-with-timestamps-934ede4234b2
     print("Transcribing {} with vosk and model {}".format(audio_filename, model_path))
-
-    csv_filename = folder_name + "/_chunks.csv"
 
     model = Model(model_path)
     wf = wave.open(audio_filename, "rb")
@@ -68,10 +66,7 @@ def transcribe_with_vosk(audio_filename, folder_name, model_path):
     # for word in vosk_transcribed_data:
     #    print(word.to_string())
 
-    # todo: to own method
     vosk_transcribed_data = remove_silence_from_vosk_data(audio_filename, vosk_transcribed_data)
-    export_chunks_from_vosk_data(audio_filename, vosk_transcribed_data, folder_name)
-    export_vosk_data_to_csv(vosk_transcribed_data, csv_filename)
 
     return vosk_transcribed_data
 

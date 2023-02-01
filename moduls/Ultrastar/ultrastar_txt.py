@@ -3,7 +3,9 @@ class UltrastarTxt:
     mp3 = ''
     gap = ''
     bpm = ''
+    startBeat = []
     startTimes = []
+    endTimes = []
     durations = []
     pitches = []
     words = []

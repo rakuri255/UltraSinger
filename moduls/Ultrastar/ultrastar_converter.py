@@ -38,13 +38,13 @@ def ultrastar_note_to_midi_note(ultrastar_note):
 def get_start_time_from_ultrastar(ultrastar_class, pos):
     gap = int(ultrastar_class.gap) / 1000
     real_bpm = ultrastar_bpm_to_real_bpm(float(ultrastar_class.bpm.replace(',', '.')))
-    start_time = beat_to_second(int(ultrastar_class.startTimes[pos]), real_bpm) + gap
+    start_time = beat_to_second(int(ultrastar_class.startBeat[pos]), real_bpm) + gap
     return start_time
 
 
 def get_end_time_from_ultrastar(ultrastar_class, pos):
     gap = int(ultrastar_class.gap) / 1000
     real_bpm = ultrastar_bpm_to_real_bpm(float(ultrastar_class.bpm.replace(',', '.')))
-    end_time = beat_to_second(int(ultrastar_class.startTimes[pos]) + int(ultrastar_class.durations[pos]),
+    end_time = beat_to_second(int(ultrastar_class.startBeat[pos]) + int(ultrastar_class.durations[pos]),
                               real_bpm) + gap
     return end_time

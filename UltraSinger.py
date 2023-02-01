@@ -3,27 +3,29 @@ import os
 import sys
 import Levenshtein
 import librosa
+import numpy as np
+import math
 
 from moduls.Audio.vocal_chunks import export_chunks_from_ultrastar_data, convert_audio_to_mono_wav
 from moduls.Midi import midi_creator
-from moduls.Pitcher.pitcher import get_frequency_with_high_confidance, get_pitch_with_crepe_file
+from moduls.Pitcher.pitcher import get_frequency_with_high_confidence, get_pitch_with_crepe_file
 from moduls.Ultrastar import ultrastar_parser, ultrastar_converter, ultrastar_writer
-from moduls.Speech_Recognition.Vosk import transcribe_with_vosk
+from moduls.Speech_Recognition.Vosk import transcribe_with_vosk, export_vosk_data_to_csv, export_chunks_from_vosk_data
 from moduls.os_helper import create_folder
 from matplotlib import pyplot as plt
 from collections import Counter
 
 
-def get_confidance(t, f, c, threashold):
+def get_confidence(pitched_data, threshold):
     # todo: replace get_frequency_with_high_conf from pitcher
     conf_t = []
     conf_f = []
     conf_c = []
-    for i in range(len(t)):
-        if c[i] > threashold:
-            conf_t.append(t[i])
-            conf_f.append(f[i])
-            conf_c.append(c[i])
+    for i in range(len(pitched_data.times)):
+        if pitched_data.confidence[i] > threshold:
+            conf_t.append(pitched_data.times[i])
+            conf_f.append(pitched_data.frequencies[i])
+            conf_c.append(pitched_data.confidence[i])
     return conf_t, conf_f, conf_c
 
 
@@ -57,8 +59,8 @@ def pitch_each_chunk_with_crepe(directory):
                            key=lambda x: int(x.split("_")[1])):
         filepath = os.path.join(directory, filename)
         # todo: stepsize = duration? then when shorter than "it" it should take the duration. Otherwise there a more notes
-        t, f, c = get_pitch_with_crepe_file(filepath, 10)
-        conf_f = get_frequency_with_high_confidance(f, c)
+        pitched_data = get_pitch_with_crepe_file(filepath, 10)
+        conf_f = get_frequency_with_high_confidence(pitched_data.frequencies, pitched_data.confidence)
 
         notes = convert_frequencies_to_notes(conf_f)
         note = most_frequent(notes)[0][0]
@@ -67,6 +69,44 @@ def pitch_each_chunk_with_crepe(directory):
         # todo: Progress?
         # print(filename + " f: " + str(mean))
 
+    return midi_notes
+
+
+def find_nearest_index(array, value):
+    idx = np.searchsorted(array, value, side="left")
+    if idx > 0 and (idx == len(array) or math.fabs(value - array[idx - 1]) < math.fabs(value - array[idx])):
+        return idx - 1
+    else:
+        return idx
+
+
+def create_midi_notes_from_pitched_data(start_times, end_times, pitched_data):
+    print("Create midi notes from pitched data")
+
+    midi_notes = []
+
+    for i in range(len(start_times)):
+        start_time = start_times[i]
+        end_time = end_times[i]
+
+        s = find_nearest_index(pitched_data.times, start_time)
+        e = find_nearest_index(pitched_data.times, end_time)
+
+        if s == e:
+            f = [pitched_data.frequencies[s]]
+            c = [pitched_data.confidence[s]]
+        else:
+            f = pitched_data.frequencies[s:e]
+            c = pitched_data.confidence[s:e]
+
+        conf_f = get_frequency_with_high_confidence(f, c)
+
+        notes = convert_frequencies_to_notes(conf_f)
+        note = most_frequent(notes)[0][0]
+
+        midi_notes.append(note)
+        # todo: Progress?
+        # print(filename + " f: " + str(mean))
     return midi_notes
 
 
@@ -142,16 +182,28 @@ def do_ultrastar_stuff(input_file, chunk_folder_name, do_create_midi):
     ultrastar_class = ultrastar_parser.parse_ultrastar_txt(input_file)
     real_bpm = ultrastar_converter.ultrastar_bpm_to_real_bpm(float(ultrastar_class.bpm.replace(',', '.')))
 
-    # Create audio chunks from timing table
+    # todo: duplicate code
+    dirname = os.path.dirname(input_file)
+    output_mono_audio = 'output/mono.wav'
+    create_folder('output')
+    convert_audio_to_mono_wav(dirname + '/' + ultrastar_class.mp3, output_mono_audio)
+
     # todo: input folder
     ultrastar_audio_input_path = 'input/' + ultrastar_class.mp3.replace('\n', '')
-    # todo: check if chunk folder is empty
     # todo: here we have to remove all silance, and dont need to store it!
     # ultrastar_class = remove_silence_from_ultrastar_data(ultrastar_audio_input_path, ultrastar_class)
-    export_chunks_from_ultrastar_data(ultrastar_audio_input_path, ultrastar_class, chunk_folder_name)
+
+    export_chunks = False
+    if export_chunks:
+        create_folder(chunk_folder_name)
+        export_chunks_from_ultrastar_data(ultrastar_audio_input_path, ultrastar_class, chunk_folder_name)
 
     # Pitch the audio
-    midi_notes = pitch_each_chunk_with_crepe(chunk_folder_name)
+    # todo: chunk pitching as option?
+    #midi_notes = pitch_each_chunk_with_crepe(chunk_folder_name)
+    pitched_data = get_pitch_with_crepe_file(output_mono_audio, 10)
+
+    midi_notes = create_midi_notes_from_pitched_data(ultrastar_class.startTimes, ultrastar_class.endTimes, pitched_data)
     ultrastar_note_numbers = convert_ultrastar_note_numbers(midi_notes)
 
     # Create new repitched ultrastar txt
@@ -170,8 +222,8 @@ def do_ultrastar_stuff(input_file, chunk_folder_name, do_create_midi):
 
 
 def plot(input_file, vosk_transcribed_data, midi_notes):
-    t, f, c = get_pitch_with_crepe_file(input_file, 10)
-    t, f, c = get_confidance(t, f, c, 0.4)
+    pitched_data = get_pitch_with_crepe_file(input_file, 10)
+    t, f, c = get_confidence(pitched_data, 0.4)
 
     plt.ylim(0, 600)
     plt.xlim(0, 50)
@@ -185,15 +237,38 @@ def plot(input_file, vosk_transcribed_data, midi_notes):
 
 
 def do_audio_stuff(input_file, chunk_folder_name, model_path, do_create_midi):
+
+    output_mono_audio = 'output/mono.wav'
+    create_folder('output')
+    # todo: different sample rates for different models
+    convert_audio_to_mono_wav(input_file, output_mono_audio)
+
     # Audio transcription
-    # todo: convert to mono wav
-    vosk_transcribed_data = transcribe_with_vosk(input_file, chunk_folder_name, model_path)
+    vosk_transcribed_data = transcribe_with_vosk(output_mono_audio, chunk_folder_name, model_path)
+
+    export_chunks = False
+    if export_chunks:
+        create_folder(chunk_folder_name)
+        csv_filename = chunk_folder_name + "/_chunks.csv"
+        export_chunks_from_vosk_data(output_mono_audio, vosk_transcribed_data, chunk_folder_name)
+        export_vosk_data_to_csv(vosk_transcribed_data, csv_filename)
+
     # todo: do we need to correct words?
     # lyric = 'input/faber_lyric.txt'
     # --corrected_words = correct_words(vosk_speech, lyric)
 
     # Pitch detection
-    midi_notes = pitch_each_chunk_with_crepe(chunk_folder_name)
+    # todo: chunk pitching as option?
+    # midi_notes = pitch_each_chunk_with_crepe(chunk_folder_name)
+    pitched_data = get_pitch_with_crepe_file(output_mono_audio, 10)
+
+    start_times = []
+    end_times = []
+    for i in range(len(vosk_transcribed_data)):
+        start_times.append(vosk_transcribed_data[i].start)
+        end_times.append(vosk_transcribed_data[i].end)
+
+    midi_notes = create_midi_notes_from_pitched_data(start_times, end_times, pitched_data)
     ultrastar_note_numbers = convert_ultrastar_note_numbers(midi_notes)
 
     export_plot = False
@@ -248,13 +323,6 @@ def main(argv):
     if ".txt" in input_file:
         do_ultrastar_stuff(input_file, chunk_folder_name, do_create_midi)
     else:
-        # todo: args for disable
-        output_mono_audio = 'output/mono.wav'
-        create_folder('output')
-        create_folder(chunk_folder_name)
-        # todo: different sample rates for different models
-        convert_audio_to_mono_wav(input_file, output_mono_audio)
-        input_file = output_mono_audio
         do_audio_stuff(input_file, chunk_folder_name, model_path, do_create_midi)
 
     sys.exit()

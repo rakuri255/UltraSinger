@@ -1,22 +1,24 @@
 import csv
 import crepe
+from moduls.Pitcher.pitched_data import PitchedData
 from scipy.io import wavfile
 
 
 def get_pitch_with_crepe_file(filename, step_size):
     sr, audio = wavfile.read(filename)
 
-    pitch_time, pitch_frequency, pitch_confidence, activation = crepe.predict(audio, sr, 'tiny',
+    pitched_data = PitchedData()
+    pitched_data.times, pitched_data.frequencies, pitched_data.confidence, activation = crepe.predict(audio, sr, 'tiny',
                                                                               step_size=step_size,
                                                                               viterbi=True)
-
-    return pitch_time, pitch_frequency, pitch_confidence
+    return pitched_data
 
 
 def get_pitch_with_crepe(y, sr, step_size):
-    pitch_time, pitch_frequency, pitch_confidence, activation = crepe.predict(y, sr, 'tiny', step_size=step_size,
+    pitched_data = PitchedData()
+    pitched_data.times, pitched_data.frequencies, pitched_data.confidence, activation = crepe.predict(y, sr, 'tiny', step_size=step_size,
                                                                               viterbi=True)
-    return pitch_time, pitch_frequency, pitch_confidence
+    return pitched_data
 
 
 def write_lists_to_csv(time, frequency, confidence, filename):
@@ -38,7 +40,7 @@ def read_data_from_csv(filename):
     return headless_data
 
 
-def get_frequency_with_high_confidance(f, c, threshold=0.4):
+def get_frequency_with_high_confidence(f, c, threshold=0.4):
     conf_f = []
     for i in range(len(c)):
         if c[i] > threshold:
