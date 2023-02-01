@@ -5,6 +5,7 @@ from scipy.io import wavfile
 
 def get_pitch_with_crepe_file(filename, step_size):
     sr, audio = wavfile.read(filename)
+
     pitch_time, pitch_frequency, pitch_confidence, activation = crepe.predict(audio, sr, 'tiny',
                                                                               step_size=step_size,
                                                                               viterbi=True)
@@ -37,7 +38,7 @@ def read_data_from_csv(filename):
     return headless_data
 
 
-def get_frequency_with_high_confidance(f, c, threshold=0.6):
+def get_frequency_with_high_confidance(f, c, threshold=0.4):
     conf_f = []
     for i in range(len(c)):
         if c[i] > threshold:
