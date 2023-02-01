@@ -4,19 +4,19 @@ from moduls.Pitcher.pitched_data import PitchedData
 from scipy.io import wavfile
 
 
-def get_pitch_with_crepe_file(filename, step_size):
+def get_pitch_with_crepe_file(filename, step_size, model_capacity):
     sr, audio = wavfile.read(filename)
 
     pitched_data = PitchedData()
-    pitched_data.times, pitched_data.frequencies, pitched_data.confidence, activation = crepe.predict(audio, sr, 'tiny',
+    pitched_data.times, pitched_data.frequencies, pitched_data.confidence, activation = crepe.predict(audio, sr, model_capacity,
                                                                               step_size=step_size,
                                                                               viterbi=True)
     return pitched_data
 
 
-def get_pitch_with_crepe(y, sr, step_size):
+def get_pitch_with_crepe(y, sr, step_size, model_capacity):
     pitched_data = PitchedData()
-    pitched_data.times, pitched_data.frequencies, pitched_data.confidence, activation = crepe.predict(y, sr, 'tiny', step_size=step_size,
+    pitched_data.times, pitched_data.frequencies, pitched_data.confidence, activation = crepe.predict(y, sr, model_capacity, step_size=step_size,
                                                                               viterbi=True)
     return pitched_data
 

@@ -63,7 +63,7 @@ def pitch_each_chunk_with_crepe(directory):
                            key=lambda x: int(x.split("_")[1])):
         filepath = os.path.join(directory, filename)
         # todo: stepsize = duration? then when shorter than "it" it should take the duration. Otherwise there a more notes
-        pitched_data = get_pitch_with_crepe_file(filepath, 10)
+        pitched_data = get_pitch_with_crepe_file(filepath, settings.crepe_step_size, settings.crepe_model_capacity)
         conf_f = get_frequency_with_high_confidence(pitched_data.frequencies, pitched_data.confidence)
 
         notes = convert_frequencies_to_notes(conf_f)
@@ -204,7 +204,7 @@ def do_ultrastar_stuff():
     # Pitch the audio
     # todo: chunk pitching as option?
     # midi_notes = pitch_each_chunk_with_crepe(chunk_folder_name)
-    pitched_data = get_pitch_with_crepe_file(settings.mono_audio_path, 10)
+    pitched_data = get_pitch_with_crepe_file(settings.mono_audio_path, settings.crepe_step_size, settings.crepe_model_capacity)
 
     midi_notes = create_midi_notes_from_pitched_data(ultrastar_class.startTimes, ultrastar_class.endTimes, pitched_data)
     ultrastar_note_numbers = convert_ultrastar_note_numbers(midi_notes)
@@ -225,7 +225,7 @@ def do_ultrastar_stuff():
 
 
 def plot(input_file, vosk_transcribed_data, midi_notes):
-    pitched_data = get_pitch_with_crepe_file(input_file, 10)
+    pitched_data = get_pitch_with_crepe_file(input_file, settings.crepe_step_size, settings.crepe_model_capacity)
     t, f, c = get_confidence(pitched_data, 0.4)
 
     plt.ylim(0, 600)
@@ -261,7 +261,7 @@ def do_audio_stuff():
     # Pitch detection
     # todo: chunk pitching as option?
     # midi_notes = pitch_each_chunk_with_crepe(chunk_folder_name)
-    pitched_data = get_pitch_with_crepe_file(output_mono_audio, 10)
+    pitched_data = get_pitch_with_crepe_file(output_mono_audio, settings.crepe_step_size, settings.crepe_model_capacity)
 
     start_times = []
     end_times = []
