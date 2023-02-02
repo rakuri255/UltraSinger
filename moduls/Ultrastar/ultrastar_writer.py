@@ -54,6 +54,7 @@ def create_txt_from_transcription(vosk_transcribed_data, note_numbers, ultrastar
                 show_next = second_to_beat(vosk_transcribed_data[i].end - gap, bpm) * multiplication
                 f.write(str(round(show_next)))
                 f.write('\n')
+        f.write('E')
 
 
 def create_repitched_txt_from_ultrastar_data(input_file, note_numbers, output_repitched_ultrastar):
