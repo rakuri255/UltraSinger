@@ -5,6 +5,9 @@ import Levenshtein
 import librosa
 import numpy as np
 import math
+import shutil
+import re
+
 
 from moduls.Audio.vocal_chunks import export_chunks_from_ultrastar_data, convert_audio_to_mono_wav
 from moduls.Midi import midi_creator
@@ -16,6 +19,7 @@ from moduls.os_helper import create_folder
 from matplotlib import pyplot as plt
 from collections import Counter
 from Settings import Settings
+from moduls.Audio.youtube import download_video
 
 settings = Settings()
 
@@ -242,12 +246,26 @@ def plot(input_file, vosk_transcribed_data, midi_notes):
 
 
 def do_audio_stuff():
-    basename = os.path.basename(settings.input_file_path)
-    basename_without_ext = os.path.splitext(basename)[0]
-    dirname = os.path.dirname(settings.input_file_path)
+    # Youtube
+    if settings.input_file_path.startswith('https:'):
+        filename = download_video(settings.input_file_path)
+        clear_filename = re.sub('[^A-Za-z0-9. _-]+', '', filename)
+        os.rename(filename, clear_filename)
+        basename = os.path.basename(clear_filename)
+        basename_without_ext = os.path.splitext(clear_filename)[0]
+        dirname = os.path.dirname(clear_filename)
+        song_output = settings.output_file_path + '/' + basename_without_ext
+
+        create_folder(song_output)
+        # todo: do we need this? has the yt-dlp not an output path?
+        shutil.move(clear_filename, song_output + '/' + filename)
+    else:
+        basename = os.path.basename(settings.input_file_path)
+        basename_without_ext = os.path.splitext(basename)[0]
+        dirname = os.path.dirname(settings.input_file_path)
+        song_output = settings.output_file_path + '/' + basename_without_ext
 
     ultrastar_audio_input_path = dirname + '/' + basename
-    song_output = settings.output_file_path + '/' + basename_without_ext
     cache_path = song_output + '/cache'
     settings.mono_audio_path = cache_path + '/' + basename_without_ext + '.wav'
     create_folder(cache_path)
@@ -323,7 +341,10 @@ def main(argv):
             settings.vosk_model_path = arg
 
     if settings.output_file_path == '':
-        dirname = os.path.dirname(settings.input_file_path)
+        if settings.input_file_path.startswith('https:'):
+            dirname = ''
+        else:
+            dirname = os.path.dirname(settings.input_file_path)
         settings.output_file_path = dirname + '/output'
 
     if ".txt" in settings.input_file_path:
