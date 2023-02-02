@@ -1,38 +1,40 @@
 import yt_dlp
 
 
-def download_audio(url):
-    urls = [url]
+def get_youtube_title(url):
+    ydl_opts = {}
+    with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+        result = ydl.extract_info(
+            url,
+            download=False  # We just want to extract the info
+        )
+
+    return result['title']
+
+
+def download_youtube_audio(url, clear_filename, output_path):
     ydl_opts = {
         'format': 'm4a/bestaudio/best',
-        # ℹ️ See help(yt_dlp.postprocessor) for a list of available Postprocessors and their arguments
-        'postprocessors': [{  # Extract audio using ffmpeg
+        'outtmpl': output_path + '/' + clear_filename + '.mp3',
+        'postprocessors': [{
             'key': 'FFmpegExtractAudio',
-            'preferredcodec': 'm4a',
+            'preferredcodec': 'mp3'
         }]
     }
 
     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-        error_code = ydl.download(urls)
+        errors = ydl.download(url)
+        if errors:
+            raise Exception("Download failed with error: " + str(errors))
 
 
-def longer_than_a_minute(info, *, incomplete):
-    """Download only videos longer than a minute (or with unknown duration)"""
-    duration = info.get('duration')
-    if duration and duration < 60:
-        return 'The video is too short'
-
-
-def download_video(url):
-    urls = [url]
-
+def download_youtube_video(url, clear_filename, output_path):
     ydl_opts = {
-        #'match_filter': longer_than_a_minute,
+        'format': 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/mp4',
+        'outtmpl': output_path + '/' + clear_filename + '.mp4'
     }
 
     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-        info = ydl.extract_info(url)
-        filename = ydl.prepare_filename(info)
-        error_code = ydl.download(url)
-
-    return filename
+        errors = ydl.download(url)
+        if errors:
+            raise Exception("Download failed with error: " + str(errors))
