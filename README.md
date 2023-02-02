@@ -49,7 +49,7 @@ _Not all options working now!_
     
     [pitcher]
     -crepe              default
-    (-crepe_model        tiny|small|medium|large|full) # In Progress
+    --crepe_model       tiny|small|medium|large|full
 ```
 
 ### Input
@@ -88,5 +88,5 @@ For just testing you should use `tiny`, which is currently default.
 If you want solid accurate, then use the `full` model.
 
 ```commandline
-in progress
+-i XYZ --crepe_model full
 ```

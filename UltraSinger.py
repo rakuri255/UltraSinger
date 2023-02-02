@@ -318,7 +318,7 @@ def do_audio_stuff():
 
 def main(argv):
     short = "hi:o:amv:"
-    long = ["ifile=", "ofile="]
+    long = ["ifile=", "ofile=", "crepe_model="]
 
     opts, args = getopt.getopt(argv, short, long)
 
@@ -336,6 +336,8 @@ def main(argv):
             settings.output_file_path = arg
         elif opt in ("-v"):
             settings.vosk_model_path = arg
+        elif opt in ("--crepe_model"):
+            settings.crepe_model_capacity = arg
 
     if settings.output_file_path == '':
         if settings.input_file_path.startswith('https:'):
