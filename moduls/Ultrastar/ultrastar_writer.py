@@ -2,7 +2,7 @@ from moduls.Ultrastar.ultrastar_converter import real_bpm_to_ultrastar_bpm, seco
 import re
 
 
-def create_txt_from_transcription(vosk_transcribed_data, note_numbers, ultrastar_file_output, title, audio, bpm=120):
+def create_txt_from_transcription(vosk_transcribed_data, note_numbers, ultrastar_file_output, title, bpm=120):
     print("Creating {} from transcription.".format(ultrastar_file_output))
 
     # todo: Optimize multiplication
@@ -15,7 +15,8 @@ def create_txt_from_transcription(vosk_transcribed_data, note_numbers, ultrastar
         f.write('#TITLE:' + title + '\n')
         f.write('#CREATOR:UltraSinger' + '\n')
         f.write('#FIXER:YOUR NAME' + '\n')
-        f.write('#MP3:' + audio + '\n')
+        f.write('#MP3:' + title + '.mp3\n')
+        f.write('#VIDEO:' + title + '.mp4\n')
         f.write('#BPM:' + str(ultrastar_bpm) + '\n')  # not the real BPM!
         f.write('#GAP:' + str(int(gap * 1000)) + '\n')
 

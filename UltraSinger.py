@@ -5,6 +5,8 @@ import Levenshtein
 import librosa
 import numpy as np
 import math
+import shutil
+import re
 
 from moduls.Audio.vocal_chunks import export_chunks_from_ultrastar_data, convert_audio_to_mono_wav
 from moduls.Midi import midi_creator
@@ -16,6 +18,7 @@ from moduls.os_helper import create_folder
 from matplotlib import pyplot as plt
 from collections import Counter
 from Settings import Settings
+from moduls.Audio.youtube import download_youtube_video, download_youtube_audio, get_youtube_title
 
 settings = Settings()
 
@@ -242,19 +245,31 @@ def plot(input_file, vosk_transcribed_data, midi_notes):
 
 
 def do_audio_stuff():
-    basename = os.path.basename(settings.input_file_path)
-    basename_without_ext = os.path.splitext(basename)[0]
-    dirname = os.path.dirname(settings.input_file_path)
+    # Youtube
+    if settings.input_file_path.startswith('https:'):
+        title = get_youtube_title(settings.input_file_path)
 
-    ultrastar_audio_input_path = dirname + '/' + basename
-    song_output = settings.output_file_path + '/' + basename_without_ext
+        basename_without_ext = re.sub('[^A-Za-z0-9. _-]+', '', title).strip()
+        basename = basename_without_ext + '.mp3'
+
+        song_output = settings.output_file_path + '/' + basename_without_ext
+        create_folder(song_output)
+        download_youtube_audio(settings.input_file_path, basename_without_ext, song_output)
+        download_youtube_video(settings.input_file_path, basename_without_ext, song_output)
+
+    else:
+        basename = os.path.basename(settings.input_file_path)
+        basename_without_ext = os.path.splitext(basename)[0]
+        song_output = settings.output_file_path + '/' + basename_without_ext
+        create_folder(song_output)
+        shutil.copy(settings.input_file_path,
+                    song_output)  # dst can be a folder; use shutil.copy2() to preserve timestamp
+
+    ultrastar_audio_input_path = song_output + '/' + basename
     cache_path = song_output + '/cache'
     settings.mono_audio_path = cache_path + '/' + basename_without_ext + '.wav'
     create_folder(cache_path)
     convert_audio_to_mono_wav(ultrastar_audio_input_path, settings.mono_audio_path)
-
-    # todo: different sample rates for different models
-    convert_audio_to_mono_wav(settings.input_file_path, settings.mono_audio_path)
 
     # Audio transcription
     vosk_transcribed_data = transcribe_with_vosk(settings.mono_audio_path, settings.vosk_model_path)
@@ -286,13 +301,13 @@ def do_audio_stuff():
     ultrastar_note_numbers = convert_ultrastar_note_numbers(midi_notes)
 
     if settings.create_plot:
-        plot(settings.input_file_path, vosk_transcribed_data, midi_notes)
+        plot(ultrastar_audio_input_path, vosk_transcribed_data, midi_notes)
 
     # Ultrastar txt creation
-    real_bpm = get_bpm_from_file(settings.input_file_path)
+    real_bpm = get_bpm_from_file(ultrastar_audio_input_path)
     ultrastar_file_output = song_output + '/' + basename_without_ext + '.txt'
     ultrastar_writer.create_txt_from_transcription(vosk_transcribed_data, ultrastar_note_numbers, ultrastar_file_output,
-                                                   basename_without_ext, basename, real_bpm)
+                                                   basename_without_ext, real_bpm)
 
     if settings.create_midi:
         ultrastar_class = ultrastar_parser.parse_ultrastar_txt(ultrastar_file_output)
@@ -323,7 +338,10 @@ def main(argv):
             settings.vosk_model_path = arg
 
     if settings.output_file_path == '':
-        dirname = os.path.dirname(settings.input_file_path)
+        if settings.input_file_path.startswith('https:'):
+            dirname = os.getcwd()
+        else:
+            dirname = os.path.dirname(settings.input_file_path)
         settings.output_file_path = dirname + '/output'
 
     if ".txt" in settings.input_file_path:
