@@ -4,7 +4,8 @@ class Settings:
     create_audio_chunks = False
 
     input_file_path = ''
-    audio_chunk_folder_name = 'output/audio-chunks'
+    output_file_path = ''
+    audio_chunk_folder_name = 'audio-chunks'
     vosk_model_path = ''  # "models/vosk-model-small-en-us-0.15"
     mono_audio_path = ''
 

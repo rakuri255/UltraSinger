@@ -2,7 +2,7 @@ from moduls.Ultrastar.ultrastar_converter import real_bpm_to_ultrastar_bpm, seco
 import re
 
 
-def create_txt_from_transcription(vosk_transcribed_data, note_numbers, ultrastar_file_output, bpm=120):
+def create_txt_from_transcription(vosk_transcribed_data, note_numbers, ultrastar_file_output, title, audio, bpm=120):
     print("Creating {} from transcription.".format(ultrastar_file_output))
 
     # todo: Optimize multiplication
@@ -11,10 +11,13 @@ def create_txt_from_transcription(vosk_transcribed_data, note_numbers, ultrastar
         gap = vosk_transcribed_data[0].start
         ultrastar_bpm = real_bpm_to_ultrastar_bpm(bpm) * multiplication
 
-        # todo: #MP3, #ARTIST, #TITLE
-        f.write('#AUTHOR: UltraSinger' + '\n')
-        f.write('#BPM: ' + str(ultrastar_bpm) + '\n')  # not the real BPM!
-        f.write('#GAP: ' + str(int(gap * 1000)) + '\n')
+        f.write('#ARTIST:' + title + '\n')
+        f.write('#TITLE:' + title + '\n')
+        f.write('#CREATOR:UltraSinger' + '\n')
+        f.write('#FIXER:YOUR NAME' + '\n')
+        f.write('#MP3:' + audio + '\n')
+        f.write('#BPM:' + str(ultrastar_bpm) + '\n')  # not the real BPM!
+        f.write('#GAP:' + str(int(gap * 1000)) + '\n')
 
         # Write the singing part
         for i in range(len(vosk_transcribed_data)):

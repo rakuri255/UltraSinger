@@ -187,40 +187,42 @@ def do_ultrastar_stuff():
     real_bpm = ultrastar_converter.ultrastar_bpm_to_real_bpm(float(ultrastar_class.bpm.replace(',', '.')))
 
     # todo: duplicate code
+    ultrastar_mp3_name = ultrastar_class.mp3
+    basename_without_ext = os.path.splitext(ultrastar_mp3_name)[0]
     dirname = os.path.dirname(settings.input_file_path)
-    settings.mono_audio_path = 'output/mono.wav'
-    create_folder('output')
-    convert_audio_to_mono_wav(dirname + '/' + ultrastar_class.mp3, settings.mono_audio_path)
 
-    # todo: input folder
-    ultrastar_audio_input_path = 'input/' + ultrastar_class.mp3.replace('\n', '')
+    ultrastar_audio_input_path = dirname + '/' + ultrastar_mp3_name
+    song_output = settings.output_file_path + '/' + ultrastar_class.artist + ' - ' + ultrastar_class.title
+    cache_path = song_output + '/cache'
+    settings.mono_audio_path = cache_path + '/' + basename_without_ext + '.wav'
+    create_folder(cache_path)
+    convert_audio_to_mono_wav(ultrastar_audio_input_path, settings.mono_audio_path)
+
     # todo: here we have to remove all silance, and dont need to store it!
     # ultrastar_class = remove_silence_from_ultrastar_data(ultrastar_audio_input_path, ultrastar_class)
 
     if settings.create_audio_chunks:
-        create_folder(settings.audio_chunk_folder_name)
-        export_chunks_from_ultrastar_data(ultrastar_audio_input_path, ultrastar_class, settings.audio_chunk_folder_name)
+        audio_chunks_path = cache_path + '/' + settings.audio_chunk_folder_name
+        create_folder(audio_chunks_path)
+        export_chunks_from_ultrastar_data(ultrastar_audio_input_path, ultrastar_class, audio_chunks_path)
 
     # Pitch the audio
     # todo: chunk pitching as option?
     # midi_notes = pitch_each_chunk_with_crepe(chunk_folder_name)
-    pitched_data = get_pitch_with_crepe_file(settings.mono_audio_path, settings.crepe_step_size, settings.crepe_model_capacity)
+    pitched_data = get_pitch_with_crepe_file(settings.mono_audio_path, settings.crepe_step_size,
+                                             settings.crepe_model_capacity)
 
     midi_notes = create_midi_notes_from_pitched_data(ultrastar_class.startTimes, ultrastar_class.endTimes, pitched_data)
     ultrastar_note_numbers = convert_ultrastar_note_numbers(midi_notes)
 
     # Create new repitched ultrastar txt
-    # todo: output
-    output_repitched_ultrastar = 'output/ultrastar_repitch.txt'
+    output_repitched_ultrastar = song_output + '/' + ultrastar_class.title + '.txt'
     ultrastar_writer.create_repitched_txt_from_ultrastar_data(settings.input_file_path, ultrastar_note_numbers,
                                                               output_repitched_ultrastar)
 
     if settings.create_midi:
-        # todo: remove .txt
         voice_instrument = [midi_creator.convert_ultrastar_to_midi_instrument(ultrastar_class)]
-        # todo: output
-        midi_output = settings.input_file_path.replace('.txt', '.mid')
-        midi_output = midi_output.replace('input', 'output')
+        midi_output = song_output + '/' + ultrastar_class.title + '.mid'
         midi_creator.instruments_to_midi(voice_instrument, real_bpm, midi_output)
 
 
@@ -240,18 +242,28 @@ def plot(input_file, vosk_transcribed_data, midi_notes):
 
 
 def do_audio_stuff():
-    output_mono_audio = 'output/mono.wav'
-    create_folder('output')
+    basename = os.path.basename(settings.input_file_path)
+    basename_without_ext = os.path.splitext(basename)[0]
+    dirname = os.path.dirname(settings.input_file_path)
+
+    ultrastar_audio_input_path = dirname + '/' + basename
+    song_output = settings.output_file_path + '/' + basename_without_ext
+    cache_path = song_output + '/cache'
+    settings.mono_audio_path = cache_path + '/' + basename_without_ext + '.wav'
+    create_folder(cache_path)
+    convert_audio_to_mono_wav(ultrastar_audio_input_path, settings.mono_audio_path)
+
     # todo: different sample rates for different models
-    convert_audio_to_mono_wav(settings.input_file_path, output_mono_audio)
+    convert_audio_to_mono_wav(settings.input_file_path, settings.mono_audio_path)
 
     # Audio transcription
-    vosk_transcribed_data = transcribe_with_vosk(output_mono_audio, settings.audio_chunk_folder_name, settings.vosk_model_path)
+    vosk_transcribed_data = transcribe_with_vosk(settings.mono_audio_path, settings.vosk_model_path)
 
     if settings.create_audio_chunks:
-        create_folder(settings.audio_chunk_folder_name)
-        csv_filename = settings.audio_chunk_folder_name + "/_chunks.csv"
-        export_chunks_from_vosk_data(output_mono_audio, vosk_transcribed_data, settings.audio_chunk_folder_name)
+        audio_chunks_path = cache_path + '/' + settings.audio_chunk_folder_name
+        create_folder(audio_chunks_path)
+        csv_filename = audio_chunks_path + "/_chunks.csv"
+        export_chunks_from_vosk_data(settings.mono_audio_path, vosk_transcribed_data, audio_chunks_path)
         export_vosk_data_to_csv(vosk_transcribed_data, csv_filename)
 
     # todo: do we need to correct words?
@@ -261,7 +273,8 @@ def do_audio_stuff():
     # Pitch detection
     # todo: chunk pitching as option?
     # midi_notes = pitch_each_chunk_with_crepe(chunk_folder_name)
-    pitched_data = get_pitch_with_crepe_file(output_mono_audio, settings.crepe_step_size, settings.crepe_model_capacity)
+    pitched_data = get_pitch_with_crepe_file(settings.mono_audio_path, settings.crepe_step_size,
+                                             settings.crepe_model_capacity)
 
     start_times = []
     end_times = []
@@ -277,19 +290,14 @@ def do_audio_stuff():
 
     # Ultrastar txt creation
     real_bpm = get_bpm_from_file(settings.input_file_path)
-    # todo: filename from audio / yt title
-    ultrastar_file_output = 'output/ultrastar.txt'
+    ultrastar_file_output = song_output + '/' + basename_without_ext + '.txt'
     ultrastar_writer.create_txt_from_transcription(vosk_transcribed_data, ultrastar_note_numbers, ultrastar_file_output,
-                                                   real_bpm)
+                                                   basename_without_ext, basename, real_bpm)
 
     if settings.create_midi:
         ultrastar_class = ultrastar_parser.parse_ultrastar_txt(ultrastar_file_output)
-
-        # todo: remove .txt
         voice_instrument = [midi_creator.convert_ultrastar_to_midi_instrument(ultrastar_class)]
-        # todo: output. remove file extansion
-        midi_output = settings.input_file_path.replace('.wav', '.mid')
-        midi_output = midi_output.replace('input', 'output')
+        midi_output = song_output + '/' + ultrastar_class.title + '.mid'
         midi_creator.instruments_to_midi(voice_instrument, real_bpm, midi_output)
 
 
@@ -310,9 +318,13 @@ def main(argv):
         elif opt in ("-i", "--ifile"):
             settings.input_file_path = arg
         elif opt in ("-o", "--ofile"):
-            settings.audio_chunk_folder_name = arg
+            settings.output_file_path = arg
         elif opt in ("-v"):
             settings.vosk_model_path = arg
+
+    if settings.output_file_path == '':
+        dirname = os.path.dirname(settings.input_file_path)
+        settings.output_file_path = dirname + '/output'
 
     if ".txt" in settings.input_file_path:
         do_ultrastar_stuff()

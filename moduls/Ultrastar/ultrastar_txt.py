@@ -1,5 +1,6 @@
 class UltrastarTxt:
     artist = ''
+    title = ''
     mp3 = ''
     gap = ''
     bpm = ''

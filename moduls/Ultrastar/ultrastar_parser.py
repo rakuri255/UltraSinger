@@ -16,13 +16,15 @@ def parse_ultrastar_txt(input_file):
         count += 1
         if line.startswith('#'):
             if line.startswith('#ARTIST'):
-                ultrastar_class.artist = line.split(':')[1]
+                ultrastar_class.artist = line.split(':')[1].replace('\n', '')
+            elif line.startswith('#TITLE'):
+                ultrastar_class.title = line.split(':')[1].replace('\n', '')
             elif line.startswith('#MP3'):
                 ultrastar_class.mp3 = line.split(':')[1].replace('\n', '')
             elif line.startswith('#GAP'):
-                ultrastar_class.gap = line.split(':')[1]
+                ultrastar_class.gap = line.split(':')[1].replace('\n', '')
             elif line.startswith('#BPM'):
-                ultrastar_class.bpm = line.split(':')[1]
+                ultrastar_class.bpm = line.split(':')[1].replace('\n', '')
         elif line.startswith(':'):
             parts = line.split()
             # [0] :

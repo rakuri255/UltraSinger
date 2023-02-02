@@ -23,7 +23,7 @@ def export_vosk_data_to_csv(vosk_transcribed_data, filename):
                  vosk_transcribed_data[i].conf])
 
 
-def transcribe_with_vosk(audio_filename, folder_name, model_path):
+def transcribe_with_vosk(audio_filename, model_path):
     # Code from here: https://towardsdatascience.com/speech-recognition-with-timestamps-934ede4234b2
     print("Transcribing {} with vosk and model {}".format(audio_filename, model_path))
 
