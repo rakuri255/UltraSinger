@@ -19,6 +19,7 @@ from matplotlib import pyplot as plt
 from collections import Counter
 from Settings import Settings
 from moduls.Audio.youtube import download_youtube_video, download_youtube_audio, get_youtube_title
+from moduls.Speech_Recognition.Whisper import transcribe
 
 settings = Settings()
 
@@ -272,6 +273,7 @@ def do_audio_stuff():
     convert_audio_to_mono_wav(ultrastar_audio_input_path, settings.mono_audio_path)
 
     # Audio transcription
+    v = transcribe(settings.mono_audio_path)
     vosk_transcribed_data = transcribe_with_vosk(settings.mono_audio_path, settings.vosk_model_path)
 
     if settings.create_audio_chunks:
