@@ -68,6 +68,8 @@ For the first test run, use the `small model`, to be accurate use the `gigaspeec
 
 ##### Youtube
 
+You need FFmpeg installed.
+
 ```commandline
 -i https://www.youtube.com/watch?v=BaW_jenozKc -v "models\vosk-model-en-us-0.42-gigaspeech"
 ```
