@@ -4,8 +4,8 @@
 
 _This project is still under development!_
 
-_The output files of the full automatic are currently not really usable!
-But the re-pitched files can be used now._
+_The output files from the full automatic are currently not really usable!
+But it is usable for re-pitching ultrastar files._
 
 UltraSinger is a tool to automatically create UltraStar.txt, midi and notes from music. 
 It also can re-pitch current UltraStar files.
@@ -58,7 +58,7 @@ _Not all options working now!_
 
 ### Input
 
-#### Audio
+#### Audio (full automatic)
 
 For audio it uses Vosk transcription model. This model is not included. You can download it here [Link](https://alphacephei.com/vosk/models).
 Make sure you take the right language. Also consider that a bigger model is more accurate, but also takes longer to transcribe.
@@ -76,7 +76,7 @@ For the first test run, use the `small model`, to be accurate use the `gigaspeec
 -i https://www.youtube.com/watch?v=BaW_jenozKc -v "models\vosk-model-en-us-0.42-gigaspeech"
 ```
 
-#### UltraStar
+#### UltraStar (re-pitch)
 
 This re-pitch the audio and creates a new txt file.
 
