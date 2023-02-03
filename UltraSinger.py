@@ -19,6 +19,7 @@ from matplotlib import pyplot as plt
 from collections import Counter
 from Settings import Settings
 from moduls.Audio.youtube import download_youtube_video, download_youtube_audio, get_youtube_title
+from moduls.Speech_Recognition.hyphenate import get_hyphenate
 
 settings = Settings()
 
@@ -243,6 +244,11 @@ def plot(input_file, vosk_transcribed_data, midi_notes):
         plt.plot([vosk_transcribed_data[i].start, vosk_transcribed_data[i].end], [nf, nf], linewidth=1, alpha=0.5)
     plt.savefig('test/pit.png', dpi=2000)
 
+def hyphenate_each_word(language, vosk_transcribed_data):
+    hyphen_words = []
+    for i in range(len(vosk_transcribed_data)):
+        hyphen_words = get_hyphenate(language, vosk_transcribed_data[i].word)
+    return hyphen_words
 
 def do_audio_stuff():
     # Youtube
@@ -273,6 +279,7 @@ def do_audio_stuff():
 
     # Audio transcription
     vosk_transcribed_data = transcribe_with_vosk(settings.mono_audio_path, settings.vosk_model_path)
+    hyphen_words = hyphenate_each_word('en', vosk_transcribed_data)
 
     if settings.create_audio_chunks:
         audio_chunks_path = cache_path + '/' + settings.audio_chunk_folder_name
