@@ -12,6 +12,10 @@ It also can re-pitch current UltraStar files.
 
 Multiple AI models are used to extract text from the voice and to determine the pitch. 
 
+## Requirement
+
+You need FFmpeg installed.
+
 ## How to use
 
 _Not all options working now!_
@@ -67,8 +71,6 @@ For the first test run, use the `small model`, to be accurate use the `gigaspeec
 ```
 
 ##### Youtube
-
-You need FFmpeg installed.
 
 ```commandline
 -i https://www.youtube.com/watch?v=BaW_jenozKc -v "models\vosk-model-en-us-0.42-gigaspeech"
