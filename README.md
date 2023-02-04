@@ -4,8 +4,8 @@
 
 _This project is still under development!_
 
-_The output files of the full automatic are currently not really usable!
-But the re-pitched files can be used now._
+_The output files from the full automatic are currently not really usable!
+But it is usable for re-pitching ultrastar files._
 
 UltraSinger is a tool to automatically create UltraStar.txt, midi and notes from music. 
 It also can re-pitch current UltraStar files.
@@ -60,7 +60,7 @@ _Not all options working now!_
 
 ### Input
 
-#### Audio
+#### Audio (full automatic)
 
 ##### Local file
 
@@ -74,7 +74,7 @@ _Not all options working now!_
 -i https://www.youtube.com/watch?v=BaW_jenozKc
 ```
 
-#### UltraStar
+#### UltraStar (re-pitch)
 
 This re-pitch the audio and creates a new txt file.
 
