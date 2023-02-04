@@ -1,3 +1,5 @@
+[![](https://visitcount.itsvg.in/api?id=UltraSinger&label=Profile%20Views&color=0&icon=7&pretty=false)](https://visitcount.itsvg.in)
+
 # UltraSinger 
 
 <a href="https://www.buymeacoffee.com/rakuri255" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" style="height: 60px !important;width: 217px !important;" ></a>
