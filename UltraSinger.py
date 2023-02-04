@@ -175,11 +175,8 @@ def print_help():
     --whisper   (default) tiny|base|small|medium|large
     --vosk      Needs model
     
-    [rec model]
-    (-k      Keep audio chunks) # In Progress
-      
     [extra]
-    -k      Keep audio chunks
+    (-k      Keep audio chunks) # In Progress
     
     [pitcher]
     --crepe  (default) tiny|small|medium|large|full
