@@ -12,9 +12,6 @@ from pydub import AudioSegment
 def convert_audio_to_mono_wav(input_file, output_file):
     """Convert audio to mono wav"""
 
-    # Fixme: ffmpeg path in settings
-    AudioSegment.converter = 'C:\\Users\\vadim.rangnau\\Desktop\\Projekts\\UltraSinger\\bin\\ffmpeg.exe'
-
     if '.mp3' in input_file:
         sound = AudioSegment.from_mp3(input_file)
     elif '.wav' in input_file:

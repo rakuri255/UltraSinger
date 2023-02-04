@@ -5,11 +5,21 @@ class Settings:
 
     input_file_path = ''
     output_file_path = ''
-    audio_chunk_folder_name = 'audio-chunks'
-    vosk_model_path = ''  # "models/vosk-model-small-en-us-0.15"
     mono_audio_path = ''
 
-    crepe_model_capacity = 'tiny' # tiny|small|medium|large|full
+    # Transcribe
+    audio_chunk_folder_name = 'audio-chunks'
+
+    # Whisper
+    transcriber = 'whisper'     # whisper|vosk
+    whisper_model = 'tiny'      # Multilingual model tiny|base|small|medium|large
+                                # English-only model tiny.en|base.en|small.en|medium.en
+
+    #Vosk
+    vosk_model_path = ''  # "models/vosk-model-small-en-us-0.15"
+
+    # Pitch
+    crepe_model_capacity = 'tiny'   # tiny|small|medium|large|full
     crepe_step_size = 10
 
 

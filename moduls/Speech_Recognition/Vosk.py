@@ -3,7 +3,7 @@ import json
 import csv
 
 from vosk import Model, KaldiRecognizer
-from moduls.Speech_Recognition.VoskTranscribedData import VoskTranscribedData
+from moduls.Speech_Recognition.TranscribedData import TranscribedData
 from moduls.Audio.vocal_chunks import remove_silence_from_vosk_data
 
 
@@ -56,7 +56,7 @@ def transcribe_with_vosk(audio_filename, model_path):
             # {'text': ''}
             continue
         for obj in sentence['result']:
-            vtd = VoskTranscribedData(obj)  # create custom Word object
+            vtd = TranscribedData(obj)  # create custom Word object
             vosk_transcribed_data.append(vtd)  # and add it to list
 
     # Todo: remove silent part from each word

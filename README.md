@@ -20,60 +20,58 @@ You need FFmpeg installed.
 
 _Not all options working now!_
 ```commandline
-    this.py [opt] [mode] [rec model] [pitcher] [extra]
+    UltraSinger.py [opt] [mode] [transcription] [rec model] [pitcher] [extra]
     
     [opt]
     -h      This help text.
-    
     -i      Ultrastar.txt
             audio like .mp3, .wav, youtube link
-    
     -o      Output folder
     
     [mode]
     ## INPUT is audio ##
-    -a      Is default
-            Creates all
+    default  Creates all
+            
     (-u      Create ultrastar txt file) # In Progress
     (-m      Create midi file) # In Progress
     (-s      Create sheet file) # In Progress
     
     ## INPUT is ultrastar.txt ##
-    -a    Is default
-            Creates all
+    default  Creates all
+
     (-r      repitch Ultrastar.txt (input has to be audio)) # In Progress
     (-p      Check pitch of Ultrastar.txt input) # In Progress
-    (-m      Create midi file # In Progress)
+    (-m      Create midi file) # In Progress
 
+    [transcription]
+    --whisper   (default) tiny|base|small|medium|large
+    --vosk      Needs model
+    
     [rec model]
-    -v     vosk model path
+    (-k      Keep audio chunks) # In Progress
       
     [extra]
-    (-k      Keep audio chunks) # In Progress
+    -k      Keep audio chunks
     
     [pitcher]
-    -crepe              default
-    --crepe_model       tiny|small|medium|large|full
+    --crepe  (default) tiny|small|medium|large|full
+    '''
 ```
 
 ### Input
 
 #### Audio
 
-For audio it uses Vosk transcription model. This model is not included. You can download it here [Link](https://alphacephei.com/vosk/models).
-Make sure you take the right language. Also consider that a bigger model is more accurate, but also takes longer to transcribe.
-For the first test run, use the `small model`, to be accurate use the `gigaspeech model`
-
 ##### Local file
 
 ```commandline
--i "input/music.mp3" -v "models\vosk-model-en-us-0.42-gigaspeech"
+-i "input/music.mp3"
 ```
 
 ##### Youtube
 
 ```commandline
--i https://www.youtube.com/watch?v=BaW_jenozKc -v "models\vosk-model-en-us-0.42-gigaspeech"
+-i https://www.youtube.com/watch?v=BaW_jenozKc
 ```
 
 #### UltraStar
@@ -84,13 +82,38 @@ This re-pitch the audio and creates a new txt file.
 -i "input/ultrastar.txt"
 ```
 
+### Transcriber
+
+For transcription, `whisper` is used by default. It is more accurate than the other even with the `tiny` model.
+And it finds the language automatically.
+But anyway, it depends! Try the other one if `Whisper` does not suit you.
+Also keep in mind that while a larger model is more accurate, it also takes longer to transcribe.
+
+#### Whisper
+
+For the first test run, use the `tiny`, to be accurate use the `large` model
+
+```commandline
+-i XYZ --whisper large
+```
+
+#### Vosk
+
+If you want to use `Vosk` than you need the model. It is not included. You can download it here [Link](https://alphacephei.com/vosk/models).
+Make sure you take the right language. 
+For the first test run, use the `small model`, to be accurate use the `gigaspeech` model
+
+```commandline
+-i "input/music.mp3" -v "models\vosk-model-en-us-0.42-gigaspeech"
+```
+
 ### Pitcher
 
-Pitching is done with the crepe model. 
+Pitching is done with the `crepe` model. 
 Also consider that a bigger model is more accurate, but also takes longer to pitch.
 For just testing you should use `tiny`, which is currently default.
 If you want solid accurate, then use the `full` model.
 
 ```commandline
--i XYZ --crepe_model full
+-i XYZ --crepe full
 ```
