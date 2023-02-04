@@ -19,6 +19,7 @@ from matplotlib import pyplot as plt
 from collections import Counter
 from Settings import Settings
 from moduls.Audio.youtube import download_youtube_video, download_youtube_audio, get_youtube_title
+from moduls.Speech_Recognition.Whisper import transcribe_with_whisper
 
 settings = Settings()
 
@@ -147,39 +148,41 @@ def correct_words(recognized_words, word_list_file):
 
 def print_help():
     m = '''
-    UltraSinger.py [opt] [mode] [rec model] [pitcher] [extra]
+    UltraSinger.py [opt] [mode] [transcription] [rec model] [pitcher] [extra]
     
     [opt]
     -h      This help text.
-    
     -i      Ultrastar.txt
             audio like .mp3, .wav, youtube link
-    
     -o      Output folder
     
     [mode]
     ## INPUT is audio ##
-    -a      Is default
-            Creates all
-    -u      Create ultrastar txt file
-    -m      Create midi file
-    -s      Create sheet file
+    default  Creates all
+            
+    (-u      Create ultrastar txt file) # In Progress
+    (-m      Create midi file) # In Progress
+    (-s      Create sheet file) # In Progress
     
     ## INPUT is ultrastar.txt ##
-    -a    Is default
-            Creates all
-    -r      repitch Ultrastar.txt (input has to be audio)
-    -p    Check pitch of Ultrastar.txt input
-    -m      Create midi file
+    default  Creates all
 
+    (-r      repitch Ultrastar.txt (input has to be audio)) # In Progress
+    (-p      Check pitch of Ultrastar.txt input) # In Progress
+    (-m      Create midi file) # In Progress
+
+    [transcription]
+    --whisper   (default) tiny|base|small|medium|large
+    --vosk      Needs model
+    
     [rec model]
-    -v     vosk model path
+    (-k      Keep audio chunks) # In Progress
       
     [extra]
     -k      Keep audio chunks
     
     [pitcher]
-    -crepe  default
+    --crepe  (default) tiny|small|medium|large|full
     '''
     print(m)
 
@@ -272,14 +275,17 @@ def do_audio_stuff():
     convert_audio_to_mono_wav(ultrastar_audio_input_path, settings.mono_audio_path)
 
     # Audio transcription
-    vosk_transcribed_data = transcribe_with_vosk(settings.mono_audio_path, settings.vosk_model_path)
+    if settings.transcriber == "whisper":
+        transcribed_data = transcribe_with_whisper(settings.mono_audio_path, settings.whisper_model)
+    else:   # vosk
+        transcribed_data = transcribe_with_vosk(settings.mono_audio_path, settings.vosk_model_path)
 
     if settings.create_audio_chunks:
         audio_chunks_path = cache_path + '/' + settings.audio_chunk_folder_name
         create_folder(audio_chunks_path)
         csv_filename = audio_chunks_path + "/_chunks.csv"
-        export_chunks_from_vosk_data(settings.mono_audio_path, vosk_transcribed_data, audio_chunks_path)
-        export_vosk_data_to_csv(vosk_transcribed_data, csv_filename)
+        export_chunks_from_vosk_data(settings.mono_audio_path, transcribed_data, audio_chunks_path)
+        export_vosk_data_to_csv(transcribed_data, csv_filename)
 
     # todo: do we need to correct words?
     # lyric = 'input/faber_lyric.txt'
@@ -293,20 +299,20 @@ def do_audio_stuff():
 
     start_times = []
     end_times = []
-    for i in range(len(vosk_transcribed_data)):
-        start_times.append(vosk_transcribed_data[i].start)
-        end_times.append(vosk_transcribed_data[i].end)
+    for i in range(len(transcribed_data)):
+        start_times.append(transcribed_data[i].start)
+        end_times.append(transcribed_data[i].end)
 
     midi_notes = create_midi_notes_from_pitched_data(start_times, end_times, pitched_data)
     ultrastar_note_numbers = convert_ultrastar_note_numbers(midi_notes)
 
     if settings.create_plot:
-        plot(ultrastar_audio_input_path, vosk_transcribed_data, midi_notes)
+        plot(ultrastar_audio_input_path, transcribed_data, midi_notes)
 
     # Ultrastar txt creation
     real_bpm = get_bpm_from_file(ultrastar_audio_input_path)
     ultrastar_file_output = song_output + '/' + basename_without_ext + '.txt'
-    ultrastar_writer.create_txt_from_transcription(vosk_transcribed_data, ultrastar_note_numbers, ultrastar_file_output,
+    ultrastar_writer.create_txt_from_transcription(transcribed_data, ultrastar_note_numbers, ultrastar_file_output,
                                                    basename_without_ext, real_bpm)
 
     if settings.create_midi:
@@ -318,7 +324,7 @@ def do_audio_stuff():
 
 def main(argv):
     short = "hi:o:amv:"
-    long = ["ifile=", "ofile=", "crepe_model="]
+    long = ["ifile=", "ofile=", "crepe_model=", "vosk=", "whisper="]
 
     opts, args = getopt.getopt(argv, short, long)
 
@@ -334,9 +340,13 @@ def main(argv):
             settings.input_file_path = arg
         elif opt in ("-o", "--ofile"):
             settings.output_file_path = arg
-        elif opt in ("-v"):
+        elif opt in ("--whisper"):
+            settings.transcriber = "whisper"
+            settings.whisper_model = arg
+        elif opt in ("--vosk"):
+            settings.transcriber = 'vosk'
             settings.vosk_model_path = arg
-        elif opt in ("--crepe_model"):
+        elif opt in ("--crepe"):
             settings.crepe_model_capacity = arg
 
     if settings.output_file_path == '':
