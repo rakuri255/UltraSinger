@@ -11,6 +11,7 @@ from pydub import AudioSegment
 
 def convert_audio_to_mono_wav(input_file, output_file):
     """Convert audio to mono wav"""
+    print("Converting audio for AI")
 
     if '.mp3' in input_file:
         sound = AudioSegment.from_mp3(input_file)
@@ -27,7 +28,7 @@ class AudioManipulation:
     pass
 
 
-def export_chunks_from_vosk_data(audio_filename, vosk_transcribed_data, output_folder_name):
+def export_chunks_from_transcribed_data(audio_filename, vosk_transcribed_data, output_folder_name):
     """Export vosk data as vocal chunks wav files"""
     print("Export vosk data as vocal chunks wav files")
 
@@ -44,8 +45,8 @@ def export_chunks_from_vosk_data(audio_filename, vosk_transcribed_data, output_f
     wf.close()
 
 
-def remove_silence_from_vosk_data(audio_path, vosk_transcribed_data):
-    print("Removing silent start and ending, from vosk data")
+def remove_silence_from_transcribtion_data(audio_path, vosk_transcribed_data):
+    print("Removing silent start and ending, from transcription data")
 
     y, sr = librosa.load(audio_path, sr=None)
 

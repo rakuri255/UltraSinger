@@ -11,3 +11,5 @@ yt_dlp~=2023.1.6
 yt_dlp~=2023.1.6
 pyphen~=0.13.2numpy~=1.23.5
 git+https://github.com/linto-ai/whisper-timestamped
+pyphen~=0.13.2
+numpy~=1.23.5

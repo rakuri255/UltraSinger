@@ -2,13 +2,13 @@ from moduls.Ultrastar.ultrastar_converter import real_bpm_to_ultrastar_bpm, seco
 import re
 
 
-def create_txt_from_transcription(vosk_transcribed_data, note_numbers, ultrastar_file_output, title, bpm=120):
+def create_ultrastar_txt_from_automation(transcribed_data, note_numbers, ultrastar_file_output, title, bpm=120):
     print("Creating {} from transcription.".format(ultrastar_file_output))
 
     # todo: Optimize multiplication
     multiplication = 32
     with open(ultrastar_file_output, 'w') as f:
-        gap = vosk_transcribed_data[0].start
+        gap = transcribed_data[0].start
         ultrastar_bpm = real_bpm_to_ultrastar_bpm(bpm) * multiplication
 
         f.write('#ARTIST:' + title + '\n')
@@ -21,9 +21,9 @@ def create_txt_from_transcription(vosk_transcribed_data, note_numbers, ultrastar
         f.write('#GAP:' + str(int(gap * 1000)) + '\n')
 
         # Write the singing part
-        for i in range(len(vosk_transcribed_data)):
-            start_time = (vosk_transcribed_data[i].start - gap) * multiplication
-            end_time = (vosk_transcribed_data[i].end - vosk_transcribed_data[i].start) * multiplication
+        for i in range(len(transcribed_data)):
+            start_time = (transcribed_data[i].start - gap) * multiplication
+            end_time = (transcribed_data[i].end - transcribed_data[i].start) * multiplication
             start_beat = second_to_beat(start_time, bpm)
             duration = second_to_beat(end_time, bpm)
 
@@ -37,12 +37,12 @@ def create_txt_from_transcription(vosk_transcribed_data, note_numbers, ultrastar
             f.write(str(round(start_beat)) + ' ')
             f.write(str(round(duration)) + ' ')
             f.write(str(note_numbers[i]) + ' ')
-            f.write(vosk_transcribed_data[i].word + ' ')
+            f.write(transcribed_data[i].word)
             f.write('\n')
 
             # detect silence between words
-            if i < len(vosk_transcribed_data) - 1:
-                silence = vosk_transcribed_data[i + 1].start - vosk_transcribed_data[i].end
+            if i < len(transcribed_data) - 1:
+                silence = transcribed_data[i + 1].start - transcribed_data[i].end
             else:
                 silence = 0
 
@@ -51,7 +51,7 @@ def create_txt_from_transcription(vosk_transcribed_data, note_numbers, ultrastar
                 # '-' end of current sing part
                 # 'n1' show next at time in real beat
                 f.write('- ')
-                show_next = second_to_beat(vosk_transcribed_data[i].end - gap, bpm) * multiplication
+                show_next = second_to_beat(transcribed_data[i].end - gap, bpm) * multiplication
                 f.write(str(round(show_next)))
                 f.write('\n')
         f.write('E')

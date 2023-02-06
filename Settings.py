@@ -2,6 +2,7 @@ class Settings:
     create_midi = True
     create_plot = False
     create_audio_chunks = False
+    hyphenation = True
 
     input_file_path = ''
     output_file_path = ''

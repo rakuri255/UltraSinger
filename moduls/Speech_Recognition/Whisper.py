@@ -3,6 +3,8 @@ from moduls.Speech_Recognition.TranscribedData import TranscribedData
 
 
 def transcribe_with_whisper(audio, model):
+    print("Transcribing {} with whisper and model {}".format(audio, model))
+
     model = whisper.load_model(model, device="cpu")
 
     # load audio and pad/trim it to fit 30 seconds
@@ -29,7 +31,8 @@ def transcribe_with_whisper(audio, model):
         # to class
         for obj in segment["words"]:
             vtd = TranscribedData(obj)  # create custom Word object
+            vtd.word = vtd.word + ' '
             transcribed_data.append(vtd)  # and add it to list
 
-    return transcribed_data
+    return transcribed_data, language
 

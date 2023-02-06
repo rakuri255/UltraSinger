@@ -5,6 +5,8 @@ from scipy.io import wavfile
 
 
 def get_pitch_with_crepe_file(filename, step_size, model_capacity):
+    print("Transcribing with crepe and model {}".format(model_capacity))
+
     sr, audio = wavfile.read(filename)
 
     pitched_data = PitchedData()

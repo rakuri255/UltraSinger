@@ -1,4 +1,5 @@
 import getopt
+import copy
 import os
 import sys
 import Levenshtein
@@ -8,19 +9,19 @@ import math
 import shutil
 import re
 
-from moduls.Audio.vocal_chunks import export_chunks_from_ultrastar_data, convert_audio_to_mono_wav
+from moduls.Audio.vocal_chunks import export_chunks_from_ultrastar_data, convert_audio_to_mono_wav, export_chunks_from_transcribed_data, remove_silence_from_transcribtion_data
+from moduls.Audio.youtube import download_youtube_video, download_youtube_audio, get_youtube_title
 from moduls.Midi import midi_creator
 from moduls.Pitcher.pitcher import get_frequency_with_high_confidence, get_pitch_with_crepe_file
 from moduls.Ultrastar import ultrastar_parser, ultrastar_converter, ultrastar_writer
-from moduls.Speech_Recognition.Vosk import transcribe_with_vosk, export_vosk_data_to_csv
-from moduls.Audio.vocal_chunks import export_chunks_from_vosk_data
+from moduls.Speech_Recognition.Vosk import transcribe_with_vosk, export_transcribed_data_to_csv
+from moduls.Speech_Recognition.hyphenation import hyphenation
+from moduls.Speech_Recognition.Whisper import transcribe_with_whisper
 from moduls.os_helper import create_folder
 from matplotlib import pyplot as plt
 from collections import Counter
 from Settings import Settings
-from moduls.Audio.youtube import download_youtube_video, download_youtube_audio, get_youtube_title
-from moduls.Speech_Recognition.hyphenate import get_hyphenate
-from moduls.Speech_Recognition.Whisper import transcribe_with_whisper
+
 
 settings = Settings()
 
@@ -50,6 +51,8 @@ def most_frequent(ar):
 
 
 def convert_ultrastar_note_numbers(midi_notes):
+    print("Creating Ultrastar notes from midi data")
+
     ultrastar_note_numbers = []
     for i in range(len(midi_notes)):
         note_number_librosa = librosa.note_to_midi(midi_notes[i])
@@ -89,8 +92,30 @@ def find_nearest_index(array, value):
         return idx
 
 
+
+def add_hyphen_to_data(transcribed_data, hyphen_words):
+    data = []
+
+    for i in range(len(transcribed_data)):
+        if not hyphen_words[i]:
+            data.append(transcribed_data[i])
+        else:
+            chunk_duration = transcribed_data[i].end - transcribed_data[i].start
+            chunk_duration = chunk_duration / (len(hyphen_words[i]))
+
+            for j in range(len(hyphen_words[i])):
+                dup = copy.copy(transcribed_data[i])
+                dup.start = transcribed_data[i].start + chunk_duration * j
+                dup.end = transcribed_data[i].end - chunk_duration * (len(hyphen_words[i]) - 1 - j)
+                dup.word = hyphen_words[i][j]
+                dup.is_hyphen = True
+                data.append(dup)
+
+    return data
+
+
 def create_midi_notes_from_pitched_data(start_times, end_times, pitched_data):
-    print("Create midi notes from pitched data")
+    print("Creating midi notes from pitched data")
 
     midi_notes = []
 
@@ -111,6 +136,7 @@ def create_midi_notes_from_pitched_data(start_times, end_times, pitched_data):
         conf_f = get_frequency_with_high_confidence(f, c)
 
         notes = convert_frequencies_to_notes(conf_f)
+
         note = most_frequent(notes)[0][0]
 
         midi_notes.append(note)
@@ -149,7 +175,7 @@ def correct_words(recognized_words, word_list_file):
 
 def print_help():
     m = '''
-    UltraSinger.py [opt] [mode] [transcription] [rec model] [pitcher] [extra]
+    UltraSinger.py [opt] [mode] [transcription] [pitcher] [extra]
     
     [opt]
     -h      This help text.
@@ -177,7 +203,8 @@ def print_help():
     --vosk      Needs model
     
     [extra]
-    (-k      Keep audio chunks) # In Progress
+    (-k             Keep audio chunks) # In Progress
+    --hyphenation   (default) True|False
     
     [pitcher]
     --crepe  (default) tiny|small|medium|large|full
@@ -244,11 +271,14 @@ def plot(input_file, vosk_transcribed_data, midi_notes):
         plt.plot([vosk_transcribed_data[i].start, vosk_transcribed_data[i].end], [nf, nf], linewidth=1, alpha=0.5)
     plt.savefig('test/pit.png', dpi=2000)
 
-def hyphenate_each_word(language, vosk_transcribed_data):
-    hyphen_words = []
-    for i in range(len(vosk_transcribed_data)):
-        hyphen_words = get_hyphenate(language, vosk_transcribed_data[i].word)
-    return hyphen_words
+
+def hyphenate_each_word(language, transcribed_data):
+    print("Hyphenation each word")
+    hyphenated_word = []
+    for i in range(len(transcribed_data)):
+        hyphenated_word.append(hyphenation(transcribed_data[i].word, language))
+    return hyphenated_word
+
 
 def do_audio_stuff():
     # Youtube
@@ -279,17 +309,24 @@ def do_audio_stuff():
 
     # Audio transcription
     if settings.transcriber == "whisper":
-        transcribed_data = transcribe_with_whisper(settings.mono_audio_path, settings.whisper_model)
-    else:   # vosk
+        transcribed_data, language = transcribe_with_whisper(settings.mono_audio_path, settings.whisper_model)
+    else:  # vosk
         transcribed_data = transcribe_with_vosk(settings.mono_audio_path, settings.vosk_model_path)
-    hyphen_words = hyphenate_each_word('en', transcribed_data)
+        # todo: make language selectable
+        language = 'en'
+
+    transcribed_data = remove_silence_from_transcribtion_data(settings.mono_audio_path, transcribed_data)
+
+    if settings.hyphenation:
+        hyphen_words = hyphenate_each_word(language, transcribed_data)
+        transcribed_data = add_hyphen_to_data(transcribed_data, hyphen_words)
 
     if settings.create_audio_chunks:
         audio_chunks_path = cache_path + '/' + settings.audio_chunk_folder_name
         create_folder(audio_chunks_path)
         csv_filename = audio_chunks_path + "/_chunks.csv"
-        export_chunks_from_vosk_data(settings.mono_audio_path, transcribed_data, audio_chunks_path)
-        export_vosk_data_to_csv(transcribed_data, csv_filename)
+        export_chunks_from_transcribed_data(settings.mono_audio_path, transcribed_data, audio_chunks_path)
+        export_transcribed_data_to_csv(transcribed_data, csv_filename)
 
     # todo: do we need to correct words?
     # lyric = 'input/faber_lyric.txt'
@@ -306,8 +343,8 @@ def do_audio_stuff():
     for i in range(len(transcribed_data)):
         start_times.append(transcribed_data[i].start)
         end_times.append(transcribed_data[i].end)
-
     midi_notes = create_midi_notes_from_pitched_data(start_times, end_times, pitched_data)
+
     ultrastar_note_numbers = convert_ultrastar_note_numbers(midi_notes)
 
     if settings.create_plot:
@@ -316,8 +353,9 @@ def do_audio_stuff():
     # Ultrastar txt creation
     real_bpm = get_bpm_from_file(ultrastar_audio_input_path)
     ultrastar_file_output = song_output + '/' + basename_without_ext + '.txt'
-    ultrastar_writer.create_txt_from_transcription(transcribed_data, ultrastar_note_numbers, ultrastar_file_output,
-                                                   basename_without_ext, real_bpm)
+    ultrastar_writer.create_ultrastar_txt_from_automation(transcribed_data, ultrastar_note_numbers,
+                                                          ultrastar_file_output,
+                                                          basename_without_ext, real_bpm)
 
     if settings.create_midi:
         ultrastar_class = ultrastar_parser.parse_ultrastar_txt(ultrastar_file_output)
@@ -328,7 +366,7 @@ def do_audio_stuff():
 
 def main(argv):
     short = "hi:o:amv:"
-    long = ["ifile=", "ofile=", "crepe_model=", "vosk=", "whisper="]
+    long = ["ifile=", "ofile=", "crepe_model=", "vosk=", "whisper=", "hyphenation="]
 
     opts, args = getopt.getopt(argv, short, long)
 
@@ -352,6 +390,8 @@ def main(argv):
             settings.vosk_model_path = arg
         elif opt in ("--crepe"):
             settings.crepe_model_capacity = arg
+        elif opt in ("--hyphenation"):
+            settings.hyphenation = arg
 
     if settings.output_file_path == '':
         if settings.input_file_path.startswith('https:'):
