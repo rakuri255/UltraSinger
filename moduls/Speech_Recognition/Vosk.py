@@ -4,12 +4,11 @@ import csv
 
 from vosk import Model, KaldiRecognizer
 from moduls.Speech_Recognition.TranscribedData import TranscribedData
-from moduls.Audio.vocal_chunks import remove_silence_from_vosk_data
 
 
 # todo: Rename to Transcoder?
 
-def export_vosk_data_to_csv(vosk_transcribed_data, filename):
+def export_transcribed_data_to_csv(vosk_transcribed_data, filename):
     """Export vosk data to csv"""
     print("Exporting Vosk data to CSV")
 
@@ -48,7 +47,7 @@ def transcribe_with_vosk(audio_filename, model_path):
     results.append(part_result)
 
     # convert list of JSON dictionaries to list of 'Word' objects
-    vosk_transcribed_data = []
+    transcribed_data = []
     for sentence in results:
         if len(sentence) == 1:
             # sometimes there are bugs in recognition
@@ -57,7 +56,8 @@ def transcribe_with_vosk(audio_filename, model_path):
             continue
         for obj in sentence['result']:
             vtd = TranscribedData(obj)  # create custom Word object
-            vosk_transcribed_data.append(vtd)  # and add it to list
+            vtd.word = vtd.word + ' '
+            transcribed_data.append(vtd)  # and add it to list
 
     # Todo: remove silent part from each word
 
@@ -66,9 +66,7 @@ def transcribe_with_vosk(audio_filename, model_path):
     # for word in vosk_transcribed_data:
     #    print(word.to_string())
 
-    vosk_transcribed_data = remove_silence_from_vosk_data(audio_filename, vosk_transcribed_data)
-
-    return vosk_transcribed_data
+    return transcribed_data
 
 
 class SpeechToText:

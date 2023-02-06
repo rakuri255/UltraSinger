@@ -22,7 +22,7 @@ You need FFmpeg installed.
 
 _Not all options working now!_
 ```commandline
-    UltraSinger.py [opt] [mode] [transcription] [rec model] [pitcher] [extra]
+    UltraSinger.py [opt] [mode] [transcription] [pitcher] [extra]
     
     [opt]
     -h      This help text.
@@ -49,15 +49,12 @@ _Not all options working now!_
     --whisper   (default) tiny|base|small|medium|large
     --vosk      Needs model
     
-    [rec model]
-    (-k      Keep audio chunks) # In Progress
-      
     [extra]
-    -k      Keep audio chunks
+    (-k             Keep audio chunks) # In Progress
+    --hyphenation   (default) True|False
     
     [pitcher]
     --crepe  (default) tiny|small|medium|large|full
-    '''
 ```
 
 ### Input
@@ -107,6 +104,17 @@ For the first test run, use the `small model`, to be accurate use the `gigaspeec
 
 ```commandline
 -i "input/music.mp3" -v "models\vosk-model-en-us-0.42-gigaspeech"
+```
+
+#### Hyphenation
+
+Is on by default. Can also be deactivated if hyphenation does not produce 
+anything useful. Note that the word is simply split, 
+without paying attention to whether the separated word really 
+starts at the place or is heard.  
+
+```commandline
+-i XYZ --hyphenation True
 ```
 
 ### Pitcher

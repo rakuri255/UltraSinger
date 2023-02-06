@@ -8,4 +8,4 @@ class TranscribedData:
         self.word = transcribed_json.get("word", transcribed_json.get("text", None))
         self.end = transcribed_json["end"]
         self.start = transcribed_json["start"]
-
+        self.is_hyphen = None
