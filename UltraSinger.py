@@ -9,19 +9,19 @@ import math
 import shutil
 import re
 
-from moduls.Audio.vocal_chunks import export_chunks_from_ultrastar_data, convert_audio_to_mono_wav, export_chunks_from_transcribed_data, remove_silence_from_transcribtion_data
+from moduls.Audio.vocal_chunks import export_chunks_from_ultrastar_data, convert_audio_to_mono_wav, \
+    export_chunks_from_transcribed_data, remove_silence_from_transcribtion_data
 from moduls.Audio.youtube import download_youtube_video, download_youtube_audio, get_youtube_title
 from moduls.Midi import midi_creator
 from moduls.Pitcher.pitcher import get_frequency_with_high_confidence, get_pitch_with_crepe_file
 from moduls.Ultrastar import ultrastar_parser, ultrastar_converter, ultrastar_writer
 from moduls.Speech_Recognition.Vosk import transcribe_with_vosk, export_transcribed_data_to_csv
-from moduls.Speech_Recognition.hyphenation import hyphenation
+from moduls.Speech_Recognition.hyphenation import hyphenation, language_check
 from moduls.Speech_Recognition.Whisper import transcribe_with_whisper
 from moduls.os_helper import create_folder
 from matplotlib import pyplot as plt
 from collections import Counter
 from Settings import Settings
-
 
 settings = Settings()
 
@@ -90,7 +90,6 @@ def find_nearest_index(array, value):
         return idx - 1
     else:
         return idx
-
 
 
 def add_hyphen_to_data(transcribed_data, hyphen_words):
@@ -272,11 +271,18 @@ def plot(input_file, vosk_transcribed_data, midi_notes):
     plt.savefig('test/pit.png', dpi=2000)
 
 
+def remove_unecessary_punctuations(transcribed_data):
+    punctuation = ".,"
+    for i in range(len(transcribed_data)):
+        transcribed_data[i].word = transcribed_data[i].word.translate({ord(i): None for i in punctuation})
+
+
 def hyphenate_each_word(language, transcribed_data):
     print("Hyphenation each word")
+    lang_region = language_check(language)
     hyphenated_word = []
     for i in range(len(transcribed_data)):
-        hyphenated_word.append(hyphenation(transcribed_data[i].word, language))
+        hyphenated_word.append(hyphenation(transcribed_data[i].word, lang_region))
     return hyphenated_word
 
 
@@ -314,6 +320,8 @@ def do_audio_stuff():
         transcribed_data = transcribe_with_vosk(settings.mono_audio_path, settings.vosk_model_path)
         # todo: make language selectable
         language = 'en'
+
+    remove_unecessary_punctuations(transcribed_data)
 
     transcribed_data = remove_silence_from_transcribtion_data(settings.mono_audio_path, transcribed_data)
 
