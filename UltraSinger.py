@@ -6,20 +6,19 @@ import Levenshtein
 import librosa
 import numpy as np
 import math
-import shutil
 import re
 
+from moduls import os_helper
 from moduls.Audio.vocal_chunks import export_chunks_from_ultrastar_data, convert_audio_to_mono_wav, \
-    export_chunks_from_transcribed_data, remove_silence_from_transcribtion_data
+    export_chunks_from_transcribed_data, remove_silence_from_transcribtion_data, convert_wav_to_mp3
 from moduls.Audio.youtube import download_youtube_video, download_youtube_audio, get_youtube_title
+from moduls.Audio.separation import separate_audio
 from moduls.Midi import midi_creator
 from moduls.Pitcher.pitcher import get_frequency_with_high_confidence, get_pitch_with_crepe_file
 from moduls.Ultrastar import ultrastar_parser, ultrastar_converter, ultrastar_writer
 from moduls.Speech_Recognition.Vosk import transcribe_with_vosk, export_transcribed_data_to_csv
 from moduls.Speech_Recognition.hyphenation import hyphenation, language_check
 from moduls.Speech_Recognition.Whisper import transcribe_with_whisper
-from moduls.os_helper import create_folder
-from moduls.Audio.separation import separate_audio
 from matplotlib import pyplot as plt
 from collections import Counter
 from Settings import Settings
@@ -228,7 +227,7 @@ def do_ultrastar_stuff():
     song_output = settings.output_file_path + '/' + ultrastar_class.artist + ' - ' + ultrastar_class.title
     cache_path = song_output + '/cache'
     settings.mono_audio_path = cache_path + '/' + basename_without_ext + '.wav'
-    create_folder(cache_path)
+    os_helper.create_folder(cache_path)
 
     audio_separation_path = cache_path + "/separated/htdemucs/" + basename_without_ext
     if settings.use_separated_vocal or settings.create_karaoke:
@@ -245,7 +244,7 @@ def do_ultrastar_stuff():
 
     if settings.create_audio_chunks:
         audio_chunks_path = cache_path + '/' + settings.audio_chunk_folder_name
-        create_folder(audio_chunks_path)
+        os_helper.create_folder(audio_chunks_path)
         export_chunks_from_ultrastar_data(ultrastar_audio_input_path, ultrastar_class, audio_chunks_path)
 
     # Pitch the audio
@@ -307,7 +306,7 @@ def do_audio_stuff():
         basename = basename_without_ext + '.mp3'
 
         song_output = settings.output_file_path + '/' + basename_without_ext
-        create_folder(song_output)
+        os_helper.create_folder(song_output)
         download_youtube_audio(settings.input_file_path, basename_without_ext, song_output)
         download_youtube_video(settings.input_file_path, basename_without_ext, song_output)
 
@@ -315,15 +314,13 @@ def do_audio_stuff():
         basename = os.path.basename(settings.input_file_path)
         basename_without_ext = os.path.splitext(basename)[0]
         song_output = settings.output_file_path + '/' + basename_without_ext
-        create_folder(song_output)
-        #todo: to OS helper
-        shutil.copy(settings.input_file_path,
-                    song_output)  # dst can be a folder; use shutil.copy2() to preserve timestamp
+        os_helper.create_folder(song_output)
+        os_helper.copy(settings.input_file_path, song_output)
 
     ultrastar_audio_input_path = song_output + '/' + basename
     cache_path = song_output + '/cache'
     settings.mono_audio_path = cache_path + '/' + basename_without_ext + '.wav'
-    create_folder(cache_path)
+    os_helper.create_folder(cache_path)
 
     audio_separation_path = cache_path + "/separated/htdemucs/" + basename_without_ext
     if settings.use_separated_vocal or settings.create_karaoke:
@@ -353,7 +350,7 @@ def do_audio_stuff():
 
     if settings.create_audio_chunks:
         audio_chunks_path = cache_path + '/' + settings.audio_chunk_folder_name
-        create_folder(audio_chunks_path)
+        os_helper.create_folder(audio_chunks_path)
         csv_filename = audio_chunks_path + "/_chunks.csv"
         export_chunks_from_transcribed_data(settings.mono_audio_path, transcribed_data, audio_chunks_path)
         export_transcribed_data_to_csv(transcribed_data, csv_filename)
@@ -386,6 +383,16 @@ def do_audio_stuff():
     ultrastar_writer.create_ultrastar_txt_from_automation(transcribed_data, ultrastar_note_numbers,
                                                           ultrastar_file_output,
                                                           basename_without_ext, real_bpm)
+    if settings.create_karaoke:
+        no_vocals_path = audio_separation_path + "/no_vocals.wav"
+        title = basename_without_ext + " [Karaoke]"
+        karaoke_output_path = song_output + '/' + title
+        karaoke_audio_output_path = karaoke_output_path + ".mp3"
+        convert_wav_to_mp3(no_vocals_path, karaoke_audio_output_path)
+        karaoke_txt_output_path = karaoke_output_path + ".txt"
+        ultrastar_writer.create_ultrastar_txt_from_automation(transcribed_data, ultrastar_note_numbers,
+                                                              karaoke_txt_output_path,
+                                                              title, real_bpm)
 
     if settings.create_midi:
         ultrastar_class = ultrastar_parser.parse_ultrastar_txt(ultrastar_file_output)

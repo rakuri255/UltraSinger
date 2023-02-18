@@ -13,5 +13,9 @@ def move(original, target):
     shutil.move(original, target)
 
 
+def copy(original, target):
+    shutil.copy(original, target)
+
+
 def current_executor_path():
     return os.getcwd()

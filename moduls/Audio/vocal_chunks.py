@@ -24,6 +24,11 @@ def convert_audio_to_mono_wav(input_file, output_file):
     sound.export(output_file, format="wav")
 
 
+def convert_wav_to_mp3(input_file, output_file):
+    sound = AudioSegment.from_wav(input_file)
+    sound.export(output_file, format="mp3")
+
+
 class AudioManipulation:
     pass
 
