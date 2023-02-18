@@ -203,8 +203,10 @@ def print_help():
     --vosk      Needs model
     
     [extra]
-    (-k             Keep audio chunks) # In Progress
-    --hyphenation   (default) True|False
+    (-k                     Keep audio chunks) # In Progress
+    --hyphenation           (default) True|False
+    --disable_separation    True|False
+    --disable_karaoke       True|False
     
     [pitcher]
     --crepe  (default) tiny|small|medium|large|full
@@ -394,7 +396,7 @@ def do_audio_stuff():
 
 def main(argv):
     short = "hi:o:amv:"
-    long = ["ifile=", "ofile=", "crepe_model=", "vosk=", "whisper=", "hyphenation="]
+    long = ["ifile=", "ofile=", "crepe_model=", "vosk=", "whisper=", "hyphenation=", "disable_separation="]
 
     opts, args = getopt.getopt(argv, short, long)
 
@@ -420,6 +422,10 @@ def main(argv):
             settings.crepe_model_capacity = arg
         elif opt in ("--hyphenation"):
             settings.hyphenation = arg
+        elif opt in ("--disable_separation"):
+            settings.use_separated_vocal = not arg
+        elif opt in ("--disable_karaoke"):
+            settings.create_karaoke = not arg
 
     if settings.output_file_path == '':
         if settings.input_file_path.startswith('https:'):

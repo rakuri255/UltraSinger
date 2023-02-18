@@ -50,8 +50,10 @@ _Not all options working now!_
     --vosk      Needs model
     
     [extra]
-    (-k             Keep audio chunks) # In Progress
-    --hyphenation   (default) True|False
+    (-k                     Keep audio chunks) # In Progress
+    --hyphenation           (default) True|False
+    --disable_separation    True|False
+    --disable_karaoke       True|False
     
     [pitcher]
     --crepe  (default) tiny|small|medium|large|full
@@ -126,4 +128,13 @@ If you want solid accurate, then use the `full` model.
 
 ```commandline
 -i XYZ --crepe full
+```
+
+### Separation
+
+The vocals are separated from the audio before they are passed to the models. If problems occur with this, 
+you have the option to disable this function and the original audio file is used instead.
+
+```commandline
+-i XYZ --disable_separation True
 ```
