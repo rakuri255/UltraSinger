@@ -3,6 +3,8 @@ class Settings:
     create_plot = False
     create_audio_chunks = False
     hyphenation = True
+    use_separated_vocal = True
+    create_karaoke = True
 
     input_file_path = ''
     output_file_path = ''

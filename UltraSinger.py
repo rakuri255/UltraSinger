@@ -19,6 +19,7 @@ from moduls.Speech_Recognition.Vosk import transcribe_with_vosk, export_transcri
 from moduls.Speech_Recognition.hyphenation import hyphenation, language_check
 from moduls.Speech_Recognition.Whisper import transcribe_with_whisper
 from moduls.os_helper import create_folder
+from moduls.Audio.separation import separate_audio
 from matplotlib import pyplot as plt
 from collections import Counter
 from Settings import Settings
@@ -226,7 +227,16 @@ def do_ultrastar_stuff():
     cache_path = song_output + '/cache'
     settings.mono_audio_path = cache_path + '/' + basename_without_ext + '.wav'
     create_folder(cache_path)
-    convert_audio_to_mono_wav(ultrastar_audio_input_path, settings.mono_audio_path)
+
+    audio_separation_path = cache_path + "/separated/htdemucs/" + basename_without_ext
+    if settings.use_separated_vocal or settings.create_karaoke:
+        separate_audio(ultrastar_audio_input_path, cache_path)
+
+    if settings.use_separated_vocal:
+        vocals_path = audio_separation_path + "/vocals.wav"
+        convert_audio_to_mono_wav(vocals_path, settings.mono_audio_path)
+    else:
+        convert_audio_to_mono_wav(ultrastar_audio_input_path, settings.mono_audio_path)
 
     # todo: here we have to remove all silance, and dont need to store it!
     # ultrastar_class = remove_silence_from_ultrastar_data(ultrastar_audio_input_path, ultrastar_class)
@@ -304,6 +314,7 @@ def do_audio_stuff():
         basename_without_ext = os.path.splitext(basename)[0]
         song_output = settings.output_file_path + '/' + basename_without_ext
         create_folder(song_output)
+        #todo: to OS helper
         shutil.copy(settings.input_file_path,
                     song_output)  # dst can be a folder; use shutil.copy2() to preserve timestamp
 
@@ -311,7 +322,16 @@ def do_audio_stuff():
     cache_path = song_output + '/cache'
     settings.mono_audio_path = cache_path + '/' + basename_without_ext + '.wav'
     create_folder(cache_path)
-    convert_audio_to_mono_wav(ultrastar_audio_input_path, settings.mono_audio_path)
+
+    audio_separation_path = cache_path + "/separated/htdemucs/" + basename_without_ext
+    if settings.use_separated_vocal or settings.create_karaoke:
+        separate_audio(ultrastar_audio_input_path, cache_path)
+
+    if settings.use_separated_vocal:
+        vocals_path = audio_separation_path + "/vocals.wav"
+        convert_audio_to_mono_wav(vocals_path, settings.mono_audio_path)
+    else:
+        convert_audio_to_mono_wav(ultrastar_audio_input_path, settings.mono_audio_path)
 
     # Audio transcription
     if settings.transcriber == "whisper":
