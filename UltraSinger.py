@@ -14,7 +14,7 @@ from moduls.Audio.separation import separate_audio
 from moduls.Midi import midi_creator
 from moduls.Midi.midi_creator import convert_frequencies_to_notes, most_frequent, create_midi_notes_from_pitched_data
 from moduls.Pitcher.pitcher import get_frequency_with_high_confidence, get_pitch_with_crepe_file
-from moduls.Ultrastar import ultrastar_parser, ultrastar_converter, ultrastar_writer, Points
+from moduls.Ultrastar import ultrastar_parser, ultrastar_converter, ultrastar_writer, ultrastar_score_calculator
 from moduls.Speech_Recognition.Vosk import transcribe_with_vosk, export_transcribed_data_to_csv
 from moduls.Speech_Recognition.hyphenation import hyphenation, language_check
 from moduls.Speech_Recognition.Whisper import transcribe_with_whisper
@@ -210,9 +210,11 @@ def do_ultrastar_stuff():
                                                               output_repitched_ultrastar)
 
     # Calc Points
-    org_points = Points.calc(pitched_data, ultrastar_class, real_bpm)
+    print("Score of original Ultrastar txt")
+    ultrastar_score_calculator.print_score_calculation(pitched_data, ultrastar_class)
     ultrastar_class = ultrastar_parser.parse_ultrastar_txt(output_repitched_ultrastar)
-    org_points = Points.calc(pitched_data, ultrastar_class, real_bpm)
+    print("Score of re-pitched Ultrastar txt")
+    ultrastar_score_calculator.print_score_calculation(pitched_data, ultrastar_class)
 
     # Midi
     if settings.create_midi:
@@ -349,8 +351,9 @@ def do_audio_stuff():
                                                               karaoke_txt_output_path,
                                                               title, real_bpm)
 
+    # Calc Points
     ultrastar_class = ultrastar_parser.parse_ultrastar_txt(ultrastar_file_output)
-    org_points = Points.calc(pitched_data, ultrastar_class, real_bpm)
+    ultrastar_score_calculator.print_score_calculation(pitched_data, ultrastar_class)
 
     if settings.create_midi:
         ultrastar_class = ultrastar_parser.parse_ultrastar_txt(ultrastar_file_output)

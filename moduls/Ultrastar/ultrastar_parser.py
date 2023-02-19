@@ -25,14 +25,15 @@ def parse_ultrastar_txt(input_file):
                 ultrastar_class.gap = line.split(':')[1].replace('\n', '')
             elif line.startswith('#BPM'):
                 ultrastar_class.bpm = line.split(':')[1].replace('\n', '')
-        elif line.startswith(':'):
+        elif line.startswith(('F', ':', '*', 'R', 'G')):
             parts = line.split()
-            # [0] :
+            # [0] F : * R G
             # [1] start beat
             # [2] duration
             # [3] pitch
             # [4] word
             if parts[0] and parts[1] and parts[2] and parts[3] and parts[4]:
+                ultrastar_class.noteType.append(parts[0])
                 ultrastar_class.startBeat.append(parts[1])
                 ultrastar_class.durations.append(parts[2])
                 ultrastar_class.pitches.append(parts[3])
