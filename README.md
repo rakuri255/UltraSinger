@@ -138,3 +138,13 @@ you have the option to disable this function and the original audio file is used
 ```commandline
 -i XYZ --disable_separation True
 ```
+
+### Ultrastar Score Calculation
+
+The score what the singer in the audio would receive will be measured. 
+You get 2 scores, simple and accurate. You wonder where the difference is? 
+Ultrastar is not interested in pitch hights. As long as it is in the pitch range A-G you get one point. 
+This makes sense for the game, because otherwise men don't get points for high female voices and women don't get points 
+for low male voices. Accurate is the real tone specified in the txt. I had txt files where the pitch was in a range not 
+singable by humans, but you could still reach the 10k points in the game. The accuracy is important here, because from
+this MIDI and sheet are created. And you also want to have accurate files
