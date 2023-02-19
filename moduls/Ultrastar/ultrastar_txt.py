@@ -10,3 +10,4 @@ class UltrastarTxt:
     durations = []
     pitches = []
     words = []
+    noteType = []

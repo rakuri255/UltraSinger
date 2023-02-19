@@ -4,8 +4,6 @@ import os
 import sys
 import Levenshtein
 import librosa
-import numpy as np
-import math
 import re
 
 from moduls import os_helper
@@ -14,13 +12,13 @@ from moduls.Audio.vocal_chunks import export_chunks_from_ultrastar_data, convert
 from moduls.Audio.youtube import download_youtube_video, download_youtube_audio, get_youtube_title
 from moduls.Audio.separation import separate_audio
 from moduls.Midi import midi_creator
+from moduls.Midi.midi_creator import convert_frequencies_to_notes, most_frequent, create_midi_notes_from_pitched_data
 from moduls.Pitcher.pitcher import get_frequency_with_high_confidence, get_pitch_with_crepe_file
-from moduls.Ultrastar import ultrastar_parser, ultrastar_converter, ultrastar_writer
+from moduls.Ultrastar import ultrastar_parser, ultrastar_converter, ultrastar_writer, ultrastar_score_calculator
 from moduls.Speech_Recognition.Vosk import transcribe_with_vosk, export_transcribed_data_to_csv
 from moduls.Speech_Recognition.hyphenation import hyphenation, language_check
 from moduls.Speech_Recognition.Whisper import transcribe_with_whisper
 from matplotlib import pyplot as plt
-from collections import Counter
 from Settings import Settings
 
 settings = Settings()
@@ -37,17 +35,6 @@ def get_confidence(pitched_data, threshold):
             conf_f.append(pitched_data.frequencies[i])
             conf_c.append(pitched_data.confidence[i])
     return conf_t, conf_f, conf_c
-
-
-def convert_frequencies_to_notes(frequency):
-    notes = []
-    for f in frequency:
-        notes.append(librosa.hz_to_note(float(f)))
-    return notes
-
-
-def most_frequent(ar):
-    return Counter(ar).most_common(1)
 
 
 def convert_ultrastar_note_numbers(midi_notes):
@@ -84,14 +71,6 @@ def pitch_each_chunk_with_crepe(directory):
     return midi_notes
 
 
-def find_nearest_index(array, value):
-    idx = np.searchsorted(array, value, side="left")
-    if idx > 0 and (idx == len(array) or math.fabs(value - array[idx - 1]) < math.fabs(value - array[idx])):
-        return idx - 1
-    else:
-        return idx
-
-
 def add_hyphen_to_data(transcribed_data, hyphen_words):
     data = []
 
@@ -111,37 +90,6 @@ def add_hyphen_to_data(transcribed_data, hyphen_words):
                 data.append(dup)
 
     return data
-
-
-def create_midi_notes_from_pitched_data(start_times, end_times, pitched_data):
-    print("Creating midi notes from pitched data")
-
-    midi_notes = []
-
-    for i in range(len(start_times)):
-        start_time = start_times[i]
-        end_time = end_times[i]
-
-        s = find_nearest_index(pitched_data.times, start_time)
-        e = find_nearest_index(pitched_data.times, end_time)
-
-        if s == e:
-            f = [pitched_data.frequencies[s]]
-            c = [pitched_data.confidence[s]]
-        else:
-            f = pitched_data.frequencies[s:e]
-            c = pitched_data.confidence[s:e]
-
-        conf_f = get_frequency_with_high_confidence(f, c)
-
-        notes = convert_frequencies_to_notes(conf_f)
-
-        note = most_frequent(notes)[0][0]
-
-        midi_notes.append(note)
-        # todo: Progress?
-        # print(filename + " f: " + str(mean))
-    return midi_notes
 
 
 def get_bpm_from_data(data, sr):
@@ -261,6 +209,14 @@ def do_ultrastar_stuff():
     ultrastar_writer.create_repitched_txt_from_ultrastar_data(settings.input_file_path, ultrastar_note_numbers,
                                                               output_repitched_ultrastar)
 
+    # Calc Points
+    print("Score of original Ultrastar txt")
+    ultrastar_score_calculator.print_score_calculation(pitched_data, ultrastar_class)
+    ultrastar_class = ultrastar_parser.parse_ultrastar_txt(output_repitched_ultrastar)
+    print("Score of re-pitched Ultrastar txt")
+    ultrastar_score_calculator.print_score_calculation(pitched_data, ultrastar_class)
+
+    # Midi
     if settings.create_midi:
         voice_instrument = [midi_creator.convert_ultrastar_to_midi_instrument(ultrastar_class)]
         midi_output = song_output + '/' + ultrastar_class.title + '.mid'
@@ -383,6 +339,7 @@ def do_audio_stuff():
     ultrastar_writer.create_ultrastar_txt_from_automation(transcribed_data, ultrastar_note_numbers,
                                                           ultrastar_file_output,
                                                           basename_without_ext, real_bpm)
+
     if settings.create_karaoke:
         no_vocals_path = audio_separation_path + "/no_vocals.wav"
         title = basename_without_ext + " [Karaoke]"
@@ -394,6 +351,10 @@ def do_audio_stuff():
                                                               karaoke_txt_output_path,
                                                               title, real_bpm)
 
+    # Calc Points
+    ultrastar_class = ultrastar_parser.parse_ultrastar_txt(ultrastar_file_output)
+    ultrastar_score_calculator.print_score_calculation(pitched_data, ultrastar_class)
+
     if settings.create_midi:
         ultrastar_class = ultrastar_parser.parse_ultrastar_txt(ultrastar_file_output)
         voice_instrument = [midi_creator.convert_ultrastar_to_midi_instrument(ultrastar_class)]
@@ -403,7 +364,7 @@ def do_audio_stuff():
 
 def main(argv):
     short = "hi:o:amv:"
-    long = ["ifile=", "ofile=", "crepe_model=", "vosk=", "whisper=", "hyphenation=", "disable_separation="]
+    long = ["ifile=", "ofile=", "crepe_model=", "vosk=", "whisper=", "hyphenation=", "disable_separation=", "disable_karaoke="]
 
     opts, args = getopt.getopt(argv, short, long)
 
