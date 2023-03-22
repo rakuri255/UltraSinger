@@ -7,7 +7,7 @@ scipy==1.10.0
 vosk==0.3.45
 tensorflow==2.11.0
 matplotlib~=3.6.3
-yt_dlp~=2023.1.6
+yt_dlp~=2023.3.4
 numpy~=1.23.5
 git+https://github.com/linto-ai/whisper-timestamped
 PyHyphen~=4.0.3
