@@ -171,18 +171,18 @@ def do_ultrastar_stuff():
     basename_without_ext = os.path.splitext(ultrastar_mp3_name)[0]
     dirname = os.path.dirname(settings.input_file_path)
 
-    ultrastar_audio_input_path = dirname + '/' + ultrastar_mp3_name
-    song_output = settings.output_file_path + '/' + ultrastar_class.artist + ' - ' + ultrastar_class.title
-    cache_path = song_output + '/cache'
-    settings.mono_audio_path = cache_path + '/' + basename_without_ext + '.wav'
+    ultrastar_audio_input_path = os.path.join(dirname, ultrastar_mp3_name)
+    song_output = os.path.join(settings.output_file_path, ultrastar_class.artist + ' - ' + ultrastar_class.title)
+    cache_path = os.path.join(song_output, 'cache')
+    settings.mono_audio_path = os.path.join(cache_path, basename_without_ext + '.wav')
     os_helper.create_folder(cache_path)
 
-    audio_separation_path = cache_path + "/separated/htdemucs/" + basename_without_ext
+    audio_separation_path = os.path.join(cache_path, "separated", "htdemucs", basename_without_ext)
     if settings.use_separated_vocal or settings.create_karaoke:
         separate_audio(ultrastar_audio_input_path, cache_path)
 
     if settings.use_separated_vocal:
-        vocals_path = audio_separation_path + "/vocals.wav"
+        vocals_path = os.path.join(audio_separation_path, "vocals.wav")
         convert_audio_to_mono_wav(vocals_path, settings.mono_audio_path)
     else:
         convert_audio_to_mono_wav(ultrastar_audio_input_path, settings.mono_audio_path)
@@ -191,7 +191,7 @@ def do_ultrastar_stuff():
     # ultrastar_class = remove_silence_from_ultrastar_data(ultrastar_audio_input_path, ultrastar_class)
 
     if settings.create_audio_chunks:
-        audio_chunks_path = cache_path + '/' + settings.audio_chunk_folder_name
+        audio_chunks_path = os.path.join(cache_path, settings.audio_chunk_folder_name)
         os_helper.create_folder(audio_chunks_path)
         export_chunks_from_ultrastar_data(ultrastar_audio_input_path, ultrastar_class, audio_chunks_path)
 
@@ -205,7 +205,7 @@ def do_ultrastar_stuff():
     ultrastar_note_numbers = convert_ultrastar_note_numbers(midi_notes)
 
     # Create new repitched ultrastar txt
-    output_repitched_ultrastar = song_output + '/' + ultrastar_class.title + '.txt'
+    output_repitched_ultrastar = os.path.join(song_output, ultrastar_class.title + '.txt')
     ultrastar_writer.create_repitched_txt_from_ultrastar_data(settings.input_file_path, ultrastar_note_numbers,
                                                               output_repitched_ultrastar)
 
@@ -219,7 +219,7 @@ def do_ultrastar_stuff():
     # Midi
     if settings.create_midi:
         voice_instrument = [midi_creator.convert_ultrastar_to_midi_instrument(ultrastar_class)]
-        midi_output = song_output + '/' + ultrastar_class.title + '.mid'
+        midi_output = os.path.join(song_output, ultrastar_class.title + '.mid')
         midi_creator.instruments_to_midi(voice_instrument, real_bpm, midi_output)
 
 
@@ -230,12 +230,12 @@ def plot(input_file, vosk_transcribed_data, midi_notes):
     plt.ylim(0, 600)
     plt.xlim(0, 50)
     plt.plot(t, f, linewidth=0.1)
-    plt.savefig('test/crepe_0.4.png')
+    plt.savefig(os.path.join("test", "crepe_0.4.png"))
 
     for i in range(len(vosk_transcribed_data)):
         nf = librosa.note_to_hz(midi_notes[i])
         plt.plot([vosk_transcribed_data[i].start, vosk_transcribed_data[i].end], [nf, nf], linewidth=1, alpha=0.5)
-    plt.savefig('test/pit.png', dpi=2000)
+    plt.savefig(os.path.join("test", "pit.png"), dpi=2000)
 
 
 def remove_unecessary_punctuations(transcribed_data):
@@ -261,7 +261,7 @@ def do_audio_stuff():
         basename_without_ext = re.sub('[^A-Za-z0-9. _-]+', '', title).strip()
         basename = basename_without_ext + '.mp3'
 
-        song_output = settings.output_file_path + '/' + basename_without_ext
+        song_output = os.path.join(settings.output_file_path, basename_without_ext)
         os_helper.create_folder(song_output)
         download_youtube_audio(settings.input_file_path, basename_without_ext, song_output)
         download_youtube_video(settings.input_file_path, basename_without_ext, song_output)
@@ -269,21 +269,21 @@ def do_audio_stuff():
     else:
         basename = os.path.basename(settings.input_file_path)
         basename_without_ext = os.path.splitext(basename)[0]
-        song_output = settings.output_file_path + '/' + basename_without_ext
+        song_output = os.path.join(settings.output_file_path, basename_without_ext)
         os_helper.create_folder(song_output)
         os_helper.copy(settings.input_file_path, song_output)
 
-    ultrastar_audio_input_path = song_output + '/' + basename
-    cache_path = song_output + '/cache'
-    settings.mono_audio_path = cache_path + '/' + basename_without_ext + '.wav'
+    ultrastar_audio_input_path = os.path.join(song_output, basename)
+    cache_path = os.path.join(song_output, 'cache')
+    settings.mono_audio_path = os.path.join(cache_path, basename_without_ext + '.wav')
     os_helper.create_folder(cache_path)
 
-    audio_separation_path = cache_path + "/separated/htdemucs/" + basename_without_ext
     if settings.use_separated_vocal or settings.create_karaoke:
         separate_audio(ultrastar_audio_input_path, cache_path)
 
+    audio_separation_path = os.path.join(cache_path, "separated", "htdemucs", basename_without_ext)
     if settings.use_separated_vocal:
-        vocals_path = audio_separation_path + "/vocals.wav"
+        vocals_path = os.path.join(audio_separation_path, "vocals.wav")
         convert_audio_to_mono_wav(vocals_path, settings.mono_audio_path)
     else:
         convert_audio_to_mono_wav(ultrastar_audio_input_path, settings.mono_audio_path)
@@ -305,9 +305,9 @@ def do_audio_stuff():
         transcribed_data = add_hyphen_to_data(transcribed_data, hyphen_words)
 
     if settings.create_audio_chunks:
-        audio_chunks_path = cache_path + '/' + settings.audio_chunk_folder_name
+        audio_chunks_path = os.path.join(cache_path, settings.audio_chunk_folder_name)
         os_helper.create_folder(audio_chunks_path)
-        csv_filename = audio_chunks_path + "/_chunks.csv"
+        csv_filename = os.path.join(audio_chunks_path, "_chunks.csv")
         export_chunks_from_transcribed_data(settings.mono_audio_path, transcribed_data, audio_chunks_path)
         export_transcribed_data_to_csv(transcribed_data, csv_filename)
 
@@ -335,15 +335,15 @@ def do_audio_stuff():
 
     # Ultrastar txt creation
     real_bpm = get_bpm_from_file(ultrastar_audio_input_path)
-    ultrastar_file_output = song_output + '/' + basename_without_ext + '.txt'
+    ultrastar_file_output = os.path.join(song_output, basename_without_ext + '.txt')
     ultrastar_writer.create_ultrastar_txt_from_automation(transcribed_data, ultrastar_note_numbers,
                                                           ultrastar_file_output,
                                                           basename_without_ext, real_bpm)
 
     if settings.create_karaoke:
-        no_vocals_path = audio_separation_path + "/no_vocals.wav"
+        no_vocals_path = os.path.join(audio_separation_path, "no_vocals.wav")
         title = basename_without_ext + " [Karaoke]"
-        karaoke_output_path = song_output + '/' + title
+        karaoke_output_path = os.path.join(song_output, title)
         karaoke_audio_output_path = karaoke_output_path + ".mp3"
         convert_wav_to_mp3(no_vocals_path, karaoke_audio_output_path)
         karaoke_txt_output_path = karaoke_output_path + ".txt"
@@ -358,7 +358,7 @@ def do_audio_stuff():
     if settings.create_midi:
         ultrastar_class = ultrastar_parser.parse_ultrastar_txt(ultrastar_file_output)
         voice_instrument = [midi_creator.convert_ultrastar_to_midi_instrument(ultrastar_class)]
-        midi_output = song_output + '/' + ultrastar_class.title + '.mid'
+        midi_output = os.path.join(song_output, ultrastar_class.title + '.mid')
         midi_creator.instruments_to_midi(voice_instrument, real_bpm, midi_output)
 
 
@@ -400,7 +400,7 @@ def main(argv):
             dirname = os.getcwd()
         else:
             dirname = os.path.dirname(settings.input_file_path)
-        settings.output_file_path = dirname + '/output'
+        settings.output_file_path = os.path.join(dirname, 'output')
 
     if ".txt" in settings.input_file_path:
         do_ultrastar_stuff()

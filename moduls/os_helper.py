@@ -19,3 +19,7 @@ def copy(original, target):
 
 def current_executor_path():
     return os.getcwd()
+
+
+def path_join(path1, path2):
+    return os.path.join(path1, path2)
