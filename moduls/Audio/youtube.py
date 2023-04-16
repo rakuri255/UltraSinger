@@ -13,10 +13,10 @@ def get_youtube_title(url):
 
 
 def download_youtube_audio(url, clear_filename, output_path):
-    print("Downloading Audio")
+    print("[UltraSinger] Downloading Audio")
     ydl_opts = {
-        'format': 'm4a/bestaudio/best',
-        'outtmpl': output_path + '/' + clear_filename + '.mp3',
+        'format': 'bestaudio/best',
+        'outtmpl': output_path + '/' + clear_filename,
         'postprocessors': [{
             'key': 'FFmpegExtractAudio',
             'preferredcodec': 'mp3'
@@ -30,7 +30,7 @@ def download_youtube_audio(url, clear_filename, output_path):
 
 
 def download_youtube_video(url, clear_filename, output_path):
-    print("Downloading Video")
+    print("[UltraSinger] Downloading Video")
     ydl_opts = {
         'format': 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/mp4',
         'outtmpl': output_path + '/' + clear_filename + '.mp4'
