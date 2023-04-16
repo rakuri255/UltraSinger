@@ -78,9 +78,9 @@ def transcribe_audio(audio_file):
         end_time = transcript['result'][0]['alternative'][0]['words'][-1]['endTime']
         return transcript['result'][0]['alternative'][0]['transcript'], start_time, end_time
     except sr.UnknownValueError:
-        print("Could not understand audio")
+        print("[UltraSinger] Could not understand audio")
     except sr.RequestError as e:
-        print("Error with recognizing service; {0}".format(e))
+        print("[UltraSinger] Error with recognizing service; {0}".format(e))
 
 
 class SpeechToText:

@@ -3,7 +3,7 @@ import shutil
 
 
 def create_folder(folder_name):
-    print("Creating output folder. -> " + folder_name)
+    print("[UltraSinger] Creating output folder. -> " + folder_name)
     is_exist = os.path.exists(folder_name)
     if not is_exist:
         os.makedirs(folder_name)

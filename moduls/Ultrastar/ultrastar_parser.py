@@ -3,7 +3,7 @@ from moduls.Ultrastar.ultrastar_converter import get_end_time_from_ultrastar, ge
 
 
 def parse_ultrastar_txt(input_file):
-    print("Parse ultrastar txt -> {}".format(input_file))
+    print("[UltraSinger] Parse ultrastar txt -> {}".format(input_file))
 
     file = open(input_file, 'r')
     txt = file.readlines()

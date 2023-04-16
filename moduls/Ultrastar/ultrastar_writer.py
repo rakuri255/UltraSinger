@@ -3,7 +3,7 @@ import re
 
 
 def create_ultrastar_txt_from_automation(transcribed_data, note_numbers, ultrastar_file_output, title, bpm=120):
-    print("Creating {} from transcription.".format(ultrastar_file_output))
+    print("[UltraSinger] Creating {} from transcription.".format(ultrastar_file_output))
 
     # todo: Optimize multiplication
     multiplication = 32
@@ -59,7 +59,7 @@ def create_ultrastar_txt_from_automation(transcribed_data, note_numbers, ultrast
 
 def create_repitched_txt_from_ultrastar_data(input_file, note_numbers, output_repitched_ultrastar):
     # todo: just add '_repitched' to input_file
-    print("Creating repitched ultrastar txt -> {}_repitch.txt".format(input_file))
+    print("[UltraSinger] Creating repitched ultrastar txt -> {}_repitch.txt".format(input_file))
 
     # todo: to reader
     file = open(input_file, 'r')

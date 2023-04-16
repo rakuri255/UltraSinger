@@ -39,11 +39,11 @@ def print_score(points):
     line_bonus = 0
     golden = points.golden_notes + points.golden_rap
     score = notes + line_bonus + golden
-    print("Total: {}, notes: {}, line bonus: {}, golden notes: {}".format(score, notes, line_bonus, golden))
+    print("[UltraSinger] Total: {}, notes: {}, line bonus: {}, golden notes: {}".format(score, notes, line_bonus, golden))
 
 
 def print_score_calculation(pitched_data, ultrastar_class):
-    print("Calculating Ultrastar Points")
+    print("[UltraSinger] Calculating Ultrastar Points")
 
     simple_points = Points()
     accurate_points = Points()
@@ -80,8 +80,8 @@ def print_score_calculation(pitched_data, ultrastar_class):
 
     # todo: line_bonus
 
-    print("Simple points")
+    print("[UltraSinger] Simple points")
     print_score(simple_points)
 
-    print("Accurate points:")
+    print("[UltraSinger] Accurate points:")
     print_score(accurate_points)

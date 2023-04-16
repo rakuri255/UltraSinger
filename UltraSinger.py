@@ -38,7 +38,7 @@ def get_confidence(pitched_data, threshold):
 
 
 def convert_ultrastar_note_numbers(midi_notes):
-    print("Creating Ultrastar notes from midi data")
+    print("[UltraSinger] Creating Ultrastar notes from midi data")
 
     ultrastar_note_numbers = []
     for i in range(len(midi_notes)):
@@ -51,7 +51,7 @@ def convert_ultrastar_note_numbers(midi_notes):
 
 
 def pitch_each_chunk_with_crepe(directory):
-    print("Pitching each chunk with crepe.")
+    print("[UltraSinger] Pitching each chunk with crepe.")
 
     midi_notes = []
     for filename in sorted([f for f in os.listdir(directory) if f.endswith('.wav')],
@@ -96,7 +96,7 @@ def get_bpm_from_data(data, sr):
     onset_env = librosa.onset.onset_strength(y=data, sr=sr)
     wav_tempo = librosa.beat.tempo(onset_envelope=onset_env, sr=sr)
 
-    print("BPM is " + str(wav_tempo[0]))
+    print("[UltraSinger] BPM is " + str(wav_tempo[0]))
     return wav_tempo[0]
 
 
@@ -210,10 +210,10 @@ def do_ultrastar_stuff():
                                                               output_repitched_ultrastar)
 
     # Calc Points
-    print("Score of original Ultrastar txt")
+    print("[UltraSinger] Score of original Ultrastar txt")
     ultrastar_score_calculator.print_score_calculation(pitched_data, ultrastar_class)
     ultrastar_class = ultrastar_parser.parse_ultrastar_txt(output_repitched_ultrastar)
-    print("Score of re-pitched Ultrastar txt")
+    print("[UltraSinger] Score of re-pitched Ultrastar txt")
     ultrastar_score_calculator.print_score_calculation(pitched_data, ultrastar_class)
 
     # Midi
@@ -245,7 +245,7 @@ def remove_unecessary_punctuations(transcribed_data):
 
 
 def hyphenate_each_word(language, transcribed_data):
-    print("Hyphenation each word")
+    print("[UltraSinger] Hyphenation each word")
     lang_region = language_check(language)
     hyphenated_word = []
     for i in range(len(transcribed_data)):

@@ -3,7 +3,7 @@ from moduls.Speech_Recognition.TranscribedData import TranscribedData
 
 
 def transcribe_with_whisper(audio, model):
-    print("Transcribing {} with whisper and model {}".format(audio, model))
+    print("[UltraSinger] Transcribing {} with whisper and model {}".format(audio, model))
 
     model = whisper.load_model(model, device="cpu")
 
@@ -18,7 +18,7 @@ def transcribe_with_whisper(audio, model):
     _, probs = model.detect_language(mel)
     language = max(probs, key=probs.get)
 
-    print(f"Detected language: {language}")
+    print(f"[UltraSinger] Detected language: {language}")
 
     results = whisper.transcribe(model, audio, language=language)
 

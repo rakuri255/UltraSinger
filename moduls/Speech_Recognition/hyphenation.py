@@ -13,9 +13,9 @@ def language_check(language='en'):
             break
 
     if lang_region is None:
-        raise Exception('Missing language "{}" for hyphen. Install it or disable hyphen.'.format(language))
+        raise Exception('[UltraSinger] Missing language "{}" for hyphen. Install it or disable hyphen.'.format(language))
 
-    print("Hyphenate using language code: {}".format(lang_region))
+    print("[UltraSinger] Hyphenate using language code: {}".format(lang_region))
     return lang_region
 
 

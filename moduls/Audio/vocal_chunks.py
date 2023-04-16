@@ -11,7 +11,7 @@ from pydub import AudioSegment
 
 def convert_audio_to_mono_wav(input_file, output_file):
     """Convert audio to mono wav"""
-    print("Converting audio for AI")
+    print("[UltraSinger] Converting audio for AI")
 
     if '.mp3' in input_file:
         sound = AudioSegment.from_mp3(input_file)
@@ -35,7 +35,7 @@ class AudioManipulation:
 
 def export_chunks_from_transcribed_data(audio_filename, vosk_transcribed_data, output_folder_name):
     """Export vosk data as vocal chunks wav files"""
-    print("Export vosk data as vocal chunks wav files")
+    print("[UltraSinger] Export vosk data as vocal chunks wav files")
 
     wf = wave.open(audio_filename, "rb")
     sr, n_channels = wf.getparams()[2], wf.getparams()[0]
@@ -51,7 +51,7 @@ def export_chunks_from_transcribed_data(audio_filename, vosk_transcribed_data, o
 
 
 def remove_silence_from_transcribtion_data(audio_path, vosk_transcribed_data):
-    print("Removing silent start and ending, from transcription data")
+    print("[UltraSinger] Removing silent start and ending, from transcription data")
 
     y, sr = librosa.load(audio_path, sr=None)
 
@@ -86,7 +86,7 @@ def remove_silence_from_transcribtion_data(audio_path, vosk_transcribed_data):
 
 def export_chunks_from_ultrastar_data(audio_filename, ultrastar_data, folder_name):
     """Export ultrastar data as vocal chunks wav files"""
-    print("Export Ultrastar data as vocal chunks wav files")
+    print("[UltraSinger] Export Ultrastar data as vocal chunks wav files")
 
     create_folder(folder_name)
 
