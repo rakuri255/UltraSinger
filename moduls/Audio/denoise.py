@@ -1,8 +1,9 @@
 import ffmpeg
+from moduls.Log import PRINT_ULTRASTAR
 
 
 def ffmpeg_reduce_noise(input_file_path, output_file):
-    print("\033[92m[UltraSinger]\033[97m Reduce noise from vocal audio")
+    print(PRINT_ULTRASTAR + " Reduce noise from vocal audio")
     (
         ffmpeg
         .input(input_file_path)

@@ -2,10 +2,10 @@ import csv
 import crepe
 from moduls.Pitcher.pitched_data import PitchedData
 from scipy.io import wavfile
-
+from moduls.Log import PRINT_ULTRASTAR
 
 def get_pitch_with_crepe_file(filename, step_size, model_capacity):
-    print("[UltraSinger] Transcribing with crepe and model {}".format(model_capacity))
+    print(PRINT_ULTRASTAR + " Transcribing with crepe and model {}".format(model_capacity))
 
     sr, audio = wavfile.read(filename)
 

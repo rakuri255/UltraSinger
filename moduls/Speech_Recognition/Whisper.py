@@ -1,9 +1,9 @@
 import whisper_timestamped as whisper
 from moduls.Speech_Recognition.TranscribedData import TranscribedData
-
+from moduls.Log import PRINT_ULTRASTAR
 
 def transcribe_with_whisper(audio, model):
-    print("[UltraSinger] Transcribing {} with whisper and model {}".format(audio, model))
+    print(PRINT_ULTRASTAR + " Transcribing {} with whisper and model {}".format(audio, model))
 
     model = whisper.load_model(model, device="cpu")
 
@@ -18,7 +18,7 @@ def transcribe_with_whisper(audio, model):
     _, probs = model.detect_language(mel)
     language = max(probs, key=probs.get)
 
-    print(f"[UltraSinger] Detected language: {language}")
+    print(PRINT_ULTRASTAR + f" Detected language: {language}")
 
     results = whisper.transcribe(model, audio, language=language)
 

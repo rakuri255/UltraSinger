@@ -4,13 +4,13 @@ import csv
 
 from vosk import Model, KaldiRecognizer
 from moduls.Speech_Recognition.TranscribedData import TranscribedData
-
+from moduls.Log import PRINT_ULTRASTAR
 
 # todo: Rename to Transcoder?
 
 def export_transcribed_data_to_csv(vosk_transcribed_data, filename):
     """Export vosk data to csv"""
-    print("[UltraSinger] Exporting Vosk data to CSV")
+    print(PRINT_ULTRASTAR + " Exporting Vosk data to CSV")
 
     with open(filename, 'w', newline='') as csvfile:
         writer = csv.writer(csvfile)
@@ -24,7 +24,7 @@ def export_transcribed_data_to_csv(vosk_transcribed_data, filename):
 
 def transcribe_with_vosk(audio_filename, model_path):
     # Code from here: https://towardsdatascience.com/speech-recognition-with-timestamps-934ede4234b2
-    print("[UltraSinger] Transcribing {} with vosk and model {}".format(audio_filename, model_path))
+    print(PRINT_ULTRASTAR + " Transcribing {} with vosk and model {}".format(audio_filename, model_path))
 
     model = Model(model_path)
     wf = wave.open(audio_filename, "rb")

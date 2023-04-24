@@ -1,6 +1,7 @@
 import speech_recognition as sr
 from pydub import AudioSegment
 from pydub.silence import split_on_silence
+from moduls.Log import PRINT_ULTRASTAR
 import os
 
 
@@ -78,9 +79,9 @@ def transcribe_audio(audio_file):
         end_time = transcript['result'][0]['alternative'][0]['words'][-1]['endTime']
         return transcript['result'][0]['alternative'][0]['transcript'], start_time, end_time
     except sr.UnknownValueError:
-        print("[UltraSinger] Could not understand audio")
+        print(PRINT_ULTRASTAR + " Could not understand audio")
     except sr.RequestError as e:
-        print("[UltraSinger] Error with recognizing service; {0}".format(e))
+        print(PRINT_ULTRASTAR + " Error with recognizing service; {0}".format(e))
 
 
 class SpeechToText:
