@@ -11,6 +11,7 @@ from moduls.Audio.vocal_chunks import export_chunks_from_ultrastar_data, convert
     export_chunks_from_transcribed_data, remove_silence_from_transcribtion_data, convert_wav_to_mp3
 from moduls.Audio.youtube import download_youtube_video, download_youtube_audio, get_youtube_title
 from moduls.Audio.separation import separate_audio
+from moduls.Audio.denoise import ffmpeg_reduce_noise
 from moduls.Midi import midi_creator
 from moduls.Midi.midi_creator import convert_frequencies_to_notes, most_frequent, create_midi_notes_from_pitched_data
 from moduls.Pitcher.pitcher import get_frequency_with_high_confidence, get_pitch_with_crepe_file
@@ -187,8 +188,10 @@ def do_ultrastar_stuff():
     else:
         convert_audio_to_mono_wav(ultrastar_audio_input_path, settings.mono_audio_path)
 
-    # todo: here we have to remove all silance, and dont need to store it!
-    # ultrastar_class = remove_silence_from_ultrastar_data(ultrastar_audio_input_path, ultrastar_class)
+    # Denoise vocal audio
+    denoised_path = os.path.join(cache_path, basename_without_ext + '_denoised.wav')
+    ffmpeg_reduce_noise(settings.mono_audio_path, denoised_path)
+    settings.mono_audio_path = denoised_path
 
     if settings.create_audio_chunks:
         audio_chunks_path = os.path.join(cache_path, settings.audio_chunk_folder_name)
@@ -287,6 +290,11 @@ def do_audio_stuff():
         convert_audio_to_mono_wav(vocals_path, settings.mono_audio_path)
     else:
         convert_audio_to_mono_wav(ultrastar_audio_input_path, settings.mono_audio_path)
+
+    # Denoise vocal audio
+    denoised_path = os.path.join(cache_path, basename_without_ext + '_denoised.wav')
+    ffmpeg_reduce_noise(settings.mono_audio_path, denoised_path)
+    settings.mono_audio_path = denoised_path
 
     # Audio transcription
     if settings.transcriber == "whisper":
