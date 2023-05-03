@@ -6,9 +6,6 @@
 
 _This project is still under development!_
 
-_The output files from the full automatic are currently not really usable!
-But it is usable for re-pitching ultrastar files._
-
 UltraSinger is a tool to automatically create UltraStar.txt, midi and notes from music. 
 It also can re-pitch current UltraStar files and calculates the possible in-game score.
 
