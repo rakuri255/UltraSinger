@@ -56,6 +56,8 @@ _Not all options working now!_
     --crepe  (default) tiny|small|medium|large|full
 ```
 
+For standard use, you only need to use [opt]. All other options are optional.
+
 ### Input
 
 #### Audio (full automatic)
@@ -120,7 +122,7 @@ starts at the place or is heard.
 
 Pitching is done with the `crepe` model. 
 Also consider that a bigger model is more accurate, but also takes longer to pitch.
-For just testing you should use `tiny`, which is currently default.
+For just testing you should use `tiny`.
 If you want solid accurate, then use the `full` model.
 
 ```commandline
