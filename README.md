@@ -104,7 +104,7 @@ Make sure you take the right language.
 For the first test run, use the `small model`, to be accurate use the `gigaspeech` model
 
 ```commandline
--i "input/music.mp3" -v "models\vosk-model-en-us-0.42-gigaspeech"
+-i XYZ -v "models\vosk-model-en-us-0.42-gigaspeech"
 ```
 
 #### Hyphenation
