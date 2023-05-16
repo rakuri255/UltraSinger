@@ -4,7 +4,7 @@ import re
 
 
 def create_ultrastar_txt_from_automation(transcribed_data, note_numbers, ultrastar_file_output, title, bpm=120):
-    print(PRINT_ULTRASTAR + " Creating {} from transcription.".format(ultrastar_file_output))
+    print("{} Creating {} from transcription.".format(PRINT_ULTRASTAR, ultrastar_file_output))
 
     # todo: Optimize multiplication
     multiplication = 32
@@ -22,11 +22,17 @@ def create_ultrastar_txt_from_automation(transcribed_data, note_numbers, ultrast
         f.write('#GAP:' + str(int(gap * 1000)) + '\n')
 
         # Write the singing part
+        previous_end_beat = 0
         for i in range(len(transcribed_data)):
             start_time = (transcribed_data[i].start - gap) * multiplication
             end_time = (transcribed_data[i].end - transcribed_data[i].start) * multiplication
-            start_beat = second_to_beat(start_time, bpm)
-            duration = second_to_beat(end_time, bpm)
+            start_beat = round(second_to_beat(start_time, bpm))
+            duration = round(second_to_beat(end_time, bpm))
+
+            # Fix the round issue, so the beats dont overlap
+            if start_beat < previous_end_beat:
+                start_beat = previous_end_beat
+            previous_end_beat = start_beat + duration
 
             # : 10 10 10 w
             # ':'   start midi part
@@ -35,8 +41,8 @@ def create_ultrastar_txt_from_automation(transcribed_data, note_numbers, ultrast
             # 'n3'  pitch where 0 == C4
             # 'w'   lyric
             f.write(': ')
-            f.write(str(round(start_beat)) + ' ')
-            f.write(str(round(duration)) + ' ')
+            f.write(str(start_beat) + ' ')
+            f.write(str(duration) + ' ')
             f.write(str(note_numbers[i]) + ' ')
             f.write(transcribed_data[i].word)
             f.write('\n')
@@ -60,7 +66,7 @@ def create_ultrastar_txt_from_automation(transcribed_data, note_numbers, ultrast
 
 def create_repitched_txt_from_ultrastar_data(input_file, note_numbers, output_repitched_ultrastar):
     # todo: just add '_repitched' to input_file
-    print(PRINT_ULTRASTAR + " Creating repitched ultrastar txt -> {}_repitch.txt".format(input_file))
+    print("{} Creating repitched ultrastar txt -> {}_repitch.txt".format(PRINT_ULTRASTAR, input_file))
 
     # todo: to reader
     file = open(input_file, 'r')

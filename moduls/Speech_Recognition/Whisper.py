@@ -1,15 +1,20 @@
 import whisper_timestamped as whisper
 from moduls.Speech_Recognition.TranscribedData import TranscribedData
 from moduls.Log import PRINT_ULTRASTAR
+from moduls.Log import print_blue_highlighted_text
 
-def transcribe_with_whisper(audio, model):
-    print(PRINT_ULTRASTAR + " Transcribing {} with whisper and model {}".format(audio, model))
+
+def transcribe_with_whisper(audioPath, model):
+    print("{} Loading {} with model {}".format(PRINT_ULTRASTAR, print_blue_highlighted_text("whisper"),
+                                               print_blue_highlighted_text(model)))
 
     model = whisper.load_model(model, device="cpu")
 
     # load audio and pad/trim it to fit 30 seconds
-    audio = whisper.load_audio(audio)
+    audio = whisper.load_audio(audioPath)
     audio_30 = whisper.pad_or_trim(audio)
+
+    print(f"{PRINT_ULTRASTAR} Start detecting language")
 
     # make log-Mel spectrogram and move to the same device as the model
     mel = whisper.log_mel_spectrogram(audio_30).to(model.device)
@@ -18,15 +23,16 @@ def transcribe_with_whisper(audio, model):
     _, probs = model.detect_language(mel)
     language = max(probs, key=probs.get)
 
-    print(PRINT_ULTRASTAR + f" Detected language: {language}")
+    print(f"{PRINT_ULTRASTAR} Detected language: {print_blue_highlighted_text(language)}")
 
+    print("{} Transcribing {}".format(PRINT_ULTRASTAR, audioPath))
     results = whisper.transcribe(model, audio, language=language)
 
     transcribed_data = []
 
     for segment in results["segments"]:
         # todo:
-        #if sentence != 'segments':
+        # if sentence != 'segments':
         #    continue
         # to class
         for obj in segment["words"]:
@@ -35,4 +41,3 @@ def transcribe_with_whisper(audio, model):
             transcribed_data.append(vtd)  # and add it to list
 
     return transcribed_data, language
-

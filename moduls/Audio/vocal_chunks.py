@@ -51,14 +51,14 @@ def export_chunks_from_transcribed_data(audio_filename, vosk_transcribed_data, o
     wf.close()
 
 
-def remove_silence_from_transcribtion_data(audio_path, vosk_transcribed_data):
+def remove_silence_from_transcribtion_data(audio_path, transcribed_data):
     print(PRINT_ULTRASTAR + " Removing silent start and ending, from transcription data")
 
     y, sr = librosa.load(audio_path, sr=None)
 
-    for i in range(len(vosk_transcribed_data)):
-        start_time = vosk_transcribed_data[i].start
-        end_time = vosk_transcribed_data[i].end
+    for i in range(len(transcribed_data)):
+        start_time = transcribed_data[i].start
+        end_time = transcribed_data[i].end
         start_sample = int(start_time * sr)
         end_sample = int(end_time * sr)
         chunk = y[start_sample:end_sample]
@@ -79,10 +79,10 @@ def remove_silence_from_transcribtion_data(audio_path, vosk_transcribed_data):
             first_silence_duration = 0
             last_silence_duration = 0
 
-        vosk_transcribed_data[i].start = vosk_transcribed_data[i].start + first_silence_duration
-        vosk_transcribed_data[i].end = vosk_transcribed_data[i].end - last_silence_duration
+        transcribed_data[i].start = transcribed_data[i].start + first_silence_duration
+        transcribed_data[i].end = transcribed_data[i].end - last_silence_duration
 
-    return vosk_transcribed_data
+    return transcribed_data
 
 
 def export_chunks_from_ultrastar_data(audio_filename, ultrastar_data, folder_name):

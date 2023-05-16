@@ -3,23 +3,29 @@ import crepe
 from moduls.Pitcher.pitched_data import PitchedData
 from scipy.io import wavfile
 from moduls.Log import PRINT_ULTRASTAR
+from moduls.Log import print_blue_highlighted_text
+
 
 def get_pitch_with_crepe_file(filename, step_size, model_capacity):
-    print(PRINT_ULTRASTAR + " Transcribing with crepe and model {}".format(model_capacity))
+    print(PRINT_ULTRASTAR + " Transcribing with {} and model {}".format(print_blue_highlighted_text("crepe"),
+                                                                        print_blue_highlighted_text(model_capacity)))
 
     sr, audio = wavfile.read(filename)
 
     pitched_data = PitchedData()
-    pitched_data.times, pitched_data.frequencies, pitched_data.confidence, activation = crepe.predict(audio, sr, model_capacity,
-                                                                              step_size=step_size,
-                                                                              viterbi=True)
+    pitched_data.times, pitched_data.frequencies, pitched_data.confidence, activation = crepe.predict(audio, sr,
+                                                                                                      model_capacity,
+                                                                                                      step_size=step_size,
+                                                                                                      viterbi=True)
     return pitched_data
 
 
 def get_pitch_with_crepe(y, sr, step_size, model_capacity):
     pitched_data = PitchedData()
-    pitched_data.times, pitched_data.frequencies, pitched_data.confidence, activation = crepe.predict(y, sr, model_capacity, step_size=step_size,
-                                                                              viterbi=True)
+    pitched_data.times, pitched_data.frequencies, pitched_data.confidence, activation = crepe.predict(y, sr,
+                                                                                                      model_capacity,
+                                                                                                      step_size=step_size,
+                                                                                                      viterbi=True)
     return pitched_data
 
 

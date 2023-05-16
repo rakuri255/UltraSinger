@@ -20,8 +20,10 @@ from moduls.Speech_Recognition.Vosk import transcribe_with_vosk, export_transcri
 from moduls.Speech_Recognition.hyphenation import hyphenation, language_check
 from moduls.Speech_Recognition.Whisper import transcribe_with_whisper
 from moduls.Log import PRINT_ULTRASTAR
+from moduls.Log import print_blue_highlighted_text
 from matplotlib import pyplot as plt
 from Settings import Settings
+from tqdm import tqdm
 
 settings = Settings()
 
@@ -53,7 +55,7 @@ def convert_ultrastar_note_numbers(midi_notes):
 
 
 def pitch_each_chunk_with_crepe(directory):
-    print(PRINT_ULTRASTAR + " Pitching each chunk with crepe.")
+    print("{} Pitching each chunk with {}.".format(PRINT_ULTRASTAR, print_blue_highlighted_text("crepe")))
 
     midi_notes = []
     for filename in sorted([f for f in os.listdir(directory) if f.endswith('.wav')],
@@ -83,10 +85,12 @@ def add_hyphen_to_data(transcribed_data, hyphen_words):
             chunk_duration = transcribed_data[i].end - transcribed_data[i].start
             chunk_duration = chunk_duration / (len(hyphen_words[i]))
 
+            next_start = transcribed_data[i].start
             for j in range(len(hyphen_words[i])):
                 dup = copy.copy(transcribed_data[i])
-                dup.start = transcribed_data[i].start + chunk_duration * j
-                dup.end = transcribed_data[i].end - chunk_duration * (len(hyphen_words[i]) - 1 - j)
+                dup.start = next_start
+                next_start = transcribed_data[i].end - chunk_duration * (len(hyphen_words[i]) - 1 - j)
+                dup.end = next_start
                 dup.word = hyphen_words[i][j]
                 dup.is_hyphen = True
                 data.append(dup)
@@ -98,7 +102,7 @@ def get_bpm_from_data(data, sr):
     onset_env = librosa.onset.onset_strength(y=data, sr=sr)
     wav_tempo = librosa.beat.tempo(onset_envelope=onset_env, sr=sr)
 
-    print(PRINT_ULTRASTAR + " BPM is " + str(wav_tempo[0]))
+    print("{} BPM is {}".format(PRINT_ULTRASTAR, print_blue_highlighted_text(str(wav_tempo[0]))))
     return wav_tempo[0]
 
 
@@ -249,10 +253,9 @@ def remove_unecessary_punctuations(transcribed_data):
 
 
 def hyphenate_each_word(language, transcribed_data):
-    print(PRINT_ULTRASTAR + " Hyphenation each word")
     lang_region = language_check(language)
     hyphenated_word = []
-    for i in range(len(transcribed_data)):
+    for i in tqdm(range(len(transcribed_data))):
         hyphenated_word.append(hyphenation(transcribed_data[i].word, lang_region))
     return hyphenated_word
 
