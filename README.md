@@ -6,9 +6,6 @@
 
 _This project is still under development!_
 
-_The output files from the full automatic are currently not really usable!
-But it is usable for re-pitching ultrastar files._
-
 UltraSinger is a tool to automatically create UltraStar.txt, midi and notes from music. 
 It also can re-pitch current UltraStar files and calculates the possible in-game score.
 
@@ -59,6 +56,8 @@ _Not all options working now!_
     --crepe  (default) tiny|small|medium|large|full
 ```
 
+For standard use, you only need to use [opt]. All other options are optional.
+
 ### Input
 
 #### Audio (full automatic)
@@ -105,7 +104,7 @@ Make sure you take the right language.
 For the first test run, use the `small model`, to be accurate use the `gigaspeech` model
 
 ```commandline
--i "input/music.mp3" -v "models\vosk-model-en-us-0.42-gigaspeech"
+-i XYZ -v "models\vosk-model-en-us-0.42-gigaspeech"
 ```
 
 #### Hyphenation
@@ -123,7 +122,7 @@ starts at the place or is heard.
 
 Pitching is done with the `crepe` model. 
 Also consider that a bigger model is more accurate, but also takes longer to pitch.
-For just testing you should use `tiny`, which is currently default.
+For just testing you should use `tiny`.
 If you want solid accurate, then use the `full` model.
 
 ```commandline
