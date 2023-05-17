@@ -376,7 +376,7 @@ def do_audio_stuff():
 
 def main(argv):
     short = "hi:o:amv:"
-    long = ["ifile=", "ofile=", "crepe_model=", "vosk=", "whisper=", "hyphenation=", "disable_separation=", "disable_karaoke="]
+    long = ["ifile=", "ofile=", "crepe=", "vosk=", "whisper=", "hyphenation=", "disable_separation=", "disable_karaoke="]
 
     opts, args = getopt.getopt(argv, short, long)
 
