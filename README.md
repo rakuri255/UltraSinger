@@ -13,7 +13,7 @@ Multiple AI models are used to extract text from the voice and to determine the 
 
 ## Requirement
 
-You need FFmpeg installed.
+FFmpeg must be installed.
 
 ## How to use
 
