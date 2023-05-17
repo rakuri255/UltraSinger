@@ -3,13 +3,15 @@ import crepe
 from moduls.Pitcher.pitched_data import PitchedData
 from scipy.io import wavfile
 from moduls.Log import PRINT_ULTRASTAR
-from moduls.Log import print_blue_highlighted_text
+from moduls.Log import print_blue_highlighted_text, print_red_highlighted_text
 
 
 def get_pitch_with_crepe_file(filename, step_size, model_capacity):
-    print(PRINT_ULTRASTAR + " Transcribing with {} and model {}".format(print_blue_highlighted_text("crepe"),
-                                                                        print_blue_highlighted_text(model_capacity)))
-
+    print("{} Transcribing with {} and model {} and {} as worker".format(PRINT_ULTRASTAR,
+                                                                         print_blue_highlighted_text("crepe"),
+                                                                         print_blue_highlighted_text(model_capacity),
+                                                                         print_red_highlighted_text("CPU")))
+    # Todo: add GPU support by using torchcrepe
     sr, audio = wavfile.read(filename)
 
     pitched_data = PitchedData()

@@ -1,14 +1,15 @@
 import whisper_timestamped as whisper
 from moduls.Speech_Recognition.TranscribedData import TranscribedData
 from moduls.Log import PRINT_ULTRASTAR
-from moduls.Log import print_blue_highlighted_text
+from moduls.Log import print_blue_highlighted_text, print_red_highlighted_text
 
 
-def transcribe_with_whisper(audioPath, model):
-    print("{} Loading {} with model {}".format(PRINT_ULTRASTAR, print_blue_highlighted_text("whisper"),
-                                               print_blue_highlighted_text(model)))
+def transcribe_with_whisper(audioPath, model, device="CPU"):
+    print("{} Loading {} with model {} and {} as worker".format(PRINT_ULTRASTAR, print_blue_highlighted_text("whisper"),
+                                                                print_blue_highlighted_text(model),
+                                                                print_red_highlighted_text(device)))
 
-    model = whisper.load_model(model, device="cpu")
+    model = whisper.load_model(model, device=device)
 
     # load audio and pad/trim it to fit 30 seconds
     audio = whisper.load_audio(audioPath)
