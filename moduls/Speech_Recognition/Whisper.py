@@ -4,7 +4,7 @@ from moduls.Log import PRINT_ULTRASTAR
 from moduls.Log import print_blue_highlighted_text, print_red_highlighted_text
 
 
-def transcribe_with_whisper(audioPath, model, device="CPU"):
+def transcribe_with_whisper(audioPath, model, device="cpu"):
     print("{} Loading {} with model {} and {} as worker".format(PRINT_ULTRASTAR, print_blue_highlighted_text("whisper"),
                                                                 print_blue_highlighted_text(model),
                                                                 print_red_highlighted_text(device)))
