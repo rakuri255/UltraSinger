@@ -152,3 +152,8 @@ This makes sense for the game, because otherwise men don't get points for high f
 for low male voices. Accurate is the real tone specified in the txt. I had txt files where the pitch was in a range not 
 singable by humans, but you could still reach the 10k points in the game. The accuracy is important here, because from
 this MIDI and sheet are created. And you also want to have accurate files
+
+### Use the source
+
+When you want to use the source than you need to install `venv` or `conda` first. 
+For VSCode look [here](https://code.visualstudio.com/docs/python/environments#_global-virtual-or-conda-environments).
