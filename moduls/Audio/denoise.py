@@ -1,5 +1,5 @@
 import ffmpeg
-from moduls.Log import PRINT_ULTRASTAR
+from moduls.Log import PRINT_ULTRASTAR, print_blue_highlighted_text
 
 
 def ffmpeg_reduce_noise(input_file_path, output_file):
@@ -13,11 +13,11 @@ def ffmpeg_reduce_noise(input_file_path, output_file):
     # track_noise, tn
     #    Enable noise floor tracking. By default is disabled. With this enabled, noise floor is automatically adjusted.
 
-    print(PRINT_ULTRASTAR + " Reduce noise from vocal audio")
+    print("{} Reduce noise from vocal audio with {}.".format(PRINT_ULTRASTAR, print_blue_highlighted_text("ffmpeg")))
     (
         ffmpeg
         .input(input_file_path)
-        .output(output_file, af='afftdn=nr=97:nf=-80:tn=1')
+        .output(output_file, af='afftdn=nr=70:nf=-50:tn=1')
         .overwrite_output()
         .run()
     )

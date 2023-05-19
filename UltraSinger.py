@@ -25,6 +25,7 @@ from matplotlib import pyplot as plt
 from Settings import Settings
 from tqdm import tqdm
 from moduls.DeviceDetection.device_detection import get_available_device
+from time import sleep
 
 settings = Settings()
 
@@ -256,6 +257,7 @@ def remove_unecessary_punctuations(transcribed_data):
 def hyphenate_each_word(language, transcribed_data):
     lang_region = language_check(language)
     hyphenated_word = []
+    sleep(.1)
     for i in tqdm(range(len(transcribed_data))):
         hyphenated_word.append(hyphenation(transcribed_data[i].word, lang_region))
     return hyphenated_word
