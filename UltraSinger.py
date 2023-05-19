@@ -24,6 +24,7 @@ from moduls.Log import print_blue_highlighted_text
 from matplotlib import pyplot as plt
 from Settings import Settings
 from tqdm import tqdm
+from moduls.DeviceDetection.device_detection import get_available_device
 
 settings = Settings()
 
@@ -302,7 +303,7 @@ def do_audio_stuff():
 
     # Audio transcription
     if settings.transcriber == "whisper":
-        transcribed_data, language = transcribe_with_whisper(settings.mono_audio_path, settings.whisper_model)
+        transcribed_data, language = transcribe_with_whisper(settings.mono_audio_path, settings.whisper_model, settings.device)
     else:  # vosk
         transcribed_data = transcribe_with_vosk(settings.mono_audio_path, settings.vosk_model_path)
         # todo: make language selectable
@@ -376,7 +377,8 @@ def do_audio_stuff():
 
 def main(argv):
     short = "hi:o:amv:"
-    long = ["ifile=", "ofile=", "crepe=", "vosk=", "whisper=", "hyphenation=", "disable_separation=", "disable_karaoke="]
+    long = ["ifile=", "ofile=", "crepe=", "vosk=", "whisper=", "hyphenation=", "disable_separation=",
+            "disable_karaoke="]
 
     opts, args = getopt.getopt(argv, short, long)
 
@@ -413,6 +415,8 @@ def main(argv):
         else:
             dirname = os.path.dirname(settings.input_file_path)
         settings.output_file_path = os.path.join(dirname, 'output')
+
+    settings.device = get_available_device()
 
     if ".txt" in settings.input_file_path:
         do_ultrastar_stuff()

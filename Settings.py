@@ -18,11 +18,13 @@ class Settings:
     whisper_model = 'large'      # Multilingual model tiny|base|small|medium|large
                                 # English-only model tiny.en|base.en|small.en|medium.en
 
-    #Vosk
+    # Vosk
     vosk_model_path = ''  # "models/vosk-model-small-en-us-0.15"
 
     # Pitch
     crepe_model_capacity = 'full'   # tiny|small|medium|large|full
     crepe_step_size = 10
 
+    # Device
+    device = 'cpu'  # cpu|cuda|gpu
 

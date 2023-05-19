@@ -10,7 +10,7 @@ def get_pitch_with_crepe_file(filename, step_size, model_capacity):
     print("{} Transcribing with {} and model {} and {} as worker".format(PRINT_ULTRASTAR,
                                                                          print_blue_highlighted_text("crepe"),
                                                                          print_blue_highlighted_text(model_capacity),
-                                                                         print_red_highlighted_text("CPU")))
+                                                                         print_red_highlighted_text("cpu")))
     # Todo: add GPU support by using torchcrepe
     sr, audio = wavfile.read(filename)
 
