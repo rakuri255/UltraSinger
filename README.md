@@ -17,6 +17,7 @@ And it helps you that this tool gets improved and maintained.
 ## Requirement
 
 Use Python 3.10
+
 FFmpeg must be installed.
 
 ## How to use
