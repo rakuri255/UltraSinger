@@ -1,20 +1,15 @@
 import tensorflow as tf
 
 from moduls.Log import PRINT_ULTRASTAR, print_red_highlighted_text
-
+import torch
 
 def get_available_device():
-    gpus = tf.config.list_physical_devices('GPU')
+    isCuda = torch.cuda.is_available()
 
-    if not gpus:
-        print("{} There are no GPUs available. Using {}.".format(PRINT_ULTRASTAR, print_red_highlighted_text("cpu")))
+    if not isCuda:
+        print("{} There are no {} devices available. -> Using {}.".format(PRINT_ULTRASTAR, print_red_highlighted_text("cuda"), print_red_highlighted_text("cpu")))
         return "cpu"
+    else:
+        print("{} Using {} GPU.".format(PRINT_ULTRASTAR, print_red_highlighted_text("cuda")))
 
-    print("{} Found available GPUs:".format(PRINT_ULTRASTAR))
-    for gpu in gpus:
-        print("Name:", gpu.name, "  Type:", gpu.device_type)
-
-    # Todo: Finish this
-    print("{} GPU usage are currently in development. Using {}".format(PRINT_ULTRASTAR,
-                                                                       print_red_highlighted_text("cpu")))
-    return "cpu"
+    return "cuda"

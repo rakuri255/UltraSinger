@@ -170,3 +170,17 @@ After that you need to install the requirements from `requirements.txt`.
 Also install ffmpeg separately.
 
 Then just use the `How to use` commands, described above.
+
+### Use GPU
+
+You need a cuda device.
+For best use you need to install the cuda driver for your gpu see [here](https://developer.nvidia.com/cuda-downloads).
+Install torch with cuda separately in your `venv`. See this [link](https://pytorch.org/get-started/locally/).
+
+Command:
+```
+pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu117
+```
+
+If program crash because of low VRAM than use a smaller model.
+Whisper needs more than 8GB VRAM in the `large` model!

@@ -5,7 +5,9 @@ pydub==0.25.1
 Levenshtein==0.20.9
 scipy==1.10.0
 vosk==0.3.45
-tensorflow~=2.11.0
+tensorflow==2.11.0
+tensorflow-directml-plugin~=0.4.0.dev230202
+#cudatoolkit==11.8.0
 matplotlib~=3.7.1
 yt_dlp~=2023.3.4
 numpy~=1.23.5
@@ -13,3 +15,4 @@ git+https://github.com/linto-ai/whisper-timestamped
 PyHyphen~=4.0.3
 demucs~=4.0.0
 tqdm~=4.65.0
+torchaudio~=2.0.2

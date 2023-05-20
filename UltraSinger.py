@@ -283,7 +283,7 @@ def transcribe_audio(transcribed_data):
 def separate_vocal_from_audio(basename_without_ext, cache_path, ultrastar_audio_input_path):
     audio_separation_path = os.path.join(cache_path, "separated", "htdemucs", basename_without_ext)
     if settings.use_separated_vocal or settings.create_karaoke:
-        separate_audio(ultrastar_audio_input_path, cache_path)
+        separate_audio(ultrastar_audio_input_path, cache_path, settings.device)
     if settings.use_separated_vocal:
         vocals_path = os.path.join(audio_separation_path, "vocals.wav")
         convert_audio_to_mono_wav(vocals_path, settings.mono_audio_path)
