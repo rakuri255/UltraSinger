@@ -1,3 +1,4 @@
+import csv
 import os
 import wave
 import re
@@ -34,19 +35,19 @@ class AudioManipulation:
     pass
 
 
-def export_chunks_from_transcribed_data(audio_filename, vosk_transcribed_data, output_folder_name):
-    """Export vosk data as vocal chunks wav files"""
-    print(PRINT_ULTRASTAR + " Export vosk data as vocal chunks wav files")
+def export_chunks_from_transcribed_data(audio_filename, transcribed_data, output_folder_name):
+    """Export transcribed_data as vocal chunks wav files"""
+    print("{} Export transcribed data as vocal chunks wav files".format(PRINT_ULTRASTAR))
 
     wf = wave.open(audio_filename, "rb")
     sr, n_channels = wf.getparams()[2], wf.getparams()[0]
 
-    for i in range(len(vosk_transcribed_data)):
-        start_byte = int(vosk_transcribed_data[i].start * sr * n_channels)
-        end_byte = int(vosk_transcribed_data[i].end * sr * n_channels)
+    for i in range(len(transcribed_data)):
+        start_byte = int(transcribed_data[i].start * sr * n_channels)
+        end_byte = int(transcribed_data[i].end * sr * n_channels)
 
         chunk = get_chunk(end_byte, start_byte, wf)
-        export_chunk_to_wav_file(chunk, output_folder_name, i, vosk_transcribed_data[i].word, wf)
+        export_chunk_to_wav_file(chunk, output_folder_name, i, transcribed_data[i].word, wf)
 
     wf.close()
 
@@ -127,3 +128,17 @@ def get_chunk(end_byte, start_byte, wf):
     wf.setpos(start_byte)  # ({:.2f})
     chunk = wf.readframes(end_byte - start_byte)
     return chunk
+
+
+def export_transcribed_data_to_csv(transcribed_data, filename):
+    """Export transcribed data to csv"""
+    print(PRINT_ULTRASTAR + " Exporting transcribed data to CSV")
+
+    with open(filename, 'w', newline='') as csvfile:
+        writer = csv.writer(csvfile)
+        header = ["word", "start", "end", "confidence"]
+        writer.writerow(header)
+        for i in range(len(transcribed_data)):
+            writer.writerow(
+                [transcribed_data[i].word, transcribed_data[i].start, transcribed_data[i].end,
+                 transcribed_data[i].conf])

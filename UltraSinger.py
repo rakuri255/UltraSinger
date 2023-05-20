@@ -8,7 +8,8 @@ import re
 
 from moduls import os_helper
 from moduls.Audio.vocal_chunks import export_chunks_from_ultrastar_data, convert_audio_to_mono_wav, \
-    export_chunks_from_transcribed_data, remove_silence_from_transcribtion_data, convert_wav_to_mp3
+    export_chunks_from_transcribed_data, remove_silence_from_transcribtion_data, convert_wav_to_mp3, \
+    export_transcribed_data_to_csv
 from moduls.Audio.youtube import download_youtube_video, download_youtube_audio, get_youtube_title
 from moduls.Audio.separation import separate_audio
 from moduls.Audio.denoise import ffmpeg_reduce_noise
@@ -16,7 +17,7 @@ from moduls.Midi import midi_creator
 from moduls.Midi.midi_creator import convert_frequencies_to_notes, most_frequent, create_midi_notes_from_pitched_data
 from moduls.Pitcher.pitcher import get_frequency_with_high_confidence, get_pitch_with_crepe_file
 from moduls.Ultrastar import ultrastar_parser, ultrastar_converter, ultrastar_writer, ultrastar_score_calculator
-from moduls.Speech_Recognition.Vosk import transcribe_with_vosk, export_transcribed_data_to_csv
+from moduls.Speech_Recognition.Vosk import transcribe_with_vosk
 from moduls.Speech_Recognition.hyphenation import hyphenation, language_check
 from moduls.Speech_Recognition.Whisper import transcribe_with_whisper
 from moduls.Log import PRINT_ULTRASTAR, print_blue_highlighted_text, print_gold_highlighted_text
@@ -421,7 +422,7 @@ def main(argv):
 def init_settings(argv):
     short = "hi:o:amv:"
     long = ["ifile=", "ofile=", "crepe=", "vosk=", "whisper=", "hyphenation=", "disable_separation=",
-            "disable_karaoke="]
+            "disable_karaoke=", "create_audio_chunks="]
     opts, args = getopt.getopt(argv, short, long)
     if len(opts) == 0:
         print_help()
@@ -448,6 +449,8 @@ def init_settings(argv):
             settings.use_separated_vocal = not arg
         elif opt in ("--disable_karaoke"):
             settings.create_karaoke = not arg
+        elif opt in ("--create_audio_chunks"):
+            settings.create_audio_chunks = arg
     if settings.output_file_path == '':
         if settings.input_file_path.startswith('https:'):
             dirname = os.getcwd()

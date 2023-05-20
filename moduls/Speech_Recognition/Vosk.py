@@ -1,25 +1,12 @@
 import wave
 import json
-import csv
 
 from vosk import Model, KaldiRecognizer
 from moduls.Speech_Recognition.TranscribedData import TranscribedData
 from moduls.Log import PRINT_ULTRASTAR
 
+
 # todo: Rename to Transcoder?
-
-def export_transcribed_data_to_csv(vosk_transcribed_data, filename):
-    """Export vosk data to csv"""
-    print(PRINT_ULTRASTAR + " Exporting Vosk data to CSV")
-
-    with open(filename, 'w', newline='') as csvfile:
-        writer = csv.writer(csvfile)
-        header = ["word", "start", "end", "confidence"]
-        writer.writerow(header)
-        for i in range(len(vosk_transcribed_data)):
-            writer.writerow(
-                [vosk_transcribed_data[i].word, vosk_transcribed_data[i].start, vosk_transcribed_data[i].end,
-                 vosk_transcribed_data[i].conf])
 
 
 def transcribe_with_vosk(audio_filename, model_path):

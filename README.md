@@ -60,7 +60,7 @@ _Not all options working now!_
     --hyphenation           True|False >> ((default) is True)
     --disable_separation    True|False >> ((default) is False)
     --disable_karaoke       True|False >> ((default) is False)
-    (-k                     Keep audio chunks) # In Progress
+    --create_audio_chunks   True|False >> ((default) is False)
 
     [pitcher]
     # Default is crepe full
