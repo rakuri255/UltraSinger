@@ -2,7 +2,7 @@
 
 # UltraSinger 
 
-_This project is still under development!_
+> ⚠️ _This project is still under development!_
 
 UltraSinger is a tool to automatically create UltraStar.txt, midi and notes from music. 
 It also can re-pitch current UltraStar files and calculates the possible in-game score.
@@ -13,7 +13,7 @@ Please mention UltraSinger in your UltraStar.txt file if you use it. It helps ot
 And it helps you that this tool gets improved and maintained.
 
 ## Support
-There are many ways to support a project. Starring⭐️ the repo is just one 🙏
+There are many ways to support a project. Starring ⭐️ the repo is just one 🙏
 
 You can also support this work on Patreon or Buy Me A Coffee.
 

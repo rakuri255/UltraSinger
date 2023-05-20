@@ -227,7 +227,17 @@ def run():
     # Audio transcription
     transcribed_data = None
     if isAudio:
-        transcribed_data = transcribe_audio()
+        language, transcribed_data = transcribe_audio(transcribed_data)
+        remove_unecessary_punctuations(transcribed_data)
+        transcribed_data = remove_silence_from_transcribtion_data(settings.mono_audio_path, transcribed_data)
+
+        if settings.hyphenation:
+            hyphen_words = hyphenate_each_word(language, transcribed_data)
+            transcribed_data = add_hyphen_to_data(transcribed_data, hyphen_words)
+
+        # todo: do we need to correct words?
+        # lyric = 'input/faber_lyric.txt'
+        # --corrected_words = correct_words(vosk_speech, lyric)
 
     # Create audio chunks
     if settings.create_audio_chunks:
@@ -257,6 +267,17 @@ def run():
     # Midi
     if settings.create_midi:
         create_midi_file(isAudio, real_bpm, song_output, ultrastar_class)
+
+
+def transcribe_audio(transcribed_data):
+    if settings.transcriber == "whisper":
+        transcribed_data, language = transcribe_with_whisper(settings.mono_audio_path, settings.whisper_model,
+                                                             settings.device)
+    else:  # vosk
+        transcribed_data = transcribe_with_vosk(settings.mono_audio_path, settings.vosk_model_path)
+        # todo: make language selectable
+        language = 'en'
+    return language, transcribed_data
 
 
 def separate_vocal_from_audio(basename_without_ext, cache_path, ultrastar_audio_input_path):
@@ -385,25 +406,6 @@ def create_audio_chunks(cache_path, isAudio, transcribed_data, ultrastar_audio_i
         export_transcribed_data_to_csv(transcribed_data, csv_filename)
     else:
         export_chunks_from_ultrastar_data(ultrastar_audio_input_path, ultrastar_class, audio_chunks_path)
-
-
-def transcribe_audio():
-    if settings.transcriber == "whisper":
-        transcribed_data, language = transcribe_with_whisper(settings.mono_audio_path, settings.whisper_model,
-                                                             settings.device)
-    else:  # vosk
-        transcribed_data = transcribe_with_vosk(settings.mono_audio_path, settings.vosk_model_path)
-        # todo: make language selectable
-        language = 'en'
-    remove_unecessary_punctuations(transcribed_data)
-    transcribed_data = remove_silence_from_transcribtion_data(settings.mono_audio_path, transcribed_data)
-    if settings.hyphenation:
-        hyphen_words = hyphenate_each_word(language, transcribed_data)
-        transcribed_data = add_hyphen_to_data(transcribed_data, hyphen_words)
-    # todo: do we need to correct words?
-    # lyric = 'input/faber_lyric.txt'
-    # --corrected_words = correct_words(vosk_speech, lyric)
-    return transcribed_data
 
 
 def denoise_vocal_audio(basename_without_ext, cache_path):
