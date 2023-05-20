@@ -2,8 +2,6 @@
 
 # UltraSinger 
 
-<a href="https://www.buymeacoffee.com/rakuri255" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" style="height: 60px !important;width: 217px !important;" ></a>
-
 _This project is still under development!_
 
 UltraSinger is a tool to automatically create UltraStar.txt, midi and notes from music. 
@@ -14,11 +12,15 @@ Multiple AI models are used to extract text from the voice and to determine the 
 Please mention UltraSinger in your UltraStar.txt file if you use it. It helps other to find this tool.
 And it helps you that this tool gets improved and maintained.
 
-## Requirement
+## Support
+There are many ways to support a project. Starring⭐️ the repo is just one 🙏
 
-Use Python 3.10
+You can also support this work on Patreon or Buy Me A Coffee.
 
-FFmpeg must be installed.
+This will help me alot to keep this project alive and improve it.
+
+<a href="https://www.buymeacoffee.com/rakuri255" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" style="height: 60px !important;width: 217px !important;" ></a>
+<a href="https://patreon.com/Rakuri"><img src="https://raw.githubusercontent.com/rakuri255/UltraSinger/main/assets/patreon.png" alt="Become a Patron" style="height: 60px !important;width: 217px !important;"/> </a>
 
 ## How to use
 
@@ -157,9 +159,14 @@ for low male voices. Accurate is the real tone specified in the txt. I had txt f
 singable by humans, but you could still reach the 10k points in the game. The accuracy is important here, because from
 this MIDI and sheet are created. And you also want to have accurate files
 
-### How to use this source code
+## How to use this source code
 
-For using the source code you need to install `venv` or `conda` first. 
+Install Python 3.10 (older and newer versions has some breaking changes).
+You should install and use `venv` or `conda`. 
 For VSCode look [here](https://code.visualstudio.com/docs/python/environments#_global-virtual-or-conda-environments).
 
-Also install ffmpeg.
+After that you need to install the requirements from `requirements.txt`.
+
+Also install ffmpeg separately.
+
+Then just use the `How to use` commands, described above.
