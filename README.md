@@ -173,14 +173,20 @@ Then just use the `How to use` commands, described above.
 
 ### Use GPU
 
-You need a cuda device.
+With an GPU you can speed up the process and also the quality of the transcription and pitching is better.
+
+You need a cuda device for this to work.
 For best use you need to install the cuda driver for your gpu see [here](https://developer.nvidia.com/cuda-downloads).
 Install torch with cuda separately in your `venv`. See this [link](https://pytorch.org/get-started/locally/).
 
-Command:
+Command for `pip`:
 ```
 pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu117
 ```
 
-If program crash because of low VRAM than use a smaller model.
+When you want to use `conda` instead you need a different installation command. See this [link](https://pytorch.org/get-started/locally/).
+
+#### Info
+
+If somthing crash because of low VRAM than use a smaller model.
 Whisper needs more than 8GB VRAM in the `large` model!
