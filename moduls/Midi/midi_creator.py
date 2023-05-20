@@ -28,7 +28,7 @@ def convert_ultrastar_to_midi_instrument(ultrastar_class):
 
 
 def instruments_to_midi(instruments, bpm, midi_output):
-    print(PRINT_ULTRASTAR + " Creating midi file -> {}".format(midi_output))
+    print("{} Creating midi file -> {}".format(PRINT_ULTRASTAR, midi_output))
 
     midi_data = pretty_midi.PrettyMIDI(initial_tempo=bpm)
     for instrument in instruments:

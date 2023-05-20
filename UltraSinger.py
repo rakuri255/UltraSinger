@@ -19,8 +19,7 @@ from moduls.Ultrastar import ultrastar_parser, ultrastar_converter, ultrastar_wr
 from moduls.Speech_Recognition.Vosk import transcribe_with_vosk, export_transcribed_data_to_csv
 from moduls.Speech_Recognition.hyphenation import hyphenation, language_check
 from moduls.Speech_Recognition.Whisper import transcribe_with_whisper
-from moduls.Log import PRINT_ULTRASTAR
-from moduls.Log import print_blue_highlighted_text
+from moduls.Log import PRINT_ULTRASTAR, print_blue_highlighted_text, print_gold_highlighted_text
 from matplotlib import pyplot as plt
 from Settings import Settings
 from tqdm import tqdm
@@ -169,70 +168,6 @@ def print_help():
     print(m)
 
 
-def do_ultrastar_stuff():
-    # Parse Ultrastar txt
-    ultrastar_class = ultrastar_parser.parse_ultrastar_txt(settings.input_file_path)
-    real_bpm = ultrastar_converter.ultrastar_bpm_to_real_bpm(float(ultrastar_class.bpm.replace(',', '.')))
-
-    # todo: duplicate code
-    ultrastar_mp3_name = ultrastar_class.mp3
-    basename_without_ext = os.path.splitext(ultrastar_mp3_name)[0]
-    dirname = os.path.dirname(settings.input_file_path)
-
-    ultrastar_audio_input_path = os.path.join(dirname, ultrastar_mp3_name)
-    song_output = os.path.join(settings.output_file_path, ultrastar_class.artist + ' - ' + ultrastar_class.title)
-    cache_path = os.path.join(song_output, 'cache')
-    settings.mono_audio_path = os.path.join(cache_path, basename_without_ext + '.wav')
-    os_helper.create_folder(cache_path)
-
-    audio_separation_path = os.path.join(cache_path, "separated", "htdemucs", basename_without_ext)
-    if settings.use_separated_vocal or settings.create_karaoke:
-        separate_audio(ultrastar_audio_input_path, cache_path)
-
-    if settings.use_separated_vocal:
-        vocals_path = os.path.join(audio_separation_path, "vocals.wav")
-        convert_audio_to_mono_wav(vocals_path, settings.mono_audio_path)
-    else:
-        convert_audio_to_mono_wav(ultrastar_audio_input_path, settings.mono_audio_path)
-
-    # Denoise vocal audio
-    denoised_path = os.path.join(cache_path, basename_without_ext + '_denoised.wav')
-    ffmpeg_reduce_noise(settings.mono_audio_path, denoised_path)
-    settings.mono_audio_path = denoised_path
-
-    if settings.create_audio_chunks:
-        audio_chunks_path = os.path.join(cache_path, settings.audio_chunk_folder_name)
-        os_helper.create_folder(audio_chunks_path)
-        export_chunks_from_ultrastar_data(ultrastar_audio_input_path, ultrastar_class, audio_chunks_path)
-
-    # Pitch the audio
-    # todo: chunk pitching as option?
-    # midi_notes = pitch_each_chunk_with_crepe(chunk_folder_name)
-    pitched_data = get_pitch_with_crepe_file(settings.mono_audio_path, settings.crepe_step_size,
-                                             settings.crepe_model_capacity)
-
-    midi_notes = create_midi_notes_from_pitched_data(ultrastar_class.startTimes, ultrastar_class.endTimes, pitched_data)
-    ultrastar_note_numbers = convert_ultrastar_note_numbers(midi_notes)
-
-    # Create new repitched ultrastar txt
-    output_repitched_ultrastar = os.path.join(song_output, ultrastar_class.title + '.txt')
-    ultrastar_writer.create_repitched_txt_from_ultrastar_data(settings.input_file_path, ultrastar_note_numbers,
-                                                              output_repitched_ultrastar)
-
-    # Calc Points
-    print(PRINT_ULTRASTAR + " Score of original Ultrastar txt")
-    ultrastar_score_calculator.print_score_calculation(pitched_data, ultrastar_class)
-    ultrastar_class = ultrastar_parser.parse_ultrastar_txt(output_repitched_ultrastar)
-    print(PRINT_ULTRASTAR + " Score of re-pitched Ultrastar txt")
-    ultrastar_score_calculator.print_score_calculation(pitched_data, ultrastar_class)
-
-    # Midi
-    if settings.create_midi:
-        voice_instrument = [midi_creator.convert_ultrastar_to_midi_instrument(ultrastar_class)]
-        midi_output = os.path.join(song_output, ultrastar_class.title + '.mid')
-        midi_creator.instruments_to_midi(voice_instrument, real_bpm, midi_output)
-
-
 def plot(input_file, vosk_transcribed_data, midi_notes):
     pitched_data = get_pitch_with_crepe_file(input_file, settings.crepe_step_size, settings.crepe_model_capacity)
     t, f, c = get_confidence(pitched_data, 0.4)
@@ -263,98 +198,105 @@ def hyphenate_each_word(language, transcribed_data):
     return hyphenated_word
 
 
-def do_audio_stuff():
-    # Youtube
-    if settings.input_file_path.startswith('https:'):
-        title = get_youtube_title(settings.input_file_path)
+def run():
+    isAudio = ".txt" not in settings.input_file_path
+    ultrastar_class = None
+    real_bpm = None
 
-        basename_without_ext = re.sub('[^A-Za-z0-9. _-]+', '', title).strip()
-        basename = basename_without_ext + '.mp3'
+    if not isAudio:  # Parse Ultrastar txt
+        print("{} {}".format(PRINT_ULTRASTAR, print_gold_highlighted_text("re-pitch mode")))
+        basename_without_ext, real_bpm, song_output, ultrastar_audio_input_path, ultrastar_class = parse_ultrastar_txt()
+    elif settings.input_file_path.startswith('https:'):  # Youtube
+        print("{} {}".format(PRINT_ULTRASTAR, print_gold_highlighted_text("full automatic mode")))
+        basename_without_ext, song_output, ultrastar_audio_input_path = download_from_youtube()
+    else:  # Audio File
+        print("{} {}".format(PRINT_ULTRASTAR, print_gold_highlighted_text("full automatic mode")))
+        basename_without_ext, song_output, ultrastar_audio_input_path = setup_audio_input_file()
 
-        song_output = os.path.join(settings.output_file_path, basename_without_ext)
-        os_helper.create_folder(song_output)
-        download_youtube_audio(settings.input_file_path, basename_without_ext, song_output)
-        download_youtube_video(settings.input_file_path, basename_without_ext, song_output)
-
-    else:
-        basename = os.path.basename(settings.input_file_path)
-        basename_without_ext = os.path.splitext(basename)[0]
-        song_output = os.path.join(settings.output_file_path, basename_without_ext)
-        os_helper.create_folder(song_output)
-        os_helper.copy(settings.input_file_path, song_output)
-
-    ultrastar_audio_input_path = os.path.join(song_output, basename)
     cache_path = os.path.join(song_output, 'cache')
     settings.mono_audio_path = os.path.join(cache_path, basename_without_ext + '.wav')
     os_helper.create_folder(cache_path)
 
+    # Separate vocal from audio
+    audio_separation_path = separate_vocal_from_audio(basename_without_ext, cache_path, ultrastar_audio_input_path)
+
+    # Denoise vocal audio
+    denoise_vocal_audio(basename_without_ext, cache_path)
+
+    # Audio transcription
+    transcribed_data = None
+    if isAudio:
+        transcribed_data = transcribe_audio()
+
+    # Create audio chunks
+    if settings.create_audio_chunks:
+        create_audio_chunks(cache_path, isAudio, transcribed_data, ultrastar_audio_input_path, ultrastar_class)
+
+    # Pitch the audio
+    midi_notes, pitched_data, ultrastar_note_numbers = pitch_audio(isAudio, transcribed_data, ultrastar_class)
+
+    # Create plot
+    if isAudio and settings.create_plot:
+        plot(ultrastar_audio_input_path, transcribed_data, midi_notes)
+
+    # Write Ultrastar txt
+    if isAudio:
+        real_bpm, ultrastar_file_output = create_ultrastar_txt_from_automation(audio_separation_path,
+                                                                               basename_without_ext, real_bpm,
+                                                                               song_output, transcribed_data,
+                                                                               ultrastar_audio_input_path,
+                                                                               ultrastar_note_numbers)
+    else:
+        ultrastar_file_output = create_ultrastar_txt_from_ultrastar_data(song_output, ultrastar_class,
+                                                                         ultrastar_note_numbers)
+
+    # Calc Points
+    ultrastar_class = calculate_score_points(isAudio, pitched_data, ultrastar_class, ultrastar_file_output)
+
+    # Midi
+    if settings.create_midi:
+        create_midi_file(isAudio, real_bpm, song_output, ultrastar_class)
+
+
+def separate_vocal_from_audio(basename_without_ext, cache_path, ultrastar_audio_input_path):
+    audio_separation_path = os.path.join(cache_path, "separated", "htdemucs", basename_without_ext)
     if settings.use_separated_vocal or settings.create_karaoke:
         separate_audio(ultrastar_audio_input_path, cache_path)
-
-    audio_separation_path = os.path.join(cache_path, "separated", "htdemucs", basename_without_ext)
     if settings.use_separated_vocal:
         vocals_path = os.path.join(audio_separation_path, "vocals.wav")
         convert_audio_to_mono_wav(vocals_path, settings.mono_audio_path)
     else:
         convert_audio_to_mono_wav(ultrastar_audio_input_path, settings.mono_audio_path)
+    return audio_separation_path
 
-    # Denoise vocal audio
-    denoised_path = os.path.join(cache_path, basename_without_ext + '_denoised.wav')
-    ffmpeg_reduce_noise(settings.mono_audio_path, denoised_path)
-    settings.mono_audio_path = denoised_path
 
-    # Audio transcription
-    if settings.transcriber == "whisper":
-        transcribed_data, language = transcribe_with_whisper(settings.mono_audio_path, settings.whisper_model, settings.device)
-    else:  # vosk
-        transcribed_data = transcribe_with_vosk(settings.mono_audio_path, settings.vosk_model_path)
-        # todo: make language selectable
-        language = 'en'
+def calculate_score_points(isAudio, pitched_data, ultrastar_class, ultrastar_file_output):
+    if isAudio:
+        ultrastar_class = ultrastar_parser.parse_ultrastar_txt(ultrastar_file_output)
+        ultrastar_score_calculator.print_score_calculation(pitched_data, ultrastar_class)
+    else:
+        print("{} {}".format(PRINT_ULTRASTAR, print_blue_highlighted_text("Score of original Ultrastar txt")))
+        ultrastar_score_calculator.print_score_calculation(pitched_data, ultrastar_class)
+        print("{} {}".format(PRINT_ULTRASTAR, print_blue_highlighted_text("Score of re-pitched Ultrastar txt")))
+        ultrastar_class = ultrastar_parser.parse_ultrastar_txt(ultrastar_file_output)
+        ultrastar_score_calculator.print_score_calculation(pitched_data, ultrastar_class)
+    return ultrastar_class
 
-    remove_unecessary_punctuations(transcribed_data)
 
-    transcribed_data = remove_silence_from_transcribtion_data(settings.mono_audio_path, transcribed_data)
+def create_ultrastar_txt_from_ultrastar_data(song_output, ultrastar_class, ultrastar_note_numbers):
+    output_repitched_ultrastar = os.path.join(song_output, ultrastar_class.title + '.txt')
+    ultrastar_writer.create_repitched_txt_from_ultrastar_data(settings.input_file_path, ultrastar_note_numbers,
+                                                              output_repitched_ultrastar)
+    return output_repitched_ultrastar
 
-    if settings.hyphenation:
-        hyphen_words = hyphenate_each_word(language, transcribed_data)
-        transcribed_data = add_hyphen_to_data(transcribed_data, hyphen_words)
 
-    if settings.create_audio_chunks:
-        audio_chunks_path = os.path.join(cache_path, settings.audio_chunk_folder_name)
-        os_helper.create_folder(audio_chunks_path)
-        csv_filename = os.path.join(audio_chunks_path, "_chunks.csv")
-        export_chunks_from_transcribed_data(settings.mono_audio_path, transcribed_data, audio_chunks_path)
-        export_transcribed_data_to_csv(transcribed_data, csv_filename)
-
-    # todo: do we need to correct words?
-    # lyric = 'input/faber_lyric.txt'
-    # --corrected_words = correct_words(vosk_speech, lyric)
-
-    # Pitch detection
-    # todo: chunk pitching as option?
-    # midi_notes = pitch_each_chunk_with_crepe(chunk_folder_name)
-    pitched_data = get_pitch_with_crepe_file(settings.mono_audio_path, settings.crepe_step_size,
-                                             settings.crepe_model_capacity)
-
-    start_times = []
-    end_times = []
-    for i in range(len(transcribed_data)):
-        start_times.append(transcribed_data[i].start)
-        end_times.append(transcribed_data[i].end)
-    midi_notes = create_midi_notes_from_pitched_data(start_times, end_times, pitched_data)
-
-    ultrastar_note_numbers = convert_ultrastar_note_numbers(midi_notes)
-
-    if settings.create_plot:
-        plot(ultrastar_audio_input_path, transcribed_data, midi_notes)
-
-    # Ultrastar txt creation
+def create_ultrastar_txt_from_automation(audio_separation_path, basename_without_ext, real_bpm, song_output,
+                                         transcribed_data, ultrastar_audio_input_path, ultrastar_note_numbers):
     real_bpm = get_bpm_from_file(ultrastar_audio_input_path)
     ultrastar_file_output = os.path.join(song_output, basename_without_ext + '.txt')
     ultrastar_writer.create_ultrastar_txt_from_automation(transcribed_data, ultrastar_note_numbers,
                                                           ultrastar_file_output,
                                                           basename_without_ext, real_bpm)
-
     if settings.create_karaoke:
         no_vocals_path = os.path.join(audio_separation_path, "no_vocals.wav")
         title = basename_without_ext + " [Karaoke]"
@@ -365,29 +307,125 @@ def do_audio_stuff():
         ultrastar_writer.create_ultrastar_txt_from_automation(transcribed_data, ultrastar_note_numbers,
                                                               karaoke_txt_output_path,
                                                               title, real_bpm)
+    return real_bpm, ultrastar_file_output
 
-    # Calc Points
-    ultrastar_class = ultrastar_parser.parse_ultrastar_txt(ultrastar_file_output)
-    ultrastar_score_calculator.print_score_calculation(pitched_data, ultrastar_class)
 
-    if settings.create_midi:
-        ultrastar_class = ultrastar_parser.parse_ultrastar_txt(ultrastar_file_output)
+def setup_audio_input_file():
+    basename = os.path.basename(settings.input_file_path)
+    basename_without_ext = os.path.splitext(basename)[0]
+    song_output = os.path.join(settings.output_file_path, basename_without_ext)
+    os_helper.create_folder(song_output)
+    os_helper.copy(settings.input_file_path, song_output)
+    ultrastar_audio_input_path = os.path.join(song_output, basename)
+    return basename_without_ext, song_output, ultrastar_audio_input_path
+
+
+def download_from_youtube():
+    title = get_youtube_title(settings.input_file_path)
+    basename_without_ext = re.sub('[^A-Za-z0-9. _-]+', '', title).strip()
+    basename = basename_without_ext + '.mp3'
+    song_output = os.path.join(settings.output_file_path, basename_without_ext)
+    os_helper.create_folder(song_output)
+    download_youtube_audio(settings.input_file_path, basename_without_ext, song_output)
+    download_youtube_video(settings.input_file_path, basename_without_ext, song_output)
+    ultrastar_audio_input_path = os.path.join(song_output, basename)
+    return basename_without_ext, song_output, ultrastar_audio_input_path
+
+
+def parse_ultrastar_txt():
+    ultrastar_class = ultrastar_parser.parse_ultrastar_txt(settings.input_file_path)
+    real_bpm = ultrastar_converter.ultrastar_bpm_to_real_bpm(float(ultrastar_class.bpm.replace(',', '.')))
+    ultrastar_mp3_name = ultrastar_class.mp3
+    basename_without_ext = os.path.splitext(ultrastar_mp3_name)[0]
+    dirname = os.path.dirname(settings.input_file_path)
+    ultrastar_audio_input_path = os.path.join(dirname, ultrastar_mp3_name)
+    song_output = os.path.join(settings.output_file_path, ultrastar_class.artist + ' - ' + ultrastar_class.title)
+    return basename_without_ext, real_bpm, song_output, ultrastar_audio_input_path, ultrastar_class
+
+
+def create_midi_file(isAudio, real_bpm, song_output, ultrastar_class):
+    print("{} Creating Midi with {}".format(PRINT_ULTRASTAR, print_blue_highlighted_text("pretty_midi")))
+    if isAudio:
+        voice_instrument = [midi_creator.convert_ultrastar_to_midi_instrument(ultrastar_class)]
+        midi_output = os.path.join(song_output, ultrastar_class.title + '.mid')
+        midi_creator.instruments_to_midi(voice_instrument, real_bpm, midi_output)
+    else:
         voice_instrument = [midi_creator.convert_ultrastar_to_midi_instrument(ultrastar_class)]
         midi_output = os.path.join(song_output, ultrastar_class.title + '.mid')
         midi_creator.instruments_to_midi(voice_instrument, real_bpm, midi_output)
 
 
+def pitch_audio(isAudio, transcribed_data, ultrastar_class):
+    # todo: chunk pitching as option?
+    # midi_notes = pitch_each_chunk_with_crepe(chunk_folder_name)
+    pitched_data = get_pitch_with_crepe_file(settings.mono_audio_path, settings.crepe_step_size,
+                                             settings.crepe_model_capacity)
+    if isAudio:
+        start_times = []
+        end_times = []
+        for i in range(len(transcribed_data)):
+            start_times.append(transcribed_data[i].start)
+            end_times.append(transcribed_data[i].end)
+        midi_notes = create_midi_notes_from_pitched_data(start_times, end_times, pitched_data)
+
+    else:
+        midi_notes = create_midi_notes_from_pitched_data(ultrastar_class.startTimes, ultrastar_class.endTimes,
+                                                         pitched_data)
+    ultrastar_note_numbers = convert_ultrastar_note_numbers(midi_notes)
+    return midi_notes, pitched_data, ultrastar_note_numbers
+
+
+def create_audio_chunks(cache_path, isAudio, transcribed_data, ultrastar_audio_input_path, ultrastar_class):
+    audio_chunks_path = os.path.join(cache_path, settings.audio_chunk_folder_name)
+    os_helper.create_folder(audio_chunks_path)
+    if isAudio:  # and csv
+        csv_filename = os.path.join(audio_chunks_path, "_chunks.csv")
+        export_chunks_from_transcribed_data(settings.mono_audio_path, transcribed_data, audio_chunks_path)
+        export_transcribed_data_to_csv(transcribed_data, csv_filename)
+    else:
+        export_chunks_from_ultrastar_data(ultrastar_audio_input_path, ultrastar_class, audio_chunks_path)
+
+
+def transcribe_audio():
+    if settings.transcriber == "whisper":
+        transcribed_data, language = transcribe_with_whisper(settings.mono_audio_path, settings.whisper_model,
+                                                             settings.device)
+    else:  # vosk
+        transcribed_data = transcribe_with_vosk(settings.mono_audio_path, settings.vosk_model_path)
+        # todo: make language selectable
+        language = 'en'
+    remove_unecessary_punctuations(transcribed_data)
+    transcribed_data = remove_silence_from_transcribtion_data(settings.mono_audio_path, transcribed_data)
+    if settings.hyphenation:
+        hyphen_words = hyphenate_each_word(language, transcribed_data)
+        transcribed_data = add_hyphen_to_data(transcribed_data, hyphen_words)
+    # todo: do we need to correct words?
+    # lyric = 'input/faber_lyric.txt'
+    # --corrected_words = correct_words(vosk_speech, lyric)
+    return transcribed_data
+
+
+def denoise_vocal_audio(basename_without_ext, cache_path):
+    denoised_path = os.path.join(cache_path, basename_without_ext + '_denoised.wav')
+    ffmpeg_reduce_noise(settings.mono_audio_path, denoised_path)
+    settings.mono_audio_path = denoised_path
+
+
 def main(argv):
+    init_settings(argv)
+    run()
+    # todo: cleanup
+    sys.exit()
+
+
+def init_settings(argv):
     short = "hi:o:amv:"
     long = ["ifile=", "ofile=", "crepe=", "vosk=", "whisper=", "hyphenation=", "disable_separation=",
             "disable_karaoke="]
-
     opts, args = getopt.getopt(argv, short, long)
-
     if len(opts) == 0:
         print_help()
         sys.exit()
-
     for opt, arg in opts:
         if opt == '-h':
             print_help()
@@ -410,24 +448,13 @@ def main(argv):
             settings.use_separated_vocal = not arg
         elif opt in ("--disable_karaoke"):
             settings.create_karaoke = not arg
-
     if settings.output_file_path == '':
         if settings.input_file_path.startswith('https:'):
             dirname = os.getcwd()
         else:
             dirname = os.path.dirname(settings.input_file_path)
         settings.output_file_path = os.path.join(dirname, 'output')
-
     settings.device = get_available_device()
-
-    if ".txt" in settings.input_file_path:
-        do_ultrastar_stuff()
-    else:
-        do_audio_stuff()
-
-    sys.exit()
-
-    # todo: cleanup
 
 
 if __name__ == "__main__":

@@ -1,7 +1,7 @@
 from hyphen import Hyphenator
 from hyphen import dictools
 from moduls.Log import PRINT_ULTRASTAR
-from moduls.Log import print_blue_highlighted_text
+from moduls.Log import print_blue_highlighted_text, print_gold_highlighted_text
 import string
 
 
@@ -15,7 +15,7 @@ def language_check(language='en'):
             break
 
     if lang_region is None:
-        raise Exception('{} Missing language "{}" for hyphen. Install it or disable hyphen.'.format(PRINT_ULTRASTAR, language))
+        raise Exception('{} Missing language "{}" for {}. Install it or disable {}. >> {}'.format(PRINT_ULTRASTAR, print_blue_highlighted_text(language), print_blue_highlighted_text("hyphen"), print_blue_highlighted_text("hyphen"), print_gold_highlighted_text("--hyphenation False")))
 
     print("{} Hyphenate using language code: {}".format(PRINT_ULTRASTAR, print_blue_highlighted_text(lang_region)))
     return lang_region

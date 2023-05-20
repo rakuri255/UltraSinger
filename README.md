@@ -35,7 +35,8 @@ _Not all options working now!_
     [mode]
     ## INPUT is audio ##
     default  Creates all
-            
+    
+    # Single file creation selection is in progress, you currently getting all!
     (-u      Create ultrastar txt file) # In Progress
     (-m      Create midi file) # In Progress
     (-s      Create sheet file) # In Progress
@@ -43,22 +44,25 @@ _Not all options working now!_
     ## INPUT is ultrastar.txt ##
     default  Creates all
 
+    # Single selection is in progress, you currently getting all!
     (-r      repitch Ultrastar.txt (input has to be audio)) # In Progress
     (-p      Check pitch of Ultrastar.txt input) # In Progress
     (-m      Create midi file) # In Progress
 
     [transcription]
-    --whisper   (default) tiny|base|small|medium|large
+    # Default is whisper tiny
+    --whisper   tiny|base|small|medium|large
     --vosk      Needs model
     
     [extra]
+    --hyphenation           True|False >> ((default) is True)
+    --disable_separation    True|False >> ((default) is False)
+    --disable_karaoke       True|False >> ((default) is False)
     (-k                     Keep audio chunks) # In Progress
-    --hyphenation           (default) True|False
-    --disable_separation    True|False
-    --disable_karaoke       True|False
-    
+
     [pitcher]
-    --crepe  (default) tiny|small|medium|large|full
+    # Default is crepe full
+    --crepe     tiny|small|medium|large|full
 ```
 
 For standard use, you only need to use [opt]. All other options are optional.
@@ -153,7 +157,9 @@ for low male voices. Accurate is the real tone specified in the txt. I had txt f
 singable by humans, but you could still reach the 10k points in the game. The accuracy is important here, because from
 this MIDI and sheet are created. And you also want to have accurate files
 
-### Use the source
+### How to use this source code
 
-When you want to use the source than you need to install `venv` or `conda` first. 
+For using the source code you need to install `venv` or `conda` first. 
 For VSCode look [here](https://code.visualstudio.com/docs/python/environments#_global-virtual-or-conda-environments).
+
+Also install ffmpeg.

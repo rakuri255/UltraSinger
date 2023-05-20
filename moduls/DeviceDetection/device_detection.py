@@ -7,7 +7,7 @@ def get_available_device():
     gpus = tf.config.list_physical_devices('GPU')
 
     if not gpus:
-        print("{} Thera are no GPUs available. Using {}.".format(PRINT_ULTRASTAR, print_red_highlighted_text("cpu")))
+        print("{} There are no GPUs available. Using {}.".format(PRINT_ULTRASTAR, print_red_highlighted_text("cpu")))
         return "cpu"
 
     print("{} Found available GPUs:".format(PRINT_ULTRASTAR))
