@@ -13,7 +13,7 @@ Please mention UltraSinger in your UltraStar.txt file if you use it. It helps ot
 And it helps you that this tool gets improved and maintained.
 
 ## Support
-There are many ways to support a project. Starring ⭐️ the repo is just one 🙏
+There are many ways to support this project. Starring ⭐️ the repo is just one 🙏
 
 You can also support this work on Patreon or Buy Me A Coffee.
 
@@ -95,7 +95,7 @@ This re-pitch the audio and creates a new txt file.
 
 ### Transcriber
 
-For transcription, `whisper` is used by default. It is more accurate than the other even with the `tiny` model.
+For transcription, `whisper` is used by default. It is more accurate than the other even with the `large` model.
 And it finds the language automatically.
 But anyway, it depends! Try the other one if `Whisper` does not suit you.
 Also keep in mind that while a larger model is more accurate, it also takes longer to transcribe.

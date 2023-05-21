@@ -1,7 +1,7 @@
 from moduls.Midi.midi_creator import create_midi_note_from_pitched_data
 from moduls.Ultrastar.ultrastar_converter import get_start_time_from_ultrastar, get_end_time_from_ultrastar, \
     ultrastar_note_to_midi_note
-from moduls.Log import PRINT_ULTRASTAR, print_blue_highlighted_text, print_gold_highlighted_text, print_light_blue_highlighted_text, print_underlined_text
+from moduls.Log import PRINT_ULTRASTAR, print_blue_highlighted_text, print_gold_highlighted_text, print_light_blue_highlighted_text, print_underlined_text, print_cyan_highlighted_text
 import librosa
 
 # Todo: LineBonus
@@ -40,7 +40,7 @@ def print_score(points):
     line_bonus = 0
     golden = points.golden_notes + points.golden_rap
     score = notes + line_bonus + golden
-    print(PRINT_ULTRASTAR + " Total: {}, notes: {}, line bonus: {}, golden notes: {}".format(score, print_blue_highlighted_text(str(round(notes))), print_light_blue_highlighted_text(str(round(line_bonus))), print_gold_highlighted_text(str(round(golden)))))
+    print(PRINT_ULTRASTAR + " Total: {}, notes: {}, line bonus: {}, golden notes: {}".format(print_cyan_highlighted_text(str(round(score))), print_blue_highlighted_text(str(round(notes))), print_light_blue_highlighted_text(str(round(line_bonus))), print_gold_highlighted_text(str(round(golden)))))
 
 
 def print_score_calculation(pitched_data, ultrastar_class):
