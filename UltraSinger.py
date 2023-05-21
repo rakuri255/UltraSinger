@@ -20,7 +20,7 @@ from moduls.Ultrastar import ultrastar_parser, ultrastar_converter, ultrastar_wr
 from moduls.Speech_Recognition.Vosk import transcribe_with_vosk
 from moduls.Speech_Recognition.hyphenation import hyphenation, language_check
 from moduls.Speech_Recognition.Whisper import transcribe_with_whisper
-from moduls.Log import PRINT_ULTRASTAR, print_blue_highlighted_text, print_gold_highlighted_text
+from moduls.Log import PRINT_ULTRASTAR, print_blue_highlighted_text, print_gold_highlighted_text, print_light_blue_highlighted_text
 from matplotlib import pyplot as plt
 from Settings import Settings
 from tqdm import tqdm
@@ -199,6 +199,13 @@ def hyphenate_each_word(language, transcribed_data):
     return hyphenated_word
 
 
+def print_support():
+    print()
+    print("{} {} {}{}".format(PRINT_ULTRASTAR, print_gold_highlighted_text("Do you like UltraSinger? And want it to be even better? Then help with your"), print_light_blue_highlighted_text("support"),  print_gold_highlighted_text("!")))
+    print("{} See project page -> https://github.com/rakuri255/UltraSinger".format(PRINT_ULTRASTAR))
+    print("{} {}".format(PRINT_ULTRASTAR, print_gold_highlighted_text("This will help alot to keep this project alive and improved.")))
+
+
 def run():
     isAudio = ".txt" not in settings.input_file_path
     ultrastar_class = None
@@ -268,6 +275,8 @@ def run():
     if settings.create_midi:
         create_midi_file(isAudio, real_bpm, song_output, ultrastar_class)
 
+    # Print Support
+    print_support()
 
 def transcribe_audio(transcribed_data):
     if settings.transcriber == "whisper":
