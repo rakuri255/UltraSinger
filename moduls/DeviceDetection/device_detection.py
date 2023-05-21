@@ -1,5 +1,3 @@
-import tensorflow as tf
-
 from moduls.Log import PRINT_ULTRASTAR, print_red_highlighted_text
 import torch
 
