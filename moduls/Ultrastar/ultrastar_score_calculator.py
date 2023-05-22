@@ -1,7 +1,8 @@
 from moduls.Midi.midi_creator import create_midi_note_from_pitched_data
 from moduls.Ultrastar.ultrastar_converter import get_start_time_from_ultrastar, get_end_time_from_ultrastar, \
     ultrastar_note_to_midi_note
-from moduls.Log import PRINT_ULTRASTAR, print_blue_highlighted_text, print_gold_highlighted_text, print_light_blue_highlighted_text, print_underlined_text, print_cyan_highlighted_text
+from moduls.Log import PRINT_ULTRASTAR, print_blue_highlighted_text, print_gold_highlighted_text, \
+    print_light_blue_highlighted_text, print_underlined_text, print_cyan_highlighted_text
 import librosa
 
 # Todo: LineBonus
@@ -36,11 +37,13 @@ def add_point(noteType, points):
 
 
 def print_score(points):
+    # todo: here also a score calculation !?!
     notes = MAX_SONG_SCORE * (points.notes + points.rap) / points.parts
-    line_bonus = 0
     golden = points.golden_notes + points.golden_rap
-    score = notes + line_bonus + golden
-    print(PRINT_ULTRASTAR + " Total: {}, notes: {}, line bonus: {}, golden notes: {}".format(print_cyan_highlighted_text(str(round(score))), print_blue_highlighted_text(str(round(notes))), print_light_blue_highlighted_text(str(round(line_bonus))), print_gold_highlighted_text(str(round(golden)))))
+    score = notes + points.line_bonus + golden
+    print(PRINT_ULTRASTAR + " Total: {}, notes: {}, line bonus: {}, golden notes: {}".format(
+        print_cyan_highlighted_text(str(round(score))), print_blue_highlighted_text(str(round(notes))),
+        print_light_blue_highlighted_text(str(round(points.line_bonus))), print_gold_highlighted_text(str(round(golden)))))
 
 
 def print_score_calculation(pitched_data, ultrastar_class):
@@ -48,6 +51,8 @@ def print_score_calculation(pitched_data, ultrastar_class):
 
     simple_points = Points()
     accurate_points = Points()
+
+    line_bonus_per_line = MAX_SONG_LINE_BONUS / len(ultrastar_class.words)
 
     for i in range(len(ultrastar_class.words)):
         if ultrastar_class.words == "":
@@ -59,8 +64,11 @@ def print_score_calculation(pitched_data, ultrastar_class):
         start_time = get_start_time_from_ultrastar(ultrastar_class, i)
         end_time = get_end_time_from_ultrastar(ultrastar_class, i)
         duration = end_time - start_time
-        parts_len = 0.01
+        parts_len = 0.01  # todo: should be beat length
         parts = duration / parts_len
+        reachable_line_bonus_per_line = line_bonus_per_line / parts_len
+        accurate_part_line_bonus_points = 0
+        simple_part_line_bonus_points = 0
 
         ultrastar_midi_note = ultrastar_note_to_midi_note(int(ultrastar_class.pitches[i]))
         ultrastar_note = librosa.midi_to_note(ultrastar_midi_note)
@@ -72,14 +80,20 @@ def print_score_calculation(pitched_data, ultrastar_class):
 
             if pitch_note[:-1] == ultrastar_note[:-1]:
                 accurate_points = add_point(ultrastar_class.noteType[i], accurate_points)
+                accurate_part_line_bonus_points += 1
 
             if pitch_note == ultrastar_note:
                 simple_points = add_point(ultrastar_class.noteType[i], simple_points)
+                simple_part_line_bonus_points += 1
 
             accurate_points.parts += 1
             simple_points.parts += 1
 
-    # todo: line_bonus
+        if accurate_part_line_bonus_points >= reachable_line_bonus_per_line:
+            accurate_points.line_bonus += line_bonus_per_line
+
+        if simple_part_line_bonus_points >= reachable_line_bonus_per_line:
+            simple_points.line_bonus += line_bonus_per_line
 
     print("{} {} points".format(PRINT_ULTRASTAR, print_underlined_text("Simple")))
     print_score(simple_points)
