@@ -14,7 +14,7 @@ def create_ultrastar_txt_from_automation(transcribed_data, note_numbers, ultrast
 
         f.write('#ARTIST:' + title + '\n')
         f.write('#TITLE:' + title + '\n')
-        f.write('#CREATOR:UltraSinger' + '\n')
+        f.write('#CREATOR:UltraSinger [GitHub]' + '\n')
         f.write('#FIXER:YOUR NAME' + '\n')
         f.write('#MP3:' + title + '.mp3\n')
         f.write('#VIDEO:' + title + '.mp4\n')
