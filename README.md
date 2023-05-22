@@ -181,7 +181,7 @@ Install torch with cuda separately in your `venv`. See this [link](https://pytor
 
 Command for `pip`:
 ```
-pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu117
+pip3 install torch~=2.0.1+cu117 torchvision~=0.15.2+cu117 torchaudio~=2.0.2+cu117 --index-url https://download.pytorch.org/whl/cu117
 ```
 
 When you want to use `conda` instead you need a different installation command. See this [link](https://pytorch.org/get-started/locally/).
