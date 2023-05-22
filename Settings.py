@@ -15,7 +15,7 @@ class Settings:
 
     # Whisper
     transcriber = 'whisper'     # whisper|vosk
-    whisper_model = 'large'      # Multilingual model tiny|base|small|medium|large
+    whisper_model = 'large'     # Multilingual model tiny|base|small|medium|large
                                 # English-only model tiny.en|base.en|small.en|medium.en
 
     # Vosk
@@ -26,5 +26,7 @@ class Settings:
     crepe_step_size = 10
 
     # Device
-    device = 'cpu'  # cpu|cuda|gpu
+    device = 'cpu'  # cpu|cuda
+    force_whisper_cpu = False
+    force_separation_cpu = False
 

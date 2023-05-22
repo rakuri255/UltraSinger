@@ -280,8 +280,9 @@ def run():
 
 def transcribe_audio(transcribed_data):
     if settings.transcriber == "whisper":
+        device = "cpu" if settings.force_whisper_cpu else settings.device
         transcribed_data, language = transcribe_with_whisper(settings.mono_audio_path, settings.whisper_model,
-                                                             settings.device)
+                                                             device)
     else:  # vosk
         transcribed_data = transcribe_with_vosk(settings.mono_audio_path, settings.vosk_model_path)
         # todo: make language selectable
@@ -291,8 +292,9 @@ def transcribe_audio(transcribed_data):
 
 def separate_vocal_from_audio(basename_without_ext, cache_path, ultrastar_audio_input_path):
     audio_separation_path = os.path.join(cache_path, "separated", "htdemucs", basename_without_ext)
+    device = "cpu" if settings.force_separation_cpu else settings.device
     if settings.use_separated_vocal or settings.create_karaoke:
-        separate_audio(ultrastar_audio_input_path, cache_path, settings.device)
+        separate_audio(ultrastar_audio_input_path, cache_path, device)
     if settings.use_separated_vocal:
         vocals_path = os.path.join(audio_separation_path, "vocals.wav")
         convert_audio_to_mono_wav(vocals_path, settings.mono_audio_path)
@@ -433,7 +435,7 @@ def main(argv):
 def init_settings(argv):
     short = "hi:o:amv:"
     long = ["ifile=", "ofile=", "crepe=", "vosk=", "whisper=", "hyphenation=", "disable_separation=",
-            "disable_karaoke=", "create_audio_chunks="]
+            "disable_karaoke=", "create_audio_chunks=", "force_whisper_cpu=", "force_separation_cpu="]
     opts, args = getopt.getopt(argv, short, long)
     if len(opts) == 0:
         print_help()
@@ -462,6 +464,10 @@ def init_settings(argv):
             settings.create_karaoke = not arg
         elif opt in ("--create_audio_chunks"):
             settings.create_audio_chunks = arg
+        elif opt in ("--force_whisper_cpu"):
+            settings.force_whisper_cpu = arg
+        elif opt in ("--force_separation_cpu"):
+            settings.force_separation_cpu = arg
     if settings.output_file_path == '':
         if settings.input_file_path.startswith('https:'):
             dirname = os.getcwd()

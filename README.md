@@ -61,6 +61,8 @@ _Not all options working now!_
     --disable_separation    True|False >> ((default) is False)
     --disable_karaoke       True|False >> ((default) is False)
     --create_audio_chunks   True|False >> ((default) is False)
+    --force_whisper_cpu     True|False >> ((default) is False)
+    --force_separation_cpu  True|False >> ((default) is False)
 
     [pitcher]
     # Default is crepe full
@@ -190,3 +192,5 @@ When you want to use `conda` instead you need a different installation command. 
 
 If somthing crash because of low VRAM than use a smaller model.
 Whisper needs more than 8GB VRAM in the `large` model!
+
+But you can force cpu usage with the extra options `--force_whisper_cpu` and `--force_separation_cpu`.
