@@ -66,7 +66,7 @@ def create_ultrastar_txt_from_automation(transcribed_data, note_numbers, ultrast
             else:
                 silence = 0
 
-            if silence > 0.3:
+            if silence > 0.3 and i != len(transcribed_data) - 1:
                 # - 10
                 # '-' end of current sing part
                 # 'n1' show next at time in real beat
