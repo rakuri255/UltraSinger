@@ -3,14 +3,27 @@ from moduls.Log import PRINT_ULTRASTAR
 import re
 
 
+def get_multiplier(real_bpm):
+    if real_bpm == 0:
+        raise Exception("BPM is 0")
+
+    multiplier = 1
+    result = 0
+    while result < 400:
+        result = real_bpm * multiplier
+        multiplier += 1
+    return multiplier - 2
+
+
 def create_ultrastar_txt_from_automation(transcribed_data, note_numbers, ultrastar_file_output, title, bpm=120):
     print("{} Creating {} from transcription.".format(PRINT_ULTRASTAR, ultrastar_file_output))
 
-    # todo: Optimize multiplication
-    multiplication = 32
+    real_bpm = real_bpm_to_ultrastar_bpm(bpm)
+    multiplication = get_multiplier(real_bpm)
+    ultrastar_bpm = real_bpm * get_multiplier(real_bpm)
+
     with open(ultrastar_file_output, 'w') as f:
         gap = transcribed_data[0].start
-        ultrastar_bpm = real_bpm_to_ultrastar_bpm(bpm) * multiplication
 
         f.write('#ARTIST:' + title + '\n')
         f.write('#TITLE:' + title + '\n')

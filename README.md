@@ -1,5 +1,3 @@
-[![](https://visitcount.itsvg.in/api?id=UltraSinger&label=Profile%20Views&color=0&icon=7&pretty=false)](https://visitcount.itsvg.in)
-
 # UltraSinger 
 
 > ⚠️ _This project is still under development!_
