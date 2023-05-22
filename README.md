@@ -5,12 +5,14 @@
 > ⚠️ _This project is still under development!_
 
 UltraSinger is a tool to automatically create UltraStar.txt, midi and notes from music. 
+Meaning it automaticly pitch UltraStar files, adding text and tapping to UltraStar files and creates separate UltraStar karaoke files.
 It also can re-pitch current UltraStar files and calculates the possible in-game score.
 
 Multiple AI models are used to extract text from the voice and to determine the pitch.
 
 Please mention UltraSinger in your UltraStar.txt file if you use it. It helps other to find this tool.
 And it helps you that this tool gets improved and maintained.
+You should only use it on Creative Commons licensed songs.
 
 ## Support
 There are many ways to support this project. Starring ⭐️ the repo is just one 🙏
