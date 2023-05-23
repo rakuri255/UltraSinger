@@ -38,7 +38,8 @@ def add_point(noteType, points):
 
 def print_score(points):
     # todo: here also a score calculation !?!
-    notes = MAX_SONG_SCORE * (points.notes + points.rap) / points.parts
+    max_score = MAX_SONG_SCORE if points.line_bonus == 0 else MAX_SONG_SCORE - MAX_SONG_LINE_BONUS
+    notes = max_score * (points.notes + points.rap) / points.parts
     golden = points.golden_notes + points.golden_rap
     score = notes + points.line_bonus + golden
     print(PRINT_ULTRASTAR + " Total: {}, notes: {}, line bonus: {}, golden notes: {}".format(
@@ -64,18 +65,19 @@ def print_score_calculation(pitched_data, ultrastar_class):
         start_time = get_start_time_from_ultrastar(ultrastar_class, i)
         end_time = get_end_time_from_ultrastar(ultrastar_class, i)
         duration = end_time - start_time
-        parts_len = 0.01  # todo: should be beat length
-        parts = duration / parts_len
-        reachable_line_bonus_per_line = line_bonus_per_line / parts_len
+        step_size = 0.01  # todo: should be beat length ?
+        parts = int(duration / step_size)
+
+        reachable_line_bonus_per_line = line_bonus_per_line / parts
         accurate_part_line_bonus_points = 0
         simple_part_line_bonus_points = 0
 
         ultrastar_midi_note = ultrastar_note_to_midi_note(int(ultrastar_class.pitches[i]))
         ultrastar_note = librosa.midi_to_note(ultrastar_midi_note)
 
-        for p in range(int(parts)):
-            st = start_time + parts_len * p
-            end = st + parts_len
+        for p in range(parts):
+            st = start_time + step_size * p
+            end = st + step_size
             pitch_note = create_midi_note_from_pitched_data(st, end, pitched_data)
 
             if pitch_note[:-1] == ultrastar_note[:-1]:
@@ -89,11 +91,11 @@ def print_score_calculation(pitched_data, ultrastar_class):
             accurate_points.parts += 1
             simple_points.parts += 1
 
-        if accurate_part_line_bonus_points >= reachable_line_bonus_per_line:
-            accurate_points.line_bonus += line_bonus_per_line
+        if accurate_part_line_bonus_points >= parts:
+            accurate_points.line_bonus += reachable_line_bonus_per_line
 
-        if simple_part_line_bonus_points >= reachable_line_bonus_per_line:
-            simple_points.line_bonus += line_bonus_per_line
+        if simple_part_line_bonus_points >= parts:
+            simple_points.line_bonus += reachable_line_bonus_per_line
 
     print("{} {} points".format(PRINT_ULTRASTAR, print_underlined_text("Simple")))
     print_score(simple_points)
