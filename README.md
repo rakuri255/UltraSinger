@@ -52,8 +52,8 @@ _Not all options working now!_
     (-m      Create midi file) # In Progress
 
     [transcription]
-    # Default is whisper tiny
-    --whisper   tiny|base|small|medium|large
+    # Default is whisper
+    --whisper   tiny|base|small|medium|large >> ((default) is large)
     --vosk      Needs model
     
     [extra]
@@ -63,8 +63,8 @@ _Not all options working now!_
     --create_audio_chunks   True|False >> ((default) is False)
 
     [pitcher]
-    # Default is crepe full
-    --crepe     tiny|small|medium|large|full
+    # Default is crepe
+    --crepe     tiny|small|medium|large|full >> ((default) is full)
 ```
 
 For standard use, you only need to use [opt]. All other options are optional.
