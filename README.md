@@ -1,16 +1,16 @@
-[![](https://visitcount.itsvg.in/api?id=UltraSinger&label=Profile%20Views&color=0&icon=7&pretty=false)](https://visitcount.itsvg.in)
-
 # UltraSinger 
 
 > ⚠️ _This project is still under development!_
 
 UltraSinger is a tool to automatically create UltraStar.txt, midi and notes from music. 
+Meaning it automaticly pitch UltraStar files, adding text and tapping to UltraStar files and creates separate UltraStar karaoke files.
 It also can re-pitch current UltraStar files and calculates the possible in-game score.
 
 Multiple AI models are used to extract text from the voice and to determine the pitch.
 
 Please mention UltraSinger in your UltraStar.txt file if you use it. It helps other to find this tool.
 And it helps you that this tool gets improved and maintained.
+You should only use it on Creative Commons licensed songs.
 
 ## Support
 There are many ways to support this project. Starring ⭐️ the repo is just one 🙏
@@ -52,8 +52,8 @@ _Not all options working now!_
     (-m      Create midi file) # In Progress
 
     [transcription]
-    # Default is whisper tiny
-    --whisper   tiny|base|small|medium|large
+    # Default is whisper
+    --whisper   tiny|base|small|medium|large >> ((default) is large)
     --vosk      Needs model
     
     [extra]
@@ -63,8 +63,8 @@ _Not all options working now!_
     --create_audio_chunks   True|False >> ((default) is False)
 
     [pitcher]
-    # Default is crepe full
-    --crepe     tiny|small|medium|large|full
+    # Default is crepe
+    --crepe     tiny|small|medium|large|full >> ((default) is full)
 ```
 
 For standard use, you only need to use [opt]. All other options are optional.
