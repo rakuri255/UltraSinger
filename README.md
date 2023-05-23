@@ -22,7 +22,33 @@ This will help me alot to keep this project alive and improve it.
 <a href="https://www.buymeacoffee.com/rakuri255" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" style="height: 60px !important;width: 217px !important;" ></a>
 <a href="https://patreon.com/Rakuri"><img src="https://raw.githubusercontent.com/rakuri255/UltraSinger/main/assets/patreon.png" alt="Become a Patron" style="height: 60px !important;width: 217px !important;"/> </a>
 
-## How to use
+## How to use this source code
+
+### With Console (Windows)
+
+* Install Python 3.10 (older and newer versions has some breaking changes). [Download](https://www.python.org/downloads/)
+* Also install ffmpeg separately with PATH. [Download](https://www.ffmpeg.org/download.html)
+* Open a console (CMD) and navigate to the project folder.
+* Type `py -m venv .venv` and press enter. If this does not work, try instead of `py` `python` or `python3`.
+  * This will always take the newest Python version. If you have multiple versions installed, you can use `py -0p` to see all installed versions.
+  * Build with correct version use `py -3.10 -m venv .venv`.
+* Wait until the console is done with creating the environment. This can take a while.
+* Type `.venv\Scripts\activate` and press enter.
+* You should see now a `(.venv)` in front of your console line.
+* Install the requirements with `pip install -r requirements.txt`.
+* Now you can use the UltraSinger source code with `py UltraSinger.py [opt] [mode] [transcription] [pitcher] [extra]`. See [How to use](#how-to-use) for more information.
+
+For more information about Python environments look [here](https://code.visualstudio.com/docs/python/environments#_global-virtual-or-conda-environments).
+
+As copy:
+    
+```commandline
+py -m venv .venv
+.venv\Scripts\activate
+pip install -r requirements.txt
+```
+
+## How to use the App
 
 _Not all options working now!_
 ```commandline
@@ -159,14 +185,3 @@ for low male voices. Accurate is the real tone specified in the txt. I had txt f
 singable by humans, but you could still reach the 10k points in the game. The accuracy is important here, because from
 this MIDI and sheet are created. And you also want to have accurate files
 
-## How to use this source code
-
-Install Python 3.10 (older and newer versions has some breaking changes).
-You should install and use `venv` or `conda`. 
-For VSCode look [here](https://code.visualstudio.com/docs/python/environments#_global-virtual-or-conda-environments).
-
-After that you need to install the requirements from `requirements.txt`.
-
-Also install ffmpeg separately.
-
-Then just use the `How to use` commands, described above.
