@@ -13,3 +13,5 @@ git+https://github.com/linto-ai/whisper-timestamped
 PyHyphen~=4.0.3
 demucs~=4.0.0
 tqdm~=4.65.0
+langcodes~=3.3.0
+language-data~=1.1

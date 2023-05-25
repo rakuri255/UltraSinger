@@ -233,6 +233,7 @@ def run():
 
     # Audio transcription
     transcribed_data = None
+    language = None
     if isAudio:
         language, transcribed_data = transcribe_audio(transcribed_data)
         remove_unecessary_punctuations(transcribed_data)
@@ -263,7 +264,7 @@ def run():
                                                                                basename_without_ext, real_bpm,
                                                                                song_output, transcribed_data,
                                                                                ultrastar_audio_input_path,
-                                                                               ultrastar_note_numbers)
+                                                                               ultrastar_note_numbers, language)
     else:
         ultrastar_file_output = create_ultrastar_txt_from_ultrastar_data(song_output, ultrastar_class,
                                                                          ultrastar_note_numbers)
@@ -322,12 +323,12 @@ def create_ultrastar_txt_from_ultrastar_data(song_output, ultrastar_class, ultra
 
 
 def create_ultrastar_txt_from_automation(audio_separation_path, basename_without_ext, real_bpm, song_output,
-                                         transcribed_data, ultrastar_audio_input_path, ultrastar_note_numbers):
+                                         transcribed_data, ultrastar_audio_input_path, ultrastar_note_numbers, language):
     real_bpm = get_bpm_from_file(ultrastar_audio_input_path)
     ultrastar_file_output = os.path.join(song_output, basename_without_ext + '.txt')
     ultrastar_writer.create_ultrastar_txt_from_automation(transcribed_data, ultrastar_note_numbers,
                                                           ultrastar_file_output,
-                                                          basename_without_ext, real_bpm)
+                                                          basename_without_ext, language, real_bpm)
     if settings.create_karaoke:
         no_vocals_path = os.path.join(audio_separation_path, "no_vocals.wav")
         title = basename_without_ext + " [Karaoke]"
@@ -337,7 +338,7 @@ def create_ultrastar_txt_from_automation(audio_separation_path, basename_without
         karaoke_txt_output_path = karaoke_output_path + ".txt"
         ultrastar_writer.create_ultrastar_txt_from_automation(transcribed_data, ultrastar_note_numbers,
                                                               karaoke_txt_output_path,
-                                                              title, real_bpm)
+                                                              title, language, real_bpm)
     return real_bpm, ultrastar_file_output
 
 

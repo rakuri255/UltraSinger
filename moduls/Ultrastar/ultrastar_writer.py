@@ -1,5 +1,6 @@
 from moduls.Ultrastar.ultrastar_converter import real_bpm_to_ultrastar_bpm, second_to_beat
 from moduls.Log import PRINT_ULTRASTAR
+import langcodes
 import re
 
 
@@ -15,7 +16,11 @@ def get_multiplier(real_bpm):
     return multiplier - 2
 
 
-def create_ultrastar_txt_from_automation(transcribed_data, note_numbers, ultrastar_file_output, title, bpm=120):
+def get_language_name(language):
+    return langcodes.Language.make(language=language).display_name()
+
+
+def create_ultrastar_txt_from_automation(transcribed_data, note_numbers, ultrastar_file_output, title, language, bpm=120):
     print("{} Creating {} from transcription.".format(PRINT_ULTRASTAR, ultrastar_file_output))
 
     real_bpm = real_bpm_to_ultrastar_bpm(bpm)
@@ -29,6 +34,8 @@ def create_ultrastar_txt_from_automation(transcribed_data, note_numbers, ultrast
         f.write('#TITLE:' + title + '\n')
         f.write('#CREATOR:UltraSinger [GitHub]' + '\n')
         f.write('#FIXER:YOUR NAME' + '\n')
+        if language is not None:
+            f.write('#LANGUAGE:' + get_language_name(language) + '\n')
         f.write('#MP3:' + title + '.mp3\n')
         f.write('#VIDEO:' + title + '.mp4\n')
         f.write('#BPM:' + str(ultrastar_bpm) + '\n')  # not the real BPM!
