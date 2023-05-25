@@ -1,3 +1,7 @@
+![Discord](https://img.shields.io/discord/1048892118732656731?logo=discord)
+![Status](https://img.shields.io/badge/status-development-yellow)
+![GitHub](https://img.shields.io/github/license/rakuri255/UltraSinger)
+
 # UltraSinger 
 
 > ⚠️ _This project is still under development!_
