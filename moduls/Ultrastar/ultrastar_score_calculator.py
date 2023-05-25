@@ -5,12 +5,6 @@ from moduls.Log import PRINT_ULTRASTAR, print_blue_highlighted_text, print_gold_
     print_light_blue_highlighted_text, print_underlined_text, print_cyan_highlighted_text
 import librosa
 
-# Todo: LineBonus
-# if (Ini.LineBonus > 0) then
-# MaxSongPoints := MAX_SONG_SCORE - MAX_SONG_LINE_BONUS
-# else
-# MaxSongPoints := MAX_SONG_SCORE;
-
 MAX_SONG_SCORE = 10000
 MAX_SONG_LINE_BONUS = 1000
 
@@ -53,7 +47,7 @@ def print_score_calculation(pitched_data, ultrastar_class):
     simple_points = Points()
     accurate_points = Points()
 
-    line_bonus_per_line = MAX_SONG_LINE_BONUS / len(ultrastar_class.words)
+    reachable_line_bonus_per_word = MAX_SONG_LINE_BONUS / len(ultrastar_class.words)
 
     for i in range(len(ultrastar_class.words)):
         if ultrastar_class.words == "":
@@ -67,8 +61,8 @@ def print_score_calculation(pitched_data, ultrastar_class):
         duration = end_time - start_time
         step_size = 0.01  # todo: should be beat length ?
         parts = int(duration / step_size)
+        parts = 1 if parts == 0 else parts
 
-        reachable_line_bonus_per_line = line_bonus_per_line / parts
         accurate_part_line_bonus_points = 0
         simple_part_line_bonus_points = 0
 
@@ -81,24 +75,26 @@ def print_score_calculation(pitched_data, ultrastar_class):
             pitch_note = create_midi_note_from_pitched_data(st, end, pitched_data)
 
             if pitch_note[:-1] == ultrastar_note[:-1]:
-                accurate_points = add_point(ultrastar_class.noteType[i], accurate_points)
-                accurate_part_line_bonus_points += 1
-
-            if pitch_note == ultrastar_note:
+                # Ignore octave high
                 simple_points = add_point(ultrastar_class.noteType[i], simple_points)
                 simple_part_line_bonus_points += 1
+
+            if pitch_note == ultrastar_note:
+                # Octave high must be the same
+                accurate_points = add_point(ultrastar_class.noteType[i], accurate_points)
+                accurate_part_line_bonus_points += 1
 
             accurate_points.parts += 1
             simple_points.parts += 1
 
         if accurate_part_line_bonus_points >= parts:
-            accurate_points.line_bonus += reachable_line_bonus_per_line
+            accurate_points.line_bonus += reachable_line_bonus_per_word
 
         if simple_part_line_bonus_points >= parts:
-            simple_points.line_bonus += reachable_line_bonus_per_line
+            simple_points.line_bonus += reachable_line_bonus_per_word
 
-    print("{} {} points".format(PRINT_ULTRASTAR, print_underlined_text("Simple")))
+    print("{} {} points".format(PRINT_ULTRASTAR, print_underlined_text("Simple (octave high ignored)")))
     print_score(simple_points)
 
-    print("{} {} points:".format(PRINT_ULTRASTAR, print_underlined_text("Accurate")))
+    print("{} {} points:".format(PRINT_ULTRASTAR, print_underlined_text("Accurate (octave high matches)")))
     print_score(accurate_points)
