@@ -33,17 +33,17 @@ def parse_ultrastar_txt(input_file):
             # [2] duration
             # [3] pitch
             # [4] word
-            if parts[0] and parts[1] and parts[2] and parts[3] and parts[4]:
-                ultrastar_class.noteType.append(parts[0])
-                ultrastar_class.startBeat.append(parts[1])
-                ultrastar_class.durations.append(parts[2])
-                ultrastar_class.pitches.append(parts[3])
-                ultrastar_class.words.append(parts[4])
-                # do always as last
-                pos = len(ultrastar_class.startBeat) - 1
-                ultrastar_class.startTimes.append(get_start_time_from_ultrastar(ultrastar_class, pos))
-                ultrastar_class.endTimes.append(get_end_time_from_ultrastar(ultrastar_class, pos))
-                # todo: Progress?
-                # print(parts[4])
+
+            ultrastar_class.noteType.append(parts[0])
+            ultrastar_class.startBeat.append(parts[1])
+            ultrastar_class.durations.append(parts[2])
+            ultrastar_class.pitches.append(parts[3])
+            ultrastar_class.words.append(parts[4] if len(parts) > 4 else '')
+
+            # do always as last
+            pos = len(ultrastar_class.startBeat) - 1
+            ultrastar_class.startTimes.append(get_start_time_from_ultrastar(ultrastar_class, pos))
+            ultrastar_class.endTimes.append(get_end_time_from_ultrastar(ultrastar_class, pos))
+            # todo: Progress?
 
     return ultrastar_class
