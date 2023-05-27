@@ -4,7 +4,6 @@ import os
 import sys
 import Levenshtein
 import librosa
-import re
 
 from moduls import os_helper
 from moduls.Audio.vocal_chunks import export_chunks_from_ultrastar_data, convert_audio_to_mono_wav, \
@@ -20,7 +19,8 @@ from moduls.Ultrastar import ultrastar_parser, ultrastar_converter, ultrastar_wr
 from moduls.Speech_Recognition.Vosk import transcribe_with_vosk
 from moduls.Speech_Recognition.hyphenation import hyphenation, language_check
 from moduls.Speech_Recognition.Whisper import transcribe_with_whisper
-from moduls.Log import PRINT_ULTRASTAR, print_blue_highlighted_text, print_gold_highlighted_text, \
+from moduls.Log import PRINT_ULTRASTAR, print_red_highlighted_text, print_blue_highlighted_text, \
+    print_gold_highlighted_text, \
     print_light_blue_highlighted_text
 from matplotlib import pyplot as plt
 from Settings import Settings
@@ -192,8 +192,14 @@ def remove_unecessary_punctuations(transcribed_data):
 
 
 def hyphenate_each_word(language, transcribed_data):
-    lang_region = language_check(language)
     hyphenated_word = []
+    lang_region = language_check(language)
+    if lang_region is None:
+        print("{} {} {}".format(PRINT_ULTRASTAR, print_red_highlighted_text("Error in hyphenation for language "),
+                                print_blue_highlighted_text(language),
+                                print_red_highlighted_text("maybe you want to disable it?")))
+        return None
+
     sleep(.1)
     for i in tqdm(range(len(transcribed_data))):
         hyphenated_word.append(hyphenation(transcribed_data[i].word, lang_region))
@@ -245,7 +251,8 @@ def run():
 
         if settings.hyphenation:
             hyphen_words = hyphenate_each_word(language, transcribed_data)
-            transcribed_data = add_hyphen_to_data(transcribed_data, hyphen_words)
+            if hyphen_words is not None:
+                transcribed_data = add_hyphen_to_data(transcribed_data, hyphen_words)
 
         # todo: do we need to correct words?
         # lyric = 'input/faber_lyric.txt'
@@ -328,7 +335,8 @@ def create_ultrastar_txt_from_ultrastar_data(song_output, ultrastar_class, ultra
 
 
 def create_ultrastar_txt_from_automation(audio_separation_path, basename_without_ext, real_bpm, song_output,
-                                         transcribed_data, ultrastar_audio_input_path, ultrastar_note_numbers, language):
+                                         transcribed_data, ultrastar_audio_input_path, ultrastar_note_numbers,
+                                         language):
     real_bpm = get_bpm_from_file(ultrastar_audio_input_path)
     ultrastar_file_output = os.path.join(song_output, basename_without_ext + '.txt')
     ultrastar_writer.create_ultrastar_txt_from_automation(transcribed_data, ultrastar_note_numbers,
