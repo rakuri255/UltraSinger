@@ -20,7 +20,8 @@ from moduls.Ultrastar import ultrastar_parser, ultrastar_converter, ultrastar_wr
 from moduls.Speech_Recognition.Vosk import transcribe_with_vosk
 from moduls.Speech_Recognition.hyphenation import hyphenation, language_check
 from moduls.Speech_Recognition.Whisper import transcribe_with_whisper
-from moduls.Log import PRINT_ULTRASTAR, print_blue_highlighted_text, print_gold_highlighted_text, print_light_blue_highlighted_text
+from moduls.Log import PRINT_ULTRASTAR, print_blue_highlighted_text, print_gold_highlighted_text, \
+    print_light_blue_highlighted_text
 from matplotlib import pyplot as plt
 from Settings import Settings
 from tqdm import tqdm
@@ -201,9 +202,12 @@ def hyphenate_each_word(language, transcribed_data):
 
 def print_support():
     print()
-    print("{} {} {}{}".format(PRINT_ULTRASTAR, print_gold_highlighted_text("Do you like UltraSinger? And want it to be even better? Then help with your"), print_light_blue_highlighted_text("support"),  print_gold_highlighted_text("!")))
+    print("{} {} {}{}".format(PRINT_ULTRASTAR, print_gold_highlighted_text(
+        "Do you like UltraSinger? And want it to be even better? Then help with your"),
+                              print_light_blue_highlighted_text("support"), print_gold_highlighted_text("!")))
     print("{} See project page -> https://github.com/rakuri255/UltraSinger".format(PRINT_ULTRASTAR))
-    print("{} {}".format(PRINT_ULTRASTAR, print_gold_highlighted_text("This will help alot to keep this project alive and improved.")))
+    print("{} {}".format(PRINT_ULTRASTAR,
+                         print_gold_highlighted_text("This will help alot to keep this project alive and improved.")))
 
 
 def run():
@@ -233,6 +237,7 @@ def run():
 
     # Audio transcription
     transcribed_data = None
+    language = None
     if isAudio:
         language, transcribed_data = transcribe_audio(transcribed_data)
         remove_unecessary_punctuations(transcribed_data)
@@ -263,7 +268,7 @@ def run():
                                                                                basename_without_ext, real_bpm,
                                                                                song_output, transcribed_data,
                                                                                ultrastar_audio_input_path,
-                                                                               ultrastar_note_numbers)
+                                                                               ultrastar_note_numbers, language)
     else:
         ultrastar_file_output = create_ultrastar_txt_from_ultrastar_data(song_output, ultrastar_class,
                                                                          ultrastar_note_numbers)
@@ -277,6 +282,7 @@ def run():
 
     # Print Support
     print_support()
+
 
 def transcribe_audio(transcribed_data):
     if settings.transcriber == "whisper":
@@ -324,12 +330,12 @@ def create_ultrastar_txt_from_ultrastar_data(song_output, ultrastar_class, ultra
 
 
 def create_ultrastar_txt_from_automation(audio_separation_path, basename_without_ext, real_bpm, song_output,
-                                         transcribed_data, ultrastar_audio_input_path, ultrastar_note_numbers):
+                                         transcribed_data, ultrastar_audio_input_path, ultrastar_note_numbers, language):
     real_bpm = get_bpm_from_file(ultrastar_audio_input_path)
     ultrastar_file_output = os.path.join(song_output, basename_without_ext + '.txt')
     ultrastar_writer.create_ultrastar_txt_from_automation(transcribed_data, ultrastar_note_numbers,
                                                           ultrastar_file_output,
-                                                          basename_without_ext, real_bpm)
+                                                          basename_without_ext, language, real_bpm)
     if settings.create_karaoke:
         no_vocals_path = os.path.join(audio_separation_path, "no_vocals.wav")
         title = basename_without_ext + " [Karaoke]"
@@ -339,7 +345,7 @@ def create_ultrastar_txt_from_automation(audio_separation_path, basename_without
         karaoke_txt_output_path = karaoke_output_path + ".txt"
         ultrastar_writer.create_ultrastar_txt_from_automation(transcribed_data, ultrastar_note_numbers,
                                                               karaoke_txt_output_path,
-                                                              title, real_bpm)
+                                                              title, language, real_bpm)
     return real_bpm, ultrastar_file_output
 
 
@@ -353,9 +359,21 @@ def setup_audio_input_file():
     return basename_without_ext, song_output, ultrastar_audio_input_path
 
 
+FILENAME_REPLACEMENTS = (('?:"', ""), ("<", "("), (">", ")"), ("/\\|*", "-"))
+
+
+def sanitize_filename(fname: str) -> str:
+    for old, new in FILENAME_REPLACEMENTS:
+        for char in old:
+            fname = fname.replace(char, new)
+    if fname.endswith("."):
+        fname = fname.rstrip(" .")  # Windows does not like trailing periods
+    return fname
+
+
 def download_from_youtube():
     title = get_youtube_title(settings.input_file_path)
-    basename_without_ext = re.sub('[^A-Za-z0-9. _-]+', '', title).strip()
+    basename_without_ext = sanitize_filename(title)
     basename = basename_without_ext + '.mp3'
     song_output = os.path.join(settings.output_file_path, basename_without_ext)
     os_helper.create_folder(song_output)
