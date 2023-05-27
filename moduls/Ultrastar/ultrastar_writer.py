@@ -20,14 +20,15 @@ def get_language_name(language):
     return langcodes.Language.make(language=language).display_name()
 
 
-def create_ultrastar_txt_from_automation(transcribed_data, note_numbers, ultrastar_file_output, title, language, bpm=120):
+def create_ultrastar_txt_from_automation(transcribed_data, note_numbers, ultrastar_file_output, title, language,
+                                         bpm=120):
     print("{} Creating {} from transcription.".format(PRINT_ULTRASTAR, ultrastar_file_output))
 
     real_bpm = real_bpm_to_ultrastar_bpm(bpm)
     multiplication = get_multiplier(real_bpm)
     ultrastar_bpm = real_bpm * get_multiplier(real_bpm)
 
-    with open(ultrastar_file_output, 'w') as f:
+    with open(ultrastar_file_output, 'w', encoding='utf8') as f:
         gap = transcribed_data[0].start
 
         f.write('#ARTIST:' + title + '\n')

@@ -2,10 +2,11 @@ from moduls.Ultrastar.ultrastar_txt import UltrastarTxt
 from moduls.Ultrastar.ultrastar_converter import get_end_time_from_ultrastar, get_start_time_from_ultrastar
 from moduls.Log import PRINT_ULTRASTAR
 
+
 def parse_ultrastar_txt(input_file):
     print(PRINT_ULTRASTAR + " Parse ultrastar txt -> {}".format(input_file))
 
-    file = open(input_file, 'r')
+    file = open(input_file, 'r', encoding='utf8')
     txt = file.readlines()
 
     ultrastar_class = UltrastarTxt()
@@ -46,5 +47,3 @@ def parse_ultrastar_txt(input_file):
                 # print(parts[4])
 
     return ultrastar_class
-
-
