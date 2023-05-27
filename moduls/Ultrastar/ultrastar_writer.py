@@ -39,7 +39,7 @@ def create_ultrastar_txt_from_automation(transcribed_data, note_numbers, ultrast
             f.write('#LANGUAGE:' + get_language_name(language) + '\n')
         f.write('#MP3:' + title + '.mp3\n')
         f.write('#VIDEO:' + title + '.mp4\n')
-        f.write('#BPM:' + str(ultrastar_bpm) + '\n')  # not the real BPM!
+        f.write('#BPM:' + str(round(ultrastar_bpm, 2)) + '\n')  # not the real BPM!
         f.write('#GAP:' + str(int(gap * 1000)) + '\n')
 
         # Write the singing part
