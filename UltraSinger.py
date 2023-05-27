@@ -105,7 +105,7 @@ def get_bpm_from_data(data, sr):
     onset_env = librosa.onset.onset_strength(y=data, sr=sr)
     wav_tempo = librosa.beat.tempo(onset_envelope=onset_env, sr=sr)
 
-    print("{} BPM is {}".format(PRINT_ULTRASTAR, print_blue_highlighted_text(str(wav_tempo[0]))))
+    print("{} BPM is {}".format(PRINT_ULTRASTAR, print_blue_highlighted_text(str(round(wav_tempo[0], 2)))))
     return wav_tempo[0]
 
 
