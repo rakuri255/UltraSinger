@@ -23,6 +23,7 @@ from moduls.Log import PRINT_ULTRASTAR, print_red_highlighted_text, print_blue_h
     print_gold_highlighted_text, \
     print_light_blue_highlighted_text
 from matplotlib import pyplot as plt
+from moduls.Ultrastar.ultrastar_txt import UltrastarTxt
 from Settings import Settings
 from tqdm import tqdm
 from moduls.DeviceDetection.device_detection import get_available_device
@@ -272,7 +273,7 @@ def run():
     # Write Ultrastar txt
     if isAudio:
         real_bpm, ultrastar_file_output = create_ultrastar_txt_from_automation(audio_separation_path,
-                                                                               basename_without_ext, real_bpm,
+                                                                               basename_without_ext,
                                                                                song_output, transcribed_data,
                                                                                ultrastar_audio_input_path,
                                                                                ultrastar_note_numbers, language)
@@ -334,24 +335,33 @@ def create_ultrastar_txt_from_ultrastar_data(song_output, ultrastar_class, ultra
     return output_repitched_ultrastar
 
 
-def create_ultrastar_txt_from_automation(audio_separation_path, basename_without_ext, real_bpm, song_output,
+def create_ultrastar_txt_from_automation(audio_separation_path, basename_without_ext, song_output,
                                          transcribed_data, ultrastar_audio_input_path, ultrastar_note_numbers,
                                          language):
+    ultrastar_header = UltrastarTxt()
+    ultrastar_header.title = basename_without_ext
+    ultrastar_header.artist = basename_without_ext
+    ultrastar_header.mp3 = basename_without_ext + ".mp3"
+    ultrastar_header.video = basename_without_ext + ".mp4"
+    ultrastar_header.language = language
+
     real_bpm = get_bpm_from_file(ultrastar_audio_input_path)
     ultrastar_file_output = os.path.join(song_output, basename_without_ext + '.txt')
     ultrastar_writer.create_ultrastar_txt_from_automation(transcribed_data, ultrastar_note_numbers,
                                                           ultrastar_file_output,
-                                                          basename_without_ext, language, real_bpm)
+                                                          ultrastar_header, real_bpm)
     if settings.create_karaoke:
         no_vocals_path = os.path.join(audio_separation_path, "no_vocals.wav")
         title = basename_without_ext + " [Karaoke]"
+        ultrastar_header.title = title
+        ultrastar_header.mp3 = title + ".mp3"
         karaoke_output_path = os.path.join(song_output, title)
         karaoke_audio_output_path = karaoke_output_path + ".mp3"
         convert_wav_to_mp3(no_vocals_path, karaoke_audio_output_path)
         karaoke_txt_output_path = karaoke_output_path + ".txt"
         ultrastar_writer.create_ultrastar_txt_from_automation(transcribed_data, ultrastar_note_numbers,
                                                               karaoke_txt_output_path,
-                                                              title, language, real_bpm)
+                                                              ultrastar_header, real_bpm)
     return real_bpm, ultrastar_file_output
 
 
