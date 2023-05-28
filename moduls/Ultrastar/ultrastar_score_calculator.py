@@ -36,9 +36,7 @@ def print_score(points):
     notes = max_score * (points.notes + points.rap) / points.parts
     golden = points.golden_notes + points.golden_rap
     score = notes + points.line_bonus + golden
-    print(PRINT_ULTRASTAR + " Total: {}, notes: {}, line bonus: {}, golden notes: {}".format(
-        print_cyan_highlighted_text(str(round(score))), print_blue_highlighted_text(str(round(notes))),
-        print_light_blue_highlighted_text(str(round(points.line_bonus))), print_gold_highlighted_text(str(round(golden)))))
+    print(f"{PRINT_ULTRASTAR} Total: {print_cyan_highlighted_text(str(round(score)))}, notes: {print_blue_highlighted_text(str(round(notes)))}, line bonus: {print_light_blue_highlighted_text(str(round(points.line_bonus)))}, golden notes: {print_gold_highlighted_text(str(round(golden)))}")
 
 
 def print_score_calculation(pitched_data, ultrastar_class):
@@ -93,8 +91,8 @@ def print_score_calculation(pitched_data, ultrastar_class):
         if simple_part_line_bonus_points >= parts:
             simple_points.line_bonus += reachable_line_bonus_per_word
 
-    print("{} {} points".format(PRINT_ULTRASTAR, print_underlined_text("Simple (octave high ignored)")))
+    print(f"{PRINT_ULTRASTAR} {print_underlined_text("Simple (octave high ignored)")} points")
     print_score(simple_points)
 
-    print("{} {} points:".format(PRINT_ULTRASTAR, print_underlined_text("Accurate (octave high matches)")))
+    print(f"{PRINT_ULTRASTAR} {print_underlined_text("Accurate (octave high matches)")} points:")
     print_score(accurate_points)

@@ -11,7 +11,7 @@ from moduls.Ultrastar.ultrastar_converter import ultrastar_note_to_midi_note, ge
 from moduls.Log import PRINT_ULTRASTAR
 
 def convert_ultrastar_to_midi_instrument(ultrastar_class):
-    print(PRINT_ULTRASTAR + " Creating midi instrument from Ultrastar txt")
+    print(f"{PRINT_ULTRASTAR} Creating midi instrument from Ultrastar txt")
 
     instrument = pretty_midi.Instrument(program=0)
     velocity = 100
@@ -28,7 +28,7 @@ def convert_ultrastar_to_midi_instrument(ultrastar_class):
 
 
 def instruments_to_midi(instruments, bpm, midi_output):
-    print("{} Creating midi file -> {}".format(PRINT_ULTRASTAR, midi_output))
+    print(f"{PRINT_ULTRASTAR} Creating midi file -> {midi_output}")
 
     midi_data = pretty_midi.PrettyMIDI(initial_tempo=bpm)
     for instrument in instruments:
@@ -60,7 +60,7 @@ def find_nearest_index(array, value):
 
 
 def create_midi_notes_from_pitched_data(start_times, end_times, pitched_data):
-    print(PRINT_ULTRASTAR + " Creating midi notes from pitched data")
+    print(f"{PRINT_ULTRASTAR} Creating midi notes from pitched data")
 
     midi_notes = []
 

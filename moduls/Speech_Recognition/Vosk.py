@@ -11,7 +11,7 @@ from moduls.Log import PRINT_ULTRASTAR
 
 def transcribe_with_vosk(audio_filename, model_path):
     # Code from here: https://towardsdatascience.com/speech-recognition-with-timestamps-934ede4234b2
-    print(PRINT_ULTRASTAR + " Transcribing {} with vosk and model {}".format(audio_filename, model_path))
+    print(f"{PRINT_ULTRASTAR} Transcribing {audio_filename} with vosk and model {model_path}")
 
     model = Model(model_path)
     wf = wave.open(audio_filename, "rb")

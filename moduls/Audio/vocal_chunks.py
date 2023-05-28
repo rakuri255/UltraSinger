@@ -13,7 +13,7 @@ from moduls.Log import PRINT_ULTRASTAR
 
 def convert_audio_to_mono_wav(input_file, output_file):
     """Convert audio to mono wav"""
-    print(PRINT_ULTRASTAR + " Converting audio for AI")
+    print(f"{PRINT_ULTRASTAR} Converting audio for AI")
 
     if '.mp3' in input_file:
         sound = AudioSegment.from_mp3(input_file)
@@ -37,7 +37,7 @@ class AudioManipulation:
 
 def export_chunks_from_transcribed_data(audio_filename, transcribed_data, output_folder_name):
     """Export transcribed_data as vocal chunks wav files"""
-    print("{} Export transcribed data as vocal chunks wav files".format(PRINT_ULTRASTAR))
+    print(f"{PRINT_ULTRASTAR} Export transcribed data as vocal chunks wav files")
 
     wf = wave.open(audio_filename, "rb")
     sr, n_channels = wf.getparams()[2], wf.getparams()[0]
@@ -53,7 +53,7 @@ def export_chunks_from_transcribed_data(audio_filename, transcribed_data, output
 
 
 def remove_silence_from_transcribtion_data(audio_path, transcribed_data):
-    print(PRINT_ULTRASTAR + " Removing silent start and ending, from transcription data")
+    print(f"{PRINT_ULTRASTAR} Removing silent start and ending, from transcription data")
 
     y, sr = librosa.load(audio_path, sr=None)
 
@@ -88,7 +88,7 @@ def remove_silence_from_transcribtion_data(audio_path, transcribed_data):
 
 def export_chunks_from_ultrastar_data(audio_filename, ultrastar_data, folder_name):
     """Export ultrastar data as vocal chunks wav files"""
-    print(PRINT_ULTRASTAR + " Export Ultrastar data as vocal chunks wav files")
+    print(f"{PRINT_ULTRASTAR} Export Ultrastar data as vocal chunks wav files")
 
     create_folder(folder_name)
 
@@ -112,7 +112,7 @@ def export_chunk_to_wav_file(chunk, folder_name, i, word, wf):
     clean_word = re.sub('[^A-Za-z0-9]+', '', word)
     # todo: Progress?
     # print(str(i) + ' ' + clean_word)
-    with wave.open(os.path.join(folder_name, "chunk_{}_{}.wav".format(i, clean_word)),
+    with wave.open(os.path.join(folder_name, f"chunk_{i}_{clean_word}.wav"),
                    "wb") as chunk_file:
         chunk_file.setparams(wf.getparams())
         chunk_file.writeframes(chunk)
@@ -132,7 +132,7 @@ def get_chunk(end_byte, start_byte, wf):
 
 def export_transcribed_data_to_csv(transcribed_data, filename):
     """Export transcribed data to csv"""
-    print(PRINT_ULTRASTAR + " Exporting transcribed data to CSV")
+    print(f"{PRINT_ULTRASTAR} Exporting transcribed data to CSV")
 
     with open(filename, 'w', newline='') as csvfile:
         writer = csv.writer(csvfile)

@@ -17,7 +17,7 @@ def language_check(language='en'):
     if lang_region is None:
         return None
 
-    print("{} Hyphenate using language code: {}".format(PRINT_ULTRASTAR, print_blue_highlighted_text(lang_region)))
+    print(f"{PRINT_ULTRASTAR} Hyphenate using language code: {print_blue_highlighted_text(lang_region)}")
     return lang_region
 
 
