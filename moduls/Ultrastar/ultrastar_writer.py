@@ -22,7 +22,7 @@ def get_language_name(language):
 
 def create_ultrastar_txt_from_automation(transcribed_data, note_numbers, ultrastar_file_output, ultrastar_class,
                                          bpm=120):
-    print("{} Creating {} from transcription.".format(PRINT_ULTRASTAR, ultrastar_file_output))
+    print(f"{PRINT_ULTRASTAR} Creating {ultrastar_file_output} from transcription.")
 
     real_bpm = real_bpm_to_ultrastar_bpm(bpm)
     multiplication = get_multiplier(real_bpm)
@@ -87,7 +87,7 @@ def create_ultrastar_txt_from_automation(transcribed_data, note_numbers, ultrast
 
 def create_repitched_txt_from_ultrastar_data(input_file, note_numbers, output_repitched_ultrastar):
     # todo: just add '_repitched' to input_file
-    print("{} Creating repitched ultrastar txt -> {}_repitch.txt".format(PRINT_ULTRASTAR, input_file))
+    print("{PRINT_ULTRASTAR} Creating repitched ultrastar txt -> {input_file}_repitch.txt")
 
     # todo: to reader
     file = open(input_file, 'r')
