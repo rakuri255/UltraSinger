@@ -91,8 +91,8 @@ def print_score_calculation(pitched_data, ultrastar_class):
         if simple_part_line_bonus_points >= parts:
             simple_points.line_bonus += reachable_line_bonus_per_word
 
-    print(f"{PRINT_ULTRASTAR} {print_underlined_text("Simple (octave high ignored)")} points")
+    print(f"{PRINT_ULTRASTAR} {print_underlined_text('Simple (octave high ignored)')} points")
     print_score(simple_points)
 
-    print(f"{PRINT_ULTRASTAR} {print_underlined_text("Accurate (octave high matches)")} points:")
+    print(f"{PRINT_ULTRASTAR} {print_underlined_text('Accurate (octave high matches)')} points:")
     print_score(accurate_points)
