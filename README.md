@@ -1,5 +1,6 @@
 [![Discord](https://img.shields.io/discord/1048892118732656731?logo=discord)](https://discord.gg/7EqhhjFd)
 ![Status](https://img.shields.io/badge/status-development-yellow)
+![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/rakuri255/UltraSinger/main.yml)
 [![GitHub](https://img.shields.io/github/license/rakuri255/UltraSinger)](https://github.com/rakuri255/UltraSinger/blob/main/LICENSE)
 
 # UltraSinger
