@@ -4,7 +4,6 @@ import os
 import sys
 import Levenshtein
 import librosa
-import re
 
 from moduls import os_helper
 from moduls.Audio.vocal_chunks import export_chunks_from_ultrastar_data, convert_audio_to_mono_wav, \
@@ -20,9 +19,11 @@ from moduls.Ultrastar import ultrastar_parser, ultrastar_converter, ultrastar_wr
 from moduls.Speech_Recognition.Vosk import transcribe_with_vosk
 from moduls.Speech_Recognition.hyphenation import hyphenation, language_check
 from moduls.Speech_Recognition.Whisper import transcribe_with_whisper
-from moduls.Log import PRINT_ULTRASTAR, print_blue_highlighted_text, print_gold_highlighted_text, \
+from moduls.Log import PRINT_ULTRASTAR, print_red_highlighted_text, print_blue_highlighted_text, \
+    print_gold_highlighted_text, \
     print_light_blue_highlighted_text
 from matplotlib import pyplot as plt
+from moduls.Ultrastar.ultrastar_txt import UltrastarTxt
 from Settings import Settings
 from tqdm import tqdm
 from moduls.DeviceDetection.device_detection import get_available_device
@@ -192,8 +193,14 @@ def remove_unecessary_punctuations(transcribed_data):
 
 
 def hyphenate_each_word(language, transcribed_data):
-    lang_region = language_check(language)
     hyphenated_word = []
+    lang_region = language_check(language)
+    if lang_region is None:
+        print("{} {} {}".format(PRINT_ULTRASTAR, print_red_highlighted_text("Error in hyphenation for language "),
+                                print_blue_highlighted_text(language),
+                                print_red_highlighted_text("maybe you want to disable it?")))
+        return None
+
     sleep(.1)
     for i in tqdm(range(len(transcribed_data))):
         hyphenated_word.append(hyphenation(transcribed_data[i].word, lang_region))
@@ -245,7 +252,8 @@ def run():
 
         if settings.hyphenation:
             hyphen_words = hyphenate_each_word(language, transcribed_data)
-            transcribed_data = add_hyphen_to_data(transcribed_data, hyphen_words)
+            if hyphen_words is not None:
+                transcribed_data = add_hyphen_to_data(transcribed_data, hyphen_words)
 
         # todo: do we need to correct words?
         # lyric = 'input/faber_lyric.txt'
@@ -265,7 +273,7 @@ def run():
     # Write Ultrastar txt
     if isAudio:
         real_bpm, ultrastar_file_output = create_ultrastar_txt_from_automation(audio_separation_path,
-                                                                               basename_without_ext, real_bpm,
+                                                                               basename_without_ext,
                                                                                song_output, transcribed_data,
                                                                                ultrastar_audio_input_path,
                                                                                ultrastar_note_numbers, language)
@@ -329,23 +337,33 @@ def create_ultrastar_txt_from_ultrastar_data(song_output, ultrastar_class, ultra
     return output_repitched_ultrastar
 
 
-def create_ultrastar_txt_from_automation(audio_separation_path, basename_without_ext, real_bpm, song_output,
-                                         transcribed_data, ultrastar_audio_input_path, ultrastar_note_numbers, language):
+def create_ultrastar_txt_from_automation(audio_separation_path, basename_without_ext, song_output,
+                                         transcribed_data, ultrastar_audio_input_path, ultrastar_note_numbers,
+                                         language):
+    ultrastar_header = UltrastarTxt()
+    ultrastar_header.title = basename_without_ext
+    ultrastar_header.artist = basename_without_ext
+    ultrastar_header.mp3 = basename_without_ext + ".mp3"
+    ultrastar_header.video = basename_without_ext + ".mp4"
+    ultrastar_header.language = language
+
     real_bpm = get_bpm_from_file(ultrastar_audio_input_path)
     ultrastar_file_output = os.path.join(song_output, basename_without_ext + '.txt')
     ultrastar_writer.create_ultrastar_txt_from_automation(transcribed_data, ultrastar_note_numbers,
                                                           ultrastar_file_output,
-                                                          basename_without_ext, language, real_bpm)
+                                                          ultrastar_header, real_bpm)
     if settings.create_karaoke:
         no_vocals_path = os.path.join(audio_separation_path, "no_vocals.wav")
         title = basename_without_ext + " [Karaoke]"
+        ultrastar_header.title = title
+        ultrastar_header.mp3 = title + ".mp3"
         karaoke_output_path = os.path.join(song_output, title)
         karaoke_audio_output_path = karaoke_output_path + ".mp3"
         convert_wav_to_mp3(no_vocals_path, karaoke_audio_output_path)
         karaoke_txt_output_path = karaoke_output_path + ".txt"
         ultrastar_writer.create_ultrastar_txt_from_automation(transcribed_data, ultrastar_note_numbers,
                                                               karaoke_txt_output_path,
-                                                              title, language, real_bpm)
+                                                              ultrastar_header, real_bpm)
     return real_bpm, ultrastar_file_output
 
 

@@ -20,7 +20,7 @@ def get_language_name(language):
     return langcodes.Language.make(language=language).display_name()
 
 
-def create_ultrastar_txt_from_automation(transcribed_data, note_numbers, ultrastar_file_output, title, language,
+def create_ultrastar_txt_from_automation(transcribed_data, note_numbers, ultrastar_file_output, ultrastar_class,
                                          bpm=120):
     print("{} Creating {} from transcription.".format(PRINT_ULTRASTAR, ultrastar_file_output))
 
@@ -31,16 +31,16 @@ def create_ultrastar_txt_from_automation(transcribed_data, note_numbers, ultrast
     with open(ultrastar_file_output, 'w', encoding='utf8') as f:
         gap = transcribed_data[0].start
 
-        f.write('#ARTIST:' + title + '\n')
-        f.write('#TITLE:' + title + '\n')
-        f.write('#CREATOR:UltraSinger [GitHub]' + '\n')
-        f.write('#FIXER:YOUR NAME' + '\n')
-        if language is not None:
-            f.write('#LANGUAGE:' + get_language_name(language) + '\n')
-        f.write('#MP3:' + title + '.mp3\n')
-        f.write('#VIDEO:' + title + '.mp4\n')
-        f.write('#BPM:' + str(round(ultrastar_bpm, 2)) + '\n')  # not the real BPM!
-        f.write('#GAP:' + str(int(gap * 1000)) + '\n')
+        f.write(f'#ARTIST:{ultrastar_class.artist}\n')
+        f.write(f'#TITLE:{ultrastar_class.title}\n')
+        f.write(f'#CREATOR:{ultrastar_class.creator}\n')
+        f.write(f'#FIXER:{ultrastar_class.fixer}\n')
+        if ultrastar_class.language is not None:
+            f.write(f'#LANGUAGE:' + get_language_name(ultrastar_class.language) + '\n')
+        f.write(f'#MP3:{ultrastar_class.mp3}\n')
+        f.write(f'#VIDEO:{ultrastar_class.video}\n')
+        f.write(f'#BPM:' + str(round(ultrastar_bpm, 2)) + '\n')  # not the real BPM!
+        f.write(f'#GAP:' + str(int(gap * 1000)) + '\n')
 
         # Write the singing part
         previous_end_beat = 0
