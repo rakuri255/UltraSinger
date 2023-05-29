@@ -41,6 +41,7 @@ def create_ultrastar_txt_from_automation(transcribed_data, note_numbers, ultrast
         f.write(f'#VIDEO:{ultrastar_class.video}\n')
         f.write(f'#BPM:' + str(round(ultrastar_bpm, 2)) + '\n')  # not the real BPM!
         f.write(f'#GAP:' + str(int(gap * 1000)) + '\n')
+        f.write(f'#COMMENT:{ultrastar_class.comment}\n')
 
         # Write the singing part
         previous_end_beat = 0
@@ -112,6 +113,22 @@ def create_repitched_txt_from_ultrastar_data(input_file, note_numbers, output_re
             else:
                 f.write(line)
 
+def add_score_to_ultrastar_txt(ultrastar_file_output, score):
+    with open(ultrastar_file_output, 'r') as f:
+        text = f.read()
+    text = text.split('\n')
 
+    for i in range(len(text)):
+        if text[i].startswith("#COMMENT:"):
+            text[i] = f"{text[i]} | Score: total: {score.score}, notes: {score.notes} line: {score.line_bonus}, golden: {score.golden}"
+            break
+        elif text[i].startswith(('F ', ': ', '* ', 'R ', 'G ')):
+            text.insert(i, f"#COMMENT: UltraSinger [GitHub] | Score: total: {score.score}, notes: {score.notes} line: {score.line_bonus}, golden: {score.golden}")
+            break
+
+    text = '\n'.join(text)
+
+    with open(ultrastar_file_output, 'w') as f:
+        f.write(text)
 class UltraStarWriter:
     pass
