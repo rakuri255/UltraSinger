@@ -277,7 +277,10 @@ def run():
                                                                          ultrastar_note_numbers)
 
     # Calc Points
-    ultrastar_class = calculate_score_points(isAudio, pitched_data, ultrastar_class, ultrastar_file_output)
+    ultrastar_class, simple_score, accurate_score = calculate_score_points(isAudio, pitched_data, ultrastar_class, ultrastar_file_output)
+
+    # Add calculated score to Ultrastar txt
+    ultrastar_writer.add_score_to_ultrastar_txt(ultrastar_file_output, simple_score)
 
     # Midi
     if settings.create_midi:
@@ -313,14 +316,17 @@ def separate_vocal_from_audio(basename_without_ext, cache_path, ultrastar_audio_
 def calculate_score_points(isAudio, pitched_data, ultrastar_class, ultrastar_file_output):
     if isAudio:
         ultrastar_class = ultrastar_parser.parse_ultrastar_txt(ultrastar_file_output)
-        ultrastar_score_calculator.print_score_calculation(pitched_data, ultrastar_class)
+        simple_score, accurate_score = ultrastar_score_calculator.calculate_score(pitched_data, ultrastar_class)
+        ultrastar_score_calculator.print_score_calculation(simple_score, accurate_score)
     else:
         print(f"{PRINT_ULTRASTAR} {print_blue_highlighted_text('Score of original Ultrastar txt')}")
-        ultrastar_score_calculator.print_score_calculation(pitched_data, ultrastar_class)
+        simple_score, accurate_score = ultrastar_score_calculator.calculate_score(pitched_data, ultrastar_class)
+        ultrastar_score_calculator.print_score_calculation(simple_score, accurate_score)
         print(f"{PRINT_ULTRASTAR} {print_blue_highlighted_text('Score of re-pitched Ultrastar txt')}")
         ultrastar_class = ultrastar_parser.parse_ultrastar_txt(ultrastar_file_output)
-        ultrastar_score_calculator.print_score_calculation(pitched_data, ultrastar_class)
-    return ultrastar_class
+        simple_score, accurate_score = ultrastar_score_calculator.calculate_score(pitched_data, ultrastar_class)
+        ultrastar_score_calculator.print_score_calculation(simple_score, accurate_score)
+    return ultrastar_class, simple_score, accurate_score
 
 
 def create_ultrastar_txt_from_ultrastar_data(song_output, ultrastar_class, ultrastar_note_numbers):

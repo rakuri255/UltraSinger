@@ -29,17 +29,27 @@ def add_point(noteType, points):
         points.golden_rap += 2
     return points
 
+class Score:
+    max_score = 0
+    notes = 0
+    golden = 0
+    line_bonus = 0
+    score = 0
 
-def print_score(points):
-    # todo: here also a score calculation !?!
-    max_score = MAX_SONG_SCORE if points.line_bonus == 0 else MAX_SONG_SCORE - MAX_SONG_LINE_BONUS
-    notes = max_score * (points.notes + points.rap) / points.parts
-    golden = points.golden_notes + points.golden_rap
-    score = notes + points.line_bonus + golden
-    print(f"{PRINT_ULTRASTAR} Total: {print_cyan_highlighted_text(str(round(score)))}, notes: {print_blue_highlighted_text(str(round(notes)))}, line bonus: {print_light_blue_highlighted_text(str(round(points.line_bonus)))}, golden notes: {print_gold_highlighted_text(str(round(golden)))}")
+def get_score(points):
+    score = Score()
+    score.max_score = MAX_SONG_SCORE if points.line_bonus == 0 else MAX_SONG_SCORE - MAX_SONG_LINE_BONUS
+    score.notes = round(score.max_score * (points.notes + points.rap) / points.parts)
+    score.golden = round(points.golden_notes + points.golden_rap)
+    score.score = round(score.notes + points.line_bonus + score.golden)
+    score.line_bonus = round(points.line_bonus)
+    return score
+
+def print_score(score):
+    print(f"{PRINT_ULTRASTAR} Total: {print_cyan_highlighted_text(str(score.score))}, notes: {print_blue_highlighted_text(str(score.notes))}, line bonus: {print_light_blue_highlighted_text(str(score.line_bonus))}, golden notes: {print_gold_highlighted_text(str(score.golden))}")
 
 
-def print_score_calculation(pitched_data, ultrastar_class):
+def calculate_score(pitched_data, ultrastar_class):
     print(PRINT_ULTRASTAR + " Calculating Ultrastar Points")
 
     simple_points = Points()
@@ -91,6 +101,9 @@ def print_score_calculation(pitched_data, ultrastar_class):
         if simple_part_line_bonus_points >= parts:
             simple_points.line_bonus += reachable_line_bonus_per_word
 
+    return get_score(simple_points), get_score(accurate_points)
+
+def print_score_calculation(simple_points, accurate_points):
     print(f"{PRINT_ULTRASTAR} {print_underlined_text('Simple (octave high ignored)')} points")
     print_score(simple_points)
 
