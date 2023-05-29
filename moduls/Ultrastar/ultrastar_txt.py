@@ -6,6 +6,7 @@ class UltrastarTxt:
     bpm = ''
     creator = 'UltraSinger [GitHub]'
     fixer = 'YOUR NAME'
+    comment = 'UltraSinger [GitHub]'
     startBeat = []
     startTimes = []
     endTimes = []

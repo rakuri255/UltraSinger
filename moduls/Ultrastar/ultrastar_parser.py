@@ -26,7 +26,7 @@ def parse_ultrastar_txt(input_file):
                 ultrastar_class.gap = line.split(':')[1].replace('\n', '')
             elif line.startswith('#BPM'):
                 ultrastar_class.bpm = line.split(':')[1].replace('\n', '')
-        elif line.startswith(('F', ':', '*', 'R', 'G')):
+        elif line.startswith(('F ', ': ', '* ', 'R ', 'G ')):
             parts = line.split()
             # [0] F : * R G
             # [1] start beat
