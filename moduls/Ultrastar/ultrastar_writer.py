@@ -1,25 +1,46 @@
 from moduls.Ultrastar.ultrastar_converter import real_bpm_to_ultrastar_bpm, second_to_beat
 from moduls.Log import PRINT_ULTRASTAR
+import langcodes
 import re
 
 
-def create_ultrastar_txt_from_automation(transcribed_data, note_numbers, ultrastar_file_output, title, bpm=120):
-    print("{} Creating {} from transcription.".format(PRINT_ULTRASTAR, ultrastar_file_output))
+def get_multiplier(real_bpm):
+    if real_bpm == 0:
+        raise Exception("BPM is 0")
 
-    # todo: Optimize multiplication
-    multiplication = 32
-    with open(ultrastar_file_output, 'w') as f:
+    multiplier = 1
+    result = 0
+    while result < 400:
+        result = real_bpm * multiplier
+        multiplier += 1
+    return multiplier - 2
+
+
+def get_language_name(language):
+    return langcodes.Language.make(language=language).display_name()
+
+
+def create_ultrastar_txt_from_automation(transcribed_data, note_numbers, ultrastar_file_output, ultrastar_class,
+                                         bpm=120):
+    print(f"{PRINT_ULTRASTAR} Creating {ultrastar_file_output} from transcription.")
+
+    real_bpm = real_bpm_to_ultrastar_bpm(bpm)
+    multiplication = get_multiplier(real_bpm)
+    ultrastar_bpm = real_bpm * get_multiplier(real_bpm)
+
+    with open(ultrastar_file_output, 'w', encoding='utf8') as f:
         gap = transcribed_data[0].start
-        ultrastar_bpm = real_bpm_to_ultrastar_bpm(bpm) * multiplication
 
-        f.write('#ARTIST:' + title + '\n')
-        f.write('#TITLE:' + title + '\n')
-        f.write('#CREATOR:UltraSinger' + '\n')
-        f.write('#FIXER:YOUR NAME' + '\n')
-        f.write('#MP3:' + title + '.mp3\n')
-        f.write('#VIDEO:' + title + '.mp4\n')
-        f.write('#BPM:' + str(ultrastar_bpm) + '\n')  # not the real BPM!
-        f.write('#GAP:' + str(int(gap * 1000)) + '\n')
+        f.write(f'#ARTIST:{ultrastar_class.artist}\n')
+        f.write(f'#TITLE:{ultrastar_class.title}\n')
+        f.write(f'#CREATOR:{ultrastar_class.creator}\n')
+        f.write(f'#FIXER:{ultrastar_class.fixer}\n')
+        if ultrastar_class.language is not None:
+            f.write(f'#LANGUAGE:' + get_language_name(ultrastar_class.language) + '\n')
+        f.write(f'#MP3:{ultrastar_class.mp3}\n')
+        f.write(f'#VIDEO:{ultrastar_class.video}\n')
+        f.write(f'#BPM:' + str(round(ultrastar_bpm, 2)) + '\n')  # not the real BPM!
+        f.write(f'#GAP:' + str(int(gap * 1000)) + '\n')
 
         # Write the singing part
         previous_end_beat = 0
@@ -53,7 +74,7 @@ def create_ultrastar_txt_from_automation(transcribed_data, note_numbers, ultrast
             else:
                 silence = 0
 
-            if silence > 0.3:
+            if silence > 0.3 and i != len(transcribed_data) - 1:
                 # - 10
                 # '-' end of current sing part
                 # 'n1' show next at time in real beat
@@ -66,7 +87,7 @@ def create_ultrastar_txt_from_automation(transcribed_data, note_numbers, ultrast
 
 def create_repitched_txt_from_ultrastar_data(input_file, note_numbers, output_repitched_ultrastar):
     # todo: just add '_repitched' to input_file
-    print("{} Creating repitched ultrastar txt -> {}_repitch.txt".format(PRINT_ULTRASTAR, input_file))
+    print("{PRINT_ULTRASTAR} Creating repitched ultrastar txt -> {input_file}_repitch.txt")
 
     # todo: to reader
     file = open(input_file, 'r')

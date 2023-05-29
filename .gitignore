@@ -1,0 +1,9 @@
+# virtual environment
+venv
+.venv
+
+# python
+**__pycache__
+
+# default output folder
+output

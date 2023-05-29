@@ -1,19 +1,23 @@
-[![](https://visitcount.itsvg.in/api?id=UltraSinger&label=Profile%20Views&color=0&icon=7&pretty=false)](https://visitcount.itsvg.in)
+[![Discord](https://img.shields.io/discord/1048892118732656731?logo=discord)](https://discord.gg/7EqhhjFd)
+![Status](https://img.shields.io/badge/status-development-yellow)
+[![GitHub](https://img.shields.io/github/license/rakuri255/UltraSinger)](https://github.com/rakuri255/UltraSinger/blob/main/LICENSE)
 
-# UltraSinger 
+# UltraSinger
 
 > ⚠️ _This project is still under development!_
 
 UltraSinger is a tool to automatically create UltraStar.txt, midi and notes from music. 
+Meaning it automaticly pitch UltraStar files, adding text and tapping to UltraStar files and creates separate UltraStar karaoke files.
 It also can re-pitch current UltraStar files and calculates the possible in-game score.
 
 Multiple AI models are used to extract text from the voice and to determine the pitch.
 
 Please mention UltraSinger in your UltraStar.txt file if you use it. It helps other to find this tool.
 And it helps you that this tool gets improved and maintained.
+You should only use it on Creative Commons licensed songs.
 
 ## Support
-There are many ways to support a project. Starring ⭐️ the repo is just one 🙏
+There are many ways to support this project. Starring ⭐️ the repo is just one 🙏
 
 You can also support this work on Patreon or Buy Me A Coffee.
 
@@ -22,7 +26,33 @@ This will help me alot to keep this project alive and improve it.
 <a href="https://www.buymeacoffee.com/rakuri255" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" style="height: 60px !important;width: 217px !important;" ></a>
 <a href="https://patreon.com/Rakuri"><img src="https://raw.githubusercontent.com/rakuri255/UltraSinger/main/assets/patreon.png" alt="Become a Patron" style="height: 60px !important;width: 217px !important;"/> </a>
 
-## How to use
+## How to use this source code
+
+### With Console (Windows)
+
+* Install Python 3.10 (older and newer versions has some breaking changes). [Download](https://www.python.org/downloads/)
+* Also install ffmpeg separately with PATH. [Download](https://www.ffmpeg.org/download.html)
+* Open a console (CMD) and navigate to the project folder.
+* Type `py -m venv .venv` and press enter. If this does not work, try instead of `py` `python` or `python3`.
+  * This will always take the newest Python version. If you have multiple versions installed, you can use `py -0p` to see all installed versions.
+  * Build with correct version use `py -3.10 -m venv .venv`.
+* Wait until the console is done with creating the environment. This can take a while.
+* Type `.venv\Scripts\activate` and press enter.
+* You should see now a `(.venv)` in front of your console line.
+* Install the requirements with `pip install -r requirements.txt`.
+* Now you can use the UltraSinger source code with `py UltraSinger.py [opt] [mode] [transcription] [pitcher] [extra]`. See [How to use](#how-to-use) for more information.
+
+For more information about Python environments look [here](https://code.visualstudio.com/docs/python/environments#_global-virtual-or-conda-environments).
+
+As copy:
+    
+```commandline
+py -m venv .venv
+.venv\Scripts\activate
+pip install -r requirements.txt
+```
+
+## How to use the App
 
 _Not all options working now!_
 ```commandline
@@ -52,8 +82,8 @@ _Not all options working now!_
     (-m      Create midi file) # In Progress
 
     [transcription]
-    # Default is whisper tiny
-    --whisper   tiny|base|small|medium|large
+    # Default is whisper
+    --whisper   tiny|base|small|medium|large >> ((default) is large)
     --vosk      Needs model
     
     [extra]
@@ -63,8 +93,8 @@ _Not all options working now!_
     --create_audio_chunks   True|False >> ((default) is False)
 
     [pitcher]
-    # Default is crepe full
-    --crepe     tiny|small|medium|large|full
+    # Default is crepe
+    --crepe     tiny|small|medium|large|full >> ((default) is full)
 ```
 
 For standard use, you only need to use [opt]. All other options are optional.
@@ -95,7 +125,7 @@ This re-pitch the audio and creates a new txt file.
 
 ### Transcriber
 
-For transcription, `whisper` is used by default. It is more accurate than the other even with the `tiny` model.
+For transcription, `whisper` is used by default. It is more accurate than the other even with the `large` model.
 And it finds the language automatically.
 But anyway, it depends! Try the other one if `Whisper` does not suit you.
 Also keep in mind that while a larger model is more accurate, it also takes longer to transcribe.
@@ -159,14 +189,3 @@ for low male voices. Accurate is the real tone specified in the txt. I had txt f
 singable by humans, but you could still reach the 10k points in the game. The accuracy is important here, because from
 this MIDI and sheet are created. And you also want to have accurate files
 
-## How to use this source code
-
-Install Python 3.10 (older and newer versions has some breaking changes).
-You should install and use `venv` or `conda`. 
-For VSCode look [here](https://code.visualstudio.com/docs/python/environments#_global-virtual-or-conda-environments).
-
-After that you need to install the requirements from `requirements.txt`.
-
-Also install ffmpeg separately.
-
-Then just use the `How to use` commands, described above.

@@ -13,7 +13,7 @@ def get_youtube_title(url):
 
 
 def download_youtube_audio(url, clear_filename, output_path):
-    print(PRINT_ULTRASTAR + " Downloading Audio")
+    print(f"{PRINT_ULTRASTAR} Downloading Audio")
     ydl_opts = {
         'format': 'bestaudio/best',
         'outtmpl': output_path + '/' + clear_filename,
@@ -30,7 +30,7 @@ def download_youtube_audio(url, clear_filename, output_path):
 
 
 def download_youtube_video(url, clear_filename, output_path):
-    print(PRINT_ULTRASTAR + " Downloading Video")
+    print(f"{PRINT_ULTRASTAR} Downloading Video")
     ydl_opts = {
         'format': 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/mp4',
         'outtmpl': output_path + '/' + clear_filename + '.mp4'

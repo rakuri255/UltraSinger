@@ -4,7 +4,6 @@ import os
 import sys
 import Levenshtein
 import librosa
-import re
 
 from moduls import os_helper
 from moduls.Audio.vocal_chunks import export_chunks_from_ultrastar_data, convert_audio_to_mono_wav, \
@@ -20,8 +19,11 @@ from moduls.Ultrastar import ultrastar_parser, ultrastar_converter, ultrastar_wr
 from moduls.Speech_Recognition.Vosk import transcribe_with_vosk
 from moduls.Speech_Recognition.hyphenation import hyphenation, language_check
 from moduls.Speech_Recognition.Whisper import transcribe_with_whisper
-from moduls.Log import PRINT_ULTRASTAR, print_blue_highlighted_text, print_gold_highlighted_text
+from moduls.Log import PRINT_ULTRASTAR, print_red_highlighted_text, print_blue_highlighted_text, \
+    print_gold_highlighted_text, \
+    print_light_blue_highlighted_text
 from matplotlib import pyplot as plt
+from moduls.Ultrastar.ultrastar_txt import UltrastarTxt
 from Settings import Settings
 from tqdm import tqdm
 from moduls.DeviceDetection.device_detection import get_available_device
@@ -44,7 +46,7 @@ def get_confidence(pitched_data, threshold):
 
 
 def convert_ultrastar_note_numbers(midi_notes):
-    print(PRINT_ULTRASTAR + " Creating Ultrastar notes from midi data")
+    print(f"{PRINT_ULTRASTAR} Creating Ultrastar notes from midi data")
 
     ultrastar_note_numbers = []
     for i in range(len(midi_notes)):
@@ -57,7 +59,7 @@ def convert_ultrastar_note_numbers(midi_notes):
 
 
 def pitch_each_chunk_with_crepe(directory):
-    print("{} Pitching each chunk with {}.".format(PRINT_ULTRASTAR, print_blue_highlighted_text("crepe")))
+    print(f"{PRINT_ULTRASTAR} Pitching each chunk with {print_blue_highlighted_text('crepe')}")
 
     midi_notes = []
     for filename in sorted([f for f in os.listdir(directory) if f.endswith('.wav')],
@@ -104,7 +106,7 @@ def get_bpm_from_data(data, sr):
     onset_env = librosa.onset.onset_strength(y=data, sr=sr)
     wav_tempo = librosa.beat.tempo(onset_envelope=onset_env, sr=sr)
 
-    print("{} BPM is {}".format(PRINT_ULTRASTAR, print_blue_highlighted_text(str(wav_tempo[0]))))
+    print(f"{PRINT_ULTRASTAR} BPM is {print_blue_highlighted_text(str(round(wav_tempo[0], 2)))}")
     return wav_tempo[0]
 
 
@@ -191,12 +193,23 @@ def remove_unecessary_punctuations(transcribed_data):
 
 
 def hyphenate_each_word(language, transcribed_data):
-    lang_region = language_check(language)
     hyphenated_word = []
+    lang_region = language_check(language)
+    if lang_region is None:
+        print(f"{PRINT_ULTRASTAR} {print_red_highlighted_text('Error in hyphenation for language ')} {print_blue_highlighted_text(language)} {print_red_highlighted_text(', maybe you want to disable it?')}")
+        return None
+
     sleep(.1)
     for i in tqdm(range(len(transcribed_data))):
         hyphenated_word.append(hyphenation(transcribed_data[i].word, lang_region))
     return hyphenated_word
+
+
+def print_support():
+    print()
+    print(f"{PRINT_ULTRASTAR} {print_gold_highlighted_text('Do you like UltraSinger? And want it to be even better? Then help with your')} {print_light_blue_highlighted_text('support')}{print_gold_highlighted_text('!')}")
+    print(f"{PRINT_ULTRASTAR} See project page -> https://github.com/rakuri255/UltraSinger")
+    print(f"{PRINT_ULTRASTAR} {print_gold_highlighted_text('This will help alot to keep this project alive and improved.')}")
 
 
 def run():
@@ -205,13 +218,13 @@ def run():
     real_bpm = None
 
     if not isAudio:  # Parse Ultrastar txt
-        print("{} {}".format(PRINT_ULTRASTAR, print_gold_highlighted_text("re-pitch mode")))
+        print(f"{PRINT_ULTRASTAR} {print_gold_highlighted_text('re-pitch mode')}")
         basename_without_ext, real_bpm, song_output, ultrastar_audio_input_path, ultrastar_class = parse_ultrastar_txt()
     elif settings.input_file_path.startswith('https:'):  # Youtube
-        print("{} {}".format(PRINT_ULTRASTAR, print_gold_highlighted_text("full automatic mode")))
+        print(f"{PRINT_ULTRASTAR} {print_gold_highlighted_text('full automatic mode')}")
         basename_without_ext, song_output, ultrastar_audio_input_path = download_from_youtube()
     else:  # Audio File
-        print("{} {}".format(PRINT_ULTRASTAR, print_gold_highlighted_text("full automatic mode")))
+        print(f"{PRINT_ULTRASTAR} {print_gold_highlighted_text('full automatic mode')}")
         basename_without_ext, song_output, ultrastar_audio_input_path = setup_audio_input_file()
 
     cache_path = os.path.join(song_output, 'cache')
@@ -226,6 +239,7 @@ def run():
 
     # Audio transcription
     transcribed_data = None
+    language = None
     if isAudio:
         language, transcribed_data = transcribe_audio(transcribed_data)
         remove_unecessary_punctuations(transcribed_data)
@@ -233,7 +247,8 @@ def run():
 
         if settings.hyphenation:
             hyphen_words = hyphenate_each_word(language, transcribed_data)
-            transcribed_data = add_hyphen_to_data(transcribed_data, hyphen_words)
+            if hyphen_words is not None:
+                transcribed_data = add_hyphen_to_data(transcribed_data, hyphen_words)
 
         # todo: do we need to correct words?
         # lyric = 'input/faber_lyric.txt'
@@ -253,10 +268,10 @@ def run():
     # Write Ultrastar txt
     if isAudio:
         real_bpm, ultrastar_file_output = create_ultrastar_txt_from_automation(audio_separation_path,
-                                                                               basename_without_ext, real_bpm,
+                                                                               basename_without_ext,
                                                                                song_output, transcribed_data,
                                                                                ultrastar_audio_input_path,
-                                                                               ultrastar_note_numbers)
+                                                                               ultrastar_note_numbers, language)
     else:
         ultrastar_file_output = create_ultrastar_txt_from_ultrastar_data(song_output, ultrastar_class,
                                                                          ultrastar_note_numbers)
@@ -267,6 +282,9 @@ def run():
     # Midi
     if settings.create_midi:
         create_midi_file(isAudio, real_bpm, song_output, ultrastar_class)
+
+    # Print Support
+    print_support()
 
 
 def transcribe_audio(transcribed_data):
@@ -297,9 +315,9 @@ def calculate_score_points(isAudio, pitched_data, ultrastar_class, ultrastar_fil
         ultrastar_class = ultrastar_parser.parse_ultrastar_txt(ultrastar_file_output)
         ultrastar_score_calculator.print_score_calculation(pitched_data, ultrastar_class)
     else:
-        print("{} {}".format(PRINT_ULTRASTAR, print_blue_highlighted_text("Score of original Ultrastar txt")))
+        print(f"{PRINT_ULTRASTAR} {print_blue_highlighted_text('Score of original Ultrastar txt')}")
         ultrastar_score_calculator.print_score_calculation(pitched_data, ultrastar_class)
-        print("{} {}".format(PRINT_ULTRASTAR, print_blue_highlighted_text("Score of re-pitched Ultrastar txt")))
+        print(f"{PRINT_ULTRASTAR} {print_blue_highlighted_text('Score of re-pitched Ultrastar txt')}")
         ultrastar_class = ultrastar_parser.parse_ultrastar_txt(ultrastar_file_output)
         ultrastar_score_calculator.print_score_calculation(pitched_data, ultrastar_class)
     return ultrastar_class
@@ -312,23 +330,33 @@ def create_ultrastar_txt_from_ultrastar_data(song_output, ultrastar_class, ultra
     return output_repitched_ultrastar
 
 
-def create_ultrastar_txt_from_automation(audio_separation_path, basename_without_ext, real_bpm, song_output,
-                                         transcribed_data, ultrastar_audio_input_path, ultrastar_note_numbers):
+def create_ultrastar_txt_from_automation(audio_separation_path, basename_without_ext, song_output,
+                                         transcribed_data, ultrastar_audio_input_path, ultrastar_note_numbers,
+                                         language):
+    ultrastar_header = UltrastarTxt()
+    ultrastar_header.title = basename_without_ext
+    ultrastar_header.artist = basename_without_ext
+    ultrastar_header.mp3 = basename_without_ext + ".mp3"
+    ultrastar_header.video = basename_without_ext + ".mp4"
+    ultrastar_header.language = language
+
     real_bpm = get_bpm_from_file(ultrastar_audio_input_path)
     ultrastar_file_output = os.path.join(song_output, basename_without_ext + '.txt')
     ultrastar_writer.create_ultrastar_txt_from_automation(transcribed_data, ultrastar_note_numbers,
                                                           ultrastar_file_output,
-                                                          basename_without_ext, real_bpm)
+                                                          ultrastar_header, real_bpm)
     if settings.create_karaoke:
         no_vocals_path = os.path.join(audio_separation_path, "no_vocals.wav")
         title = basename_without_ext + " [Karaoke]"
+        ultrastar_header.title = title
+        ultrastar_header.mp3 = title + ".mp3"
         karaoke_output_path = os.path.join(song_output, title)
         karaoke_audio_output_path = karaoke_output_path + ".mp3"
         convert_wav_to_mp3(no_vocals_path, karaoke_audio_output_path)
         karaoke_txt_output_path = karaoke_output_path + ".txt"
         ultrastar_writer.create_ultrastar_txt_from_automation(transcribed_data, ultrastar_note_numbers,
                                                               karaoke_txt_output_path,
-                                                              title, real_bpm)
+                                                              ultrastar_header, real_bpm)
     return real_bpm, ultrastar_file_output
 
 
@@ -342,9 +370,21 @@ def setup_audio_input_file():
     return basename_without_ext, song_output, ultrastar_audio_input_path
 
 
+FILENAME_REPLACEMENTS = (('?:"', ""), ("<", "("), (">", ")"), ("/\\|*", "-"))
+
+
+def sanitize_filename(fname: str) -> str:
+    for old, new in FILENAME_REPLACEMENTS:
+        for char in old:
+            fname = fname.replace(char, new)
+    if fname.endswith("."):
+        fname = fname.rstrip(" .")  # Windows does not like trailing periods
+    return fname
+
+
 def download_from_youtube():
     title = get_youtube_title(settings.input_file_path)
-    basename_without_ext = re.sub('[^A-Za-z0-9. _-]+', '', title).strip()
+    basename_without_ext = sanitize_filename(title)
     basename = basename_without_ext + '.mp3'
     song_output = os.path.join(settings.output_file_path, basename_without_ext)
     os_helper.create_folder(song_output)
@@ -366,7 +406,7 @@ def parse_ultrastar_txt():
 
 
 def create_midi_file(isAudio, real_bpm, song_output, ultrastar_class):
-    print("{} Creating Midi with {}".format(PRINT_ULTRASTAR, print_blue_highlighted_text("pretty_midi")))
+    print(f"{PRINT_ULTRASTAR} Creating Midi with {print_blue_highlighted_text('pretty_midi')}")
     if isAudio:
         voice_instrument = [midi_creator.convert_ultrastar_to_midi_instrument(ultrastar_class)]
         midi_output = os.path.join(song_output, ultrastar_class.title + '.mid')

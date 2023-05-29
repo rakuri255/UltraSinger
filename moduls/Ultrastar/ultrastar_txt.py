@@ -4,6 +4,8 @@ class UltrastarTxt:
     mp3 = ''
     gap = ''
     bpm = ''
+    creator = 'UltraSinger [GitHub]'
+    fixer = 'YOUR NAME'
     startBeat = []
     startTimes = []
     endTimes = []
