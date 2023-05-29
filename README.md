@@ -83,7 +83,8 @@ _Not all options working now!_
 
     [transcription]
     # Default is whisper
-    --whisper   tiny|base|small|medium|large >> ((default) is large)
+    --whisper   Multilingual model > tiny|base|small|medium|large-v1|large-v2  >> ((default) is large-v2
+                English-only model > tiny.en|base.en|small.en|medium.en
     --vosk      Needs model
     
     [extra]
@@ -132,7 +133,7 @@ Also keep in mind that while a larger model is more accurate, it also takes long
 
 #### Whisper
 
-For the first test run, use the `tiny`, to be accurate use the `large` model
+For the first test run, use the `tiny`, to be accurate use the `large-v2` model
 
 ```commandline
 -i XYZ --whisper large

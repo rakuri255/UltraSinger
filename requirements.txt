@@ -9,7 +9,7 @@ tensorflow~=2.12.0
 matplotlib~=3.7.1
 yt_dlp~=2023.3.4
 numpy~=1.23.5
-git+https://github.com/linto-ai/whisper-timestamped
+git+https://github.com/m-bain/whisperx.git
 PyHyphen~=4.0.3
 demucs~=4.0.0
 tqdm~=4.65.0
