@@ -5,9 +5,7 @@ from moduls.Log import print_blue_highlighted_text, print_red_highlighted_text
 
 
 def transcribe_with_whisper(audioPath, model, device="cpu"):
-    print("{} Loading {} with model {} and {} as worker".format(PRINT_ULTRASTAR, print_blue_highlighted_text("whisper"),
-                                                                print_blue_highlighted_text(model),
-                                                                print_red_highlighted_text(device)))
+    print(f"{PRINT_ULTRASTAR} Loading {print_blue_highlighted_text('whisper')} with model {print_blue_highlighted_text(model)} and {print_red_highlighted_text(device)} as worker")
 
     model = whisper.load_model(model, device=device)
 
@@ -26,7 +24,7 @@ def transcribe_with_whisper(audioPath, model, device="cpu"):
 
     print(f"{PRINT_ULTRASTAR} Detected language: {print_blue_highlighted_text(language)}")
 
-    print("{} Transcribing {}".format(PRINT_ULTRASTAR, audioPath))
+    print(f"{PRINT_ULTRASTAR} Transcribing {audioPath}")
     results = whisper.transcribe(model, audio, language=language)
 
     transcribed_data = []

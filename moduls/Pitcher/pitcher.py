@@ -7,10 +7,7 @@ from moduls.Log import print_blue_highlighted_text, print_red_highlighted_text
 
 
 def get_pitch_with_crepe_file(filename, step_size, model_capacity):
-    print("{} Pitching with {} and model {} and {} as worker".format(PRINT_ULTRASTAR,
-                                                                         print_blue_highlighted_text("crepe"),
-                                                                         print_blue_highlighted_text(model_capacity),
-                                                                         print_red_highlighted_text("cpu")))
+    print(f"{PRINT_ULTRASTAR} Pitching with {print_blue_highlighted_text('crepe')} and model {print_blue_highlighted_text(model_capacity)} and {print_red_highlighted_text('cpu')} as worker")
     # Todo: add GPU support by using torchcrepe
     sr, audio = wavfile.read(filename)
 

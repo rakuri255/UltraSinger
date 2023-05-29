@@ -4,7 +4,7 @@ from moduls.Log import PRINT_ULTRASTAR
 
 
 def parse_ultrastar_txt(input_file):
-    print(PRINT_ULTRASTAR + " Parse ultrastar txt -> {}".format(input_file))
+    print(f"{PRINT_ULTRASTAR} Parse ultrastar txt -> {input_file}")
 
     file = open(input_file, 'r', encoding='utf8')
     txt = file.readlines()
