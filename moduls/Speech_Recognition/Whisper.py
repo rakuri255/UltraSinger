@@ -1,39 +1,33 @@
-import whisper_timestamped as whisper
+import whisperx
 from moduls.Speech_Recognition.TranscribedData import TranscribedData
 from moduls.Log import PRINT_ULTRASTAR
 from moduls.Log import print_blue_highlighted_text, print_red_highlighted_text
 
 
-def transcribe_with_whisper(audioPath, model, device="cpu"):
+def transcribe_with_whisper(audio_path, model, device="cpu"):
     print(f"{PRINT_ULTRASTAR} Loading {print_blue_highlighted_text('whisper')} with model {print_blue_highlighted_text(model)} and {print_red_highlighted_text(device)} as worker")
 
-    model = whisper.load_model(model, device=device)
+    batch_size = 16  # reduce if low on GPU mem
+    compute_type = "float16" if device == "cuda" else "int8"  # change to "int8" if low on GPU mem (may reduce accuracy)
 
-    # load audio and pad/trim it to fit 30 seconds
-    audio = whisper.load_audio(audioPath)
-    audio_30 = whisper.pad_or_trim(audio)
+    # transcribe with original whisper
+    loaded_whisper_model = whisperx.load_model(model, device=device, compute_type=compute_type)
+    audio = whisperx.load_audio(audio_path)
 
-    print(f"{PRINT_ULTRASTAR} Start detecting language")
+    print(f"{PRINT_ULTRASTAR} Transcribing {audio_path}")
 
-    # make log-Mel spectrogram and move to the same device as the model
-    mel = whisper.log_mel_spectrogram(audio_30).to(model.device)
+    result = loaded_whisper_model.transcribe(audio, batch_size=batch_size)
+    language = result["language"]
 
-    # detect the spoken language
-    _, probs = model.detect_language(mel)
-    language = max(probs, key=probs.get)
+    # load alignment model and metadata
+    model_a, metadata = whisperx.load_align_model(language_code=language, device=device)
 
-    print(f"{PRINT_ULTRASTAR} Detected language: {print_blue_highlighted_text(language)}")
-
-    print(f"{PRINT_ULTRASTAR} Transcribing {audioPath}")
-    results = whisper.transcribe(model, audio, language=language)
+    # align whisper output
+    result_aligned = whisperx.align(result["segments"], model_a, metadata, audio, device, return_char_alignments=False)
 
     transcribed_data = []
 
-    for segment in results["segments"]:
-        # todo:
-        # if sentence != 'segments':
-        #    continue
-        # to class
+    for segment in result_aligned["segments"]:
         for obj in segment["words"]:
             vtd = TranscribedData(obj)  # create custom Word object
             vtd.word = vtd.word + ' '
