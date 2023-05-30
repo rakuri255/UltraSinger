@@ -1,4 +1,9 @@
-# UltraSinger 
+[![Discord](https://img.shields.io/discord/1048892118732656731?logo=discord)](https://discord.gg/7EqhhjFd)
+![Status](https://img.shields.io/badge/status-development-yellow)
+[![GitHub](https://img.shields.io/github/license/rakuri255/UltraSinger)](https://github.com/rakuri255/UltraSinger/blob/main/LICENSE)
+[![CodeFactor](https://www.codefactor.io/repository/github/rakuri255/ultrasinger/badge)](https://www.codefactor.io/repository/github/rakuri255/ultrasinger)
+
+# UltraSinger
 
 > ⚠️ _This project is still under development!_
 

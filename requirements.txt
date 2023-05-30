@@ -17,3 +17,4 @@ demucs~=4.0.0
 tqdm~=4.65.0
 langcodes~=3.3.0
 language-data~=1.1
+Pillow~=9.5.0

@@ -36,7 +36,9 @@ def create_ultrastar_txt_from_automation(transcribed_data, note_numbers, ultrast
         f.write(f'#CREATOR:{ultrastar_class.creator}\n')
         f.write(f'#FIXER:{ultrastar_class.fixer}\n')
         if ultrastar_class.language is not None:
-            f.write(f'#LANGUAGE:' + get_language_name(ultrastar_class.language) + '\n')
+            f.write(f'#LANGUAGE:{get_language_name(ultrastar_class.language)}\n')
+        if ultrastar_class.cover is not None:
+            f.write(f'#COVER:{ultrastar_class.cover}\n')
         f.write(f'#MP3:{ultrastar_class.mp3}\n')
         f.write(f'#VIDEO:{ultrastar_class.video}\n')
         f.write(f'#BPM:' + str(round(ultrastar_bpm, 2)) + '\n')  # not the real BPM!
