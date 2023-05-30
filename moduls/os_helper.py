@@ -24,3 +24,7 @@ def current_executor_path():
 
 def path_join(path1, path2):
     return os.path.join(path1, path2)
+
+
+def check_file_exists(file_path):
+    return os.path.isfile(file_path)

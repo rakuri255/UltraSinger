@@ -9,7 +9,7 @@ from moduls import os_helper
 from moduls.Audio.vocal_chunks import export_chunks_from_ultrastar_data, convert_audio_to_mono_wav, \
     export_chunks_from_transcribed_data, remove_silence_from_transcribtion_data, convert_wav_to_mp3, \
     export_transcribed_data_to_csv
-from moduls.Audio.youtube import download_youtube_video, download_youtube_audio, get_youtube_title
+from moduls.Audio.youtube import download_youtube_video, download_youtube_audio, get_youtube_title, download_youtube_thumbnail
 from moduls.Audio.separation import separate_audio
 from moduls.Audio.denoise import ffmpeg_reduce_noise
 from moduls.Midi import midi_creator
@@ -345,6 +345,8 @@ def create_ultrastar_txt_from_automation(audio_separation_path, basename_without
     ultrastar_header.mp3 = basename_without_ext + ".mp3"
     ultrastar_header.video = basename_without_ext + ".mp4"
     ultrastar_header.language = language
+    cover = basename_without_ext + " [CO].jpg"
+    ultrastar_header.cover = cover if os_helper.check_file_exists(os.path.join(song_output, cover)) else None
 
     real_bpm = get_bpm_from_file(ultrastar_audio_input_path)
     ultrastar_file_output = os.path.join(song_output, basename_without_ext + '.txt')
@@ -396,6 +398,7 @@ def download_from_youtube():
     os_helper.create_folder(song_output)
     download_youtube_audio(settings.input_file_path, basename_without_ext, song_output)
     download_youtube_video(settings.input_file_path, basename_without_ext, song_output)
+    download_youtube_thumbnail(settings.input_file_path, basename_without_ext, song_output)
     ultrastar_audio_input_path = os.path.join(song_output, basename)
     return basename_without_ext, song_output, ultrastar_audio_input_path
 
