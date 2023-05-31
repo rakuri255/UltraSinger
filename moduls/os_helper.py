@@ -28,3 +28,7 @@ def path_join(path1, path2):
 
 def check_file_exists(file_path):
     return os.path.isfile(file_path)
+
+
+def check_if_folder_exists(song_output):
+    return os.path.isdir(song_output)
