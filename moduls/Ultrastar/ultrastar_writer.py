@@ -98,7 +98,7 @@ def create_repitched_txt_from_ultrastar_data(input_file, note_numbers, output_re
 
     i = 0
     # todo: just add '_repitched' to input_file
-    with open(output_repitched_ultrastar, 'w') as f:
+    with open(output_repitched_ultrastar, 'w', encoding='utf8') as f:
         for line in txt:
             if line.startswith(':'):
                 parts = re.findall(r'\S+|\s+', line)
@@ -116,7 +116,7 @@ def create_repitched_txt_from_ultrastar_data(input_file, note_numbers, output_re
                 f.write(line)
 
 def add_score_to_ultrastar_txt(ultrastar_file_output, score):
-    with open(ultrastar_file_output, 'r') as f:
+    with open(ultrastar_file_output, 'r', encoding='utf8') as f:
         text = f.read()
     text = text.split('\n')
 
@@ -130,7 +130,7 @@ def add_score_to_ultrastar_txt(ultrastar_file_output, score):
 
     text = '\n'.join(text)
 
-    with open(ultrastar_file_output, 'w') as f:
+    with open(ultrastar_file_output, 'w', encoding='utf8') as f:
         f.write(text)
 class UltraStarWriter:
     pass

@@ -290,6 +290,23 @@ def run():
     print_support()
 
 
+def get_unused_song_output_dir(path):
+    # check if dir exists and add (i) if it does
+    i = 1
+    if os_helper.check_if_folder_exists(path):
+        path = f"{path} ({i})"
+    else:
+        return path
+
+    while os_helper.check_if_folder_exists(path):
+        path = path.replace(f"({i - 1})", f"({i})")
+        i += 1
+        if i > 999:
+            print(f"{PRINT_ULTRASTAR} {print_red_highlighted_text('Error: Could not create output folder! (999) is the maximum number of tries.')}")
+            sys.exit(1)
+    return path
+
+
 def transcribe_audio(transcribed_data):
     if settings.transcriber == "whisper":
         device = "cpu" if settings.force_whisper_cpu else settings.device
@@ -374,6 +391,7 @@ def setup_audio_input_file():
     basename = os.path.basename(settings.input_file_path)
     basename_without_ext = os.path.splitext(basename)[0]
     song_output = os.path.join(settings.output_file_path, basename_without_ext)
+    song_output = get_unused_song_output_dir(song_output)
     os_helper.create_folder(song_output)
     os_helper.copy(settings.input_file_path, song_output)
     ultrastar_audio_input_path = os.path.join(song_output, basename)
@@ -397,6 +415,7 @@ def download_from_youtube():
     basename_without_ext = sanitize_filename(title)
     basename = basename_without_ext + '.mp3'
     song_output = os.path.join(settings.output_file_path, basename_without_ext)
+    song_output = get_unused_song_output_dir(song_output)
     os_helper.create_folder(song_output)
     download_youtube_audio(settings.input_file_path, basename_without_ext, song_output)
     download_youtube_video(settings.input_file_path, basename_without_ext, song_output)
@@ -413,6 +432,8 @@ def parse_ultrastar_txt():
     dirname = os.path.dirname(settings.input_file_path)
     ultrastar_audio_input_path = os.path.join(dirname, ultrastar_mp3_name)
     song_output = os.path.join(settings.output_file_path, ultrastar_class.artist + ' - ' + ultrastar_class.title)
+    song_output = get_unused_song_output_dir(song_output)
+    os_helper.create_folder(song_output)
     return basename_without_ext, real_bpm, song_output, ultrastar_audio_input_path, ultrastar_class
 
 
