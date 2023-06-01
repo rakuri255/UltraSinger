@@ -41,6 +41,7 @@ This will help me alot to keep this project alive and improve it.
 * Type `.venv\Scripts\activate` and press enter.
 * You should see now a `(.venv)` in front of your console line.
 * Install the requirements with `pip install -r requirements.txt`.
+* Install gpu requirements `pip3 install torch==2.0.1+cu117 torchvision==0.15.2+cu117 torchaudio==2.0.2+cu117 --index-url https://download.pytorch.org/whl/cu117`
 * Now you can use the UltraSinger source code with `py UltraSinger.py [opt] [mode] [transcription] [pitcher] [extra]`. See [How to use](#how-to-use) for more information.
 
 For more information about Python environments look [here](https://code.visualstudio.com/docs/python/environments#_global-virtual-or-conda-environments).
@@ -51,6 +52,7 @@ As copy:
 py -m venv .venv
 .venv\Scripts\activate
 pip install -r requirements.txt
+pip3 install torch==2.0.1+cu117 torchvision==0.15.2+cu117 torchaudio==2.0.2+cu117 --index-url https://download.pytorch.org/whl/cu117
 
 ```
 
@@ -207,6 +209,19 @@ pip3 install torch~=2.0.1+cu117 torchvision~=0.15.2+cu117 torchaudio~=2.0.2+cu11
 ```
 
 When you want to use `conda` instead you need a different installation command. See this [link](https://pytorch.org/get-started/locally/).
+
+#### Info
+
+If somthing crash because of low VRAM than use a smaller model.
+Whisper needs more than 8GB VRAM in the `large` model!
+
+But you can force cpu usage with the extra options `--force_whisper_cpu` and `--force_separation_cpu`.
+
+### Use GPU
+
+With an GPU you can speed up the process and also the quality of the transcription and pitching is better.
+You need a cuda device for this to work.
+If you use MAC than sorry, there is no cuda device for MAC machinges.
 
 #### Info
 
