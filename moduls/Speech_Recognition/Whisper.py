@@ -29,6 +29,9 @@ def transcribe_with_whisper(audio_path, model, device="cpu"):
 
     for segment in result_aligned["segments"]:
         for obj in segment["words"]:
+            if len(obj) < 4:
+                print(f"{print_red_highlighted_text('Error: Skipping Word {}, because of missing timings'.format(obj['word']))}")
+                continue
             vtd = TranscribedData(obj)  # create custom Word object
             vtd.word = vtd.word + ' '
             transcribed_data.append(vtd)  # and add it to list
