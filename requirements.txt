@@ -16,3 +16,4 @@ tqdm~=4.65.0
 langcodes~=3.3.0
 language-data~=1.1
 isort==5.12
+black==23.3

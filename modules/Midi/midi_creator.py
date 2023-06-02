@@ -8,8 +8,10 @@ import pretty_midi
 from modules.Log import PRINT_ULTRASTAR
 from modules.Pitcher.pitcher import get_frequency_with_high_confidence
 from modules.Ultrastar.ultrastar_converter import (
-    get_end_time_from_ultrastar, get_start_time_from_ultrastar,
-    ultrastar_note_to_midi_note)
+    get_end_time_from_ultrastar,
+    get_start_time_from_ultrastar,
+    ultrastar_note_to_midi_note,
+)
 
 
 def convert_ultrastar_to_midi_instrument(ultrastar_class):
@@ -55,7 +57,10 @@ def most_frequent(ar):
 
 def find_nearest_index(array, value):
     idx = np.searchsorted(array, value, side="left")
-    if idx > 0 and (idx == len(array) or math.fabs(value - array[idx - 1]) < math.fabs(value - array[idx])):
+    if idx > 0 and (
+        idx == len(array)
+        or math.fabs(value - array[idx - 1]) < math.fabs(value - array[idx])
+    ):
         return idx - 1
     else:
         return idx

@@ -1,12 +1,17 @@
 import whisper_timestamped as whisper
 
-from modules.Log import (PRINT_ULTRASTAR, print_blue_highlighted_text,
-                        print_red_highlighted_text)
+from modules.Log import (
+    PRINT_ULTRASTAR,
+    print_blue_highlighted_text,
+    print_red_highlighted_text,
+)
 from modules.Speech_Recognition.TranscribedData import TranscribedData
 
 
 def transcribe_with_whisper(audioPath, model, device="cpu"):
-    print(f"{PRINT_ULTRASTAR} Loading {print_blue_highlighted_text('whisper')} with model {print_blue_highlighted_text(model)} and {print_red_highlighted_text(device)} as worker")
+    print(
+        f"{PRINT_ULTRASTAR} Loading {print_blue_highlighted_text('whisper')} with model {print_blue_highlighted_text(model)} and {print_red_highlighted_text(device)} as worker"
+    )
 
     model = whisper.load_model(model, device=device)
 
@@ -23,7 +28,9 @@ def transcribe_with_whisper(audioPath, model, device="cpu"):
     _, probs = model.detect_language(mel)
     language = max(probs, key=probs.get)
 
-    print(f"{PRINT_ULTRASTAR} Detected language: {print_blue_highlighted_text(language)}")
+    print(
+        f"{PRINT_ULTRASTAR} Detected language: {print_blue_highlighted_text(language)}"
+    )
 
     print(f"{PRINT_ULTRASTAR} Transcribing {audioPath}")
     results = whisper.transcribe(model, audio, language=language)
@@ -37,7 +44,7 @@ def transcribe_with_whisper(audioPath, model, device="cpu"):
         # to class
         for obj in segment["words"]:
             vtd = TranscribedData(obj)  # create custom Word object
-            vtd.word = vtd.word + ' '
+            vtd.word = vtd.word + " "
             transcribed_data.append(vtd)  # and add it to list
 
     return transcribed_data, language
