@@ -1,7 +1,7 @@
 import os
 import shutil
 
-from moduls.Log import PRINT_ULTRASTAR
+from modules.Log import PRINT_ULTRASTAR
 
 
 def create_folder(folder_name):

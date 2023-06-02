@@ -1,8 +1,8 @@
 import whisper_timestamped as whisper
 
-from moduls.Log import (PRINT_ULTRASTAR, print_blue_highlighted_text,
+from modules.Log import (PRINT_ULTRASTAR, print_blue_highlighted_text,
                         print_red_highlighted_text)
-from moduls.Speech_Recognition.TranscribedData import TranscribedData
+from modules.Speech_Recognition.TranscribedData import TranscribedData
 
 
 def transcribe_with_whisper(audioPath, model, device="cpu"):

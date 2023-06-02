@@ -1,6 +1,6 @@
 import yt_dlp
 
-from moduls.Log import PRINT_ULTRASTAR
+from modules.Log import PRINT_ULTRASTAR
 
 
 def get_youtube_title(url):

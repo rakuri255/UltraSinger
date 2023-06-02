@@ -1,6 +1,6 @@
 import tensorflow as tf
 
-from moduls.Log import PRINT_ULTRASTAR, print_red_highlighted_text
+from modules.Log import PRINT_ULTRASTAR, print_red_highlighted_text
 
 
 def get_available_device():

@@ -1,7 +1,7 @@
-from moduls.Log import PRINT_ULTRASTAR
-from moduls.Ultrastar.ultrastar_converter import (
+from modules.Log import PRINT_ULTRASTAR
+from modules.Ultrastar.ultrastar_converter import (
     get_end_time_from_ultrastar, get_start_time_from_ultrastar)
-from moduls.Ultrastar.ultrastar_txt import UltrastarTxt
+from modules.Ultrastar.ultrastar_txt import UltrastarTxt
 
 
 def parse_ultrastar_txt(input_file):
