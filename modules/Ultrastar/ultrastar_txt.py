@@ -1,4 +1,9 @@
+"""Docstring"""
+
+
 class UltrastarTxt:
+    """Docstring"""
+
     artist = ""
     title = ""
     mp3 = ""

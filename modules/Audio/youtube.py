@@ -1,3 +1,5 @@
+"""Docstring"""
+
 import io
 import os
 
@@ -8,6 +10,8 @@ from modules.Log import PRINT_ULTRASTAR
 
 
 def get_youtube_title(url):
+    """Docstring"""
+
     ydl_opts = {}
     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
         result = ydl.extract_info(
@@ -18,6 +22,8 @@ def get_youtube_title(url):
 
 
 def download_youtube_audio(url, clear_filename, output_path):
+    """Docstring"""
+
     print(f"{PRINT_ULTRASTAR} Downloading Audio")
     ydl_opts = {
         "format": "bestaudio/best",
@@ -31,6 +37,8 @@ def download_youtube_audio(url, clear_filename, output_path):
 
 
 def download_youtube_thumbnail(url, clear_filename, output_path):
+    """Docstring"""
+
     print(f"{PRINT_ULTRASTAR} Downloading thumbnail")
     ydl_opts = {
         "skip_download": True,
@@ -41,6 +49,8 @@ def download_youtube_thumbnail(url, clear_filename, output_path):
 
 
 def download_and_convert_thumbnail(ydl_opts, url, clear_filename, output_path):
+    """Docstring"""
+
     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
         info_dict = ydl.extract_info(url, download=False)
         thumbnail_url = info_dict.get("thumbnail")
@@ -54,6 +64,8 @@ def download_and_convert_thumbnail(ydl_opts, url, clear_filename, output_path):
 
 
 def download_youtube_video(url, clear_filename, output_path):
+    """Docstring"""
+
     print(f"{PRINT_ULTRASTAR} Downloading Video")
     ydl_opts = {
         "format": "bestvideo[ext=mp4]+bestaudio[ext=m4a]/mp4",
@@ -63,6 +75,8 @@ def download_youtube_video(url, clear_filename, output_path):
 
 
 def start_download(ydl_opts, url):
+    """Docstring"""
+
     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
         errors = ydl.download(url)
         if errors:

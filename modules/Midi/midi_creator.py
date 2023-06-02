@@ -1,3 +1,5 @@
+"""Docstring"""
+
 import math
 from collections import Counter
 
@@ -15,12 +17,14 @@ from modules.Ultrastar.ultrastar_converter import (
 
 
 def convert_ultrastar_to_midi_instrument(ultrastar_class):
+    """Docstring"""
+
     print(f"{PRINT_ULTRASTAR} Creating midi instrument from Ultrastar txt")
 
     instrument = pretty_midi.Instrument(program=0)
     velocity = 100
 
-    for i in range(len(ultrastar_class.words)):
+    for i in enumerate(ultrastar_class.words):
         start_time = get_start_time_from_ultrastar(ultrastar_class, i)
         end_time = get_end_time_from_ultrastar(ultrastar_class, i)
         pitch = ultrastar_note_to_midi_note(int(ultrastar_class.pitches[i]))
@@ -32,6 +36,8 @@ def convert_ultrastar_to_midi_instrument(ultrastar_class):
 
 
 def instruments_to_midi(instruments, bpm, midi_output):
+    """Docstring"""
+
     print(f"{PRINT_ULTRASTAR} Creating midi file -> {midi_output}")
 
     midi_data = pretty_midi.PrettyMIDI(initial_tempo=bpm)
@@ -41,37 +47,41 @@ def instruments_to_midi(instruments, bpm, midi_output):
 
 
 class MidiCreator:
-    pass
+    """Docstring"""
 
 
 def convert_frequencies_to_notes(frequency):
+    """Docstring"""
     notes = []
-    for f in frequency:
-        notes.append(librosa.hz_to_note(float(f)))
+    for freq in frequency:
+        notes.append(librosa.hz_to_note(float(freq)))
     return notes
 
 
-def most_frequent(ar):
-    return Counter(ar).most_common(1)
+def most_frequent(array):
+    """Docstring"""
+    return Counter(array).most_common(1)
 
 
 def find_nearest_index(array, value):
+    """Docstring"""
     idx = np.searchsorted(array, value, side="left")
     if idx > 0 and (
         idx == len(array)
         or math.fabs(value - array[idx - 1]) < math.fabs(value - array[idx])
     ):
         return idx - 1
-    else:
-        return idx
+
+    return idx
 
 
 def create_midi_notes_from_pitched_data(start_times, end_times, pitched_data):
+    """Docstring"""
     print(f"{PRINT_ULTRASTAR} Creating midi notes from pitched data")
 
     midi_notes = []
 
-    for i in range(len(start_times)):
+    for i in enumerate(start_times):
         start_time = start_times[i]
         end_time = end_times[i]
 
@@ -86,17 +96,19 @@ def create_midi_notes_from_pitched_data(start_times, end_times, pitched_data):
 
 
 def create_midi_note_from_pitched_data(start_time, end_time, pitched_data):
-    s = find_nearest_index(pitched_data.times, start_time)
-    e = find_nearest_index(pitched_data.times, end_time)
+    """Docstring"""
 
-    if s == e:
-        f = [pitched_data.frequencies[s]]
-        c = [pitched_data.confidence[s]]
+    start = find_nearest_index(pitched_data.times, start_time)
+    end = find_nearest_index(pitched_data.times, end_time)
+
+    if start == end:
+        freqs = [pitched_data.frequencies[start]]
+        confs = [pitched_data.confidence[start]]
     else:
-        f = pitched_data.frequencies[s:e]
-        c = pitched_data.confidence[s:e]
+        freqs = pitched_data.frequencies[start:end]
+        confs = pitched_data.confidence[start:end]
 
-    conf_f = get_frequency_with_high_confidence(f, c)
+    conf_f = get_frequency_with_high_confidence(freqs, confs)
 
     notes = convert_frequencies_to_notes(conf_f)
 

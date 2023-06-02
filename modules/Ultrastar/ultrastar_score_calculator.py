@@ -1,3 +1,5 @@
+"""Docstring"""
+
 import librosa
 
 from modules.Log import (
@@ -20,6 +22,8 @@ MAX_SONG_LINE_BONUS = 1000
 
 
 class Points:
+    """Docstring"""
+
     notes = 0
     golden_notes = 0
     rap = 0
@@ -28,19 +32,23 @@ class Points:
     parts = 0
 
 
-def add_point(noteType, points):
-    if noteType == ":":
+def add_point(note_type, points):
+    """Docstring"""
+
+    if note_type == ":":
         points.notes += 1
-    elif noteType == "*":
+    elif note_type == "*":
         points.golden_notes += 2
-    elif noteType == "R":
+    elif note_type == "R":
         points.rap += 1
-    elif noteType == "G":
+    elif note_type == "G":
         points.golden_rap += 2
     return points
 
 
 class Score:
+    """Docstring"""
+
     max_score = 0
     notes = 0
     golden = 0
@@ -49,6 +57,8 @@ class Score:
 
 
 def get_score(points):
+    """Docstring"""
+
     score = Score()
     score.max_score = (
         MAX_SONG_SCORE
@@ -65,12 +75,16 @@ def get_score(points):
 
 
 def print_score(score):
+    """Docstring"""
+
     print(
         f"{PRINT_ULTRASTAR} Total: {print_cyan_highlighted_text(str(score.score))}, notes: {print_blue_highlighted_text(str(score.notes))}, line bonus: {print_light_blue_highlighted_text(str(score.line_bonus))}, golden notes: {print_gold_highlighted_text(str(score.golden))}"
     )
 
 
 def calculate_score(pitched_data, ultrastar_class):
+    """Docstring"""
+
     print(PRINT_ULTRASTAR + " Calculating Ultrastar Points")
 
     simple_points = Points()
@@ -80,7 +94,7 @@ def calculate_score(pitched_data, ultrastar_class):
         ultrastar_class.words
     )
 
-    for i in range(len(ultrastar_class.words)):
+    for i in enumerate(ultrastar_class.words):
         if ultrastar_class.words == "":
             continue
 
@@ -102,11 +116,11 @@ def calculate_score(pitched_data, ultrastar_class):
         )
         ultrastar_note = librosa.midi_to_note(ultrastar_midi_note)
 
-        for p in range(parts):
-            st = start_time + step_size * p
-            end = st + step_size
+        for part in range(parts):
+            start = start_time + step_size * part
+            end = start + step_size
             pitch_note = create_midi_note_from_pitched_data(
-                st, end, pitched_data
+                start, end, pitched_data
             )
 
             if pitch_note[:-1] == ultrastar_note[:-1]:
@@ -136,6 +150,8 @@ def calculate_score(pitched_data, ultrastar_class):
 
 
 def print_score_calculation(simple_points, accurate_points):
+    """Docstring"""
+
     print(
         f"{PRINT_ULTRASTAR} {print_underlined_text('Simple (octave high ignored)')} points"
     )

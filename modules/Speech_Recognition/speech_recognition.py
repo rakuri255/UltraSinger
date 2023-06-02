@@ -1,3 +1,5 @@
+"""Docstring"""
+
 import os
 
 import speech_recognition as sr
@@ -9,16 +11,18 @@ from modules.Log import PRINT_ULTRASTAR
 # todo: Code from here: https://www.thepythoncode.com/article/using-speech-recognition-to-convert-speech-to-text-python
 
 
-def PrintText(wav_file):
-    # English speach!
-    r = sr.Recognizer()
+def print_text(wav_file):
+    """Docstring"""
+
+    # English speech!
+    recognizer = sr.Recognizer()
 
     # open the file
     with sr.AudioFile(wav_file) as source:
         # listen for the data (load audio to memory)
-        audio_data = r.record(source)
+        audio_data = recognizer.record(source)
         # recognize (convert from speech to text)
-        text = r.recognize_google(audio_data)
+        text = recognizer.recognize_google(audio_data)
 
         print(text)
 
@@ -48,7 +52,7 @@ def get_large_audio_transcription(wav_file):
         os.mkdir(folder_name)
     whole_text = ""
 
-    r = sr.Recognizer()
+    recognizer = sr.Recognizer()
 
     # process each chunk
     for i, audio_chunk in enumerate(chunks, start=1):
@@ -58,12 +62,12 @@ def get_large_audio_transcription(wav_file):
         audio_chunk.export(chunk_filename, format="wav")
         # recognize the chunk
         with sr.AudioFile(chunk_filename) as source:
-            audio_listened = r.record(source)
+            audio_listened = recognizer.record(source)
             # try converting it to text
             try:
-                text = r.recognize_google(audio_listened)
-            except sr.UnknownValueError as e:
-                print("Error:", str(e))
+                text = recognizer.recognize_google(audio_listened)
+            except sr.UnknownValueError as error:
+                print("Error:", str(error))
             else:
                 text = f"{text.capitalize()}. "
                 print(chunk_filename, ":", text)
@@ -73,6 +77,8 @@ def get_large_audio_transcription(wav_file):
 
 
 def transcribe_audio(audio_file):
+    """Docstring"""
+
     recognizer = sr.Recognizer()
     with sr.AudioFile(audio_file) as source:
         audio = recognizer.record(source)
@@ -91,9 +97,9 @@ def transcribe_audio(audio_file):
         )
     except sr.UnknownValueError:
         print(f"{PRINT_ULTRASTAR} Could not understand audio")
-    except sr.RequestError as e:
-        print(f"{PRINT_ULTRASTAR} Error with recognizing service; {e}")
+    except sr.RequestError as error:
+        print(f"{PRINT_ULTRASTAR} Error with recognizing service; {error}")
 
 
 class SpeechToText:
-    pass
+    """Docstring"""

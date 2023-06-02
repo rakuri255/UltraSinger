@@ -1,3 +1,5 @@
+"""Docstring"""
+
 import re
 
 import langcodes
@@ -10,6 +12,8 @@ from modules.Ultrastar.ultrastar_converter import (
 
 
 def get_multiplier(real_bpm):
+    """Docstring"""
+
     if real_bpm == 0:
         raise Exception("BPM is 0")
 
@@ -22,6 +26,8 @@ def get_multiplier(real_bpm):
 
 
 def get_language_name(language):
+    """Docstring"""
+
     return langcodes.Language.make(language=language).display_name()
 
 
@@ -32,6 +38,8 @@ def create_ultrastar_txt_from_automation(
     ultrastar_class,
     bpm=120,
 ):
+    """Docstring"""
+
     print(
         f"{PRINT_ULTRASTAR} Creating {ultrastar_file_output} from transcription."
     )
@@ -40,30 +48,28 @@ def create_ultrastar_txt_from_automation(
     multiplication = get_multiplier(real_bpm)
     ultrastar_bpm = real_bpm * get_multiplier(real_bpm)
 
-    with open(ultrastar_file_output, "w", encoding="utf8") as f:
+    with open(ultrastar_file_output, "w", encoding="utf-8") as file:
         gap = transcribed_data[0].start
 
-        f.write(f"#ARTIST:{ultrastar_class.artist}\n")
-        f.write(f"#TITLE:{ultrastar_class.title}\n")
-        f.write(f"#CREATOR:{ultrastar_class.creator}\n")
-        f.write(f"#FIXER:{ultrastar_class.fixer}\n")
+        file.write(f"#ARTIST:{ultrastar_class.artist}\n")
+        file.write(f"#TITLE:{ultrastar_class.title}\n")
+        file.write(f"#CREATOR:{ultrastar_class.creator}\n")
+        file.write(f"#FIXER:{ultrastar_class.fixer}\n")
         if ultrastar_class.language is not None:
-            f.write(
+            file.write(
                 f"#LANGUAGE:{get_language_name(ultrastar_class.language)}\n"
             )
         if ultrastar_class.cover is not None:
-            f.write(f"#COVER:{ultrastar_class.cover}\n")
-        f.write(f"#MP3:{ultrastar_class.mp3}\n")
-        f.write(f"#VIDEO:{ultrastar_class.video}\n")
-        f.write(
-            f"#BPM:" + str(round(ultrastar_bpm, 2)) + "\n"
-        )  # not the real BPM!
-        f.write(f"#GAP:" + str(int(gap * 1000)) + "\n")
-        f.write(f"#COMMENT:{ultrastar_class.comment}\n")
+            file.write(f"#COVER:{ultrastar_class.cover}\n")
+        file.write(f"#MP3:{ultrastar_class.mp3}\n")
+        file.write(f"#VIDEO:{ultrastar_class.video}\n")
+        file.write(f"#BPM:{round(ultrastar_bpm, 2)}\n")  # not the real BPM!
+        file.write(f"#GAP:{int(gap * 1000)}\n")
+        file.write(f"#COMMENT:{ultrastar_class.comment}\n")
 
         # Write the singing part
         previous_end_beat = 0
-        for i in range(len(transcribed_data)):
+        for i in enumerate(transcribed_data):
             start_time = (transcribed_data[i].start - gap) * multiplication
             end_time = (
                 transcribed_data[i].end - transcribed_data[i].start
@@ -71,9 +77,8 @@ def create_ultrastar_txt_from_automation(
             start_beat = round(second_to_beat(start_time, bpm))
             duration = round(second_to_beat(end_time, bpm))
 
-            # Fix the round issue, so the beats dont overlap
-            if start_beat < previous_end_beat:
-                start_beat = previous_end_beat
+            # Fix the round issue, so the beats don’t overlap
+            start_beat = max(start_beat, previous_end_beat)
             previous_end_beat = start_beat + duration
 
             # : 10 10 10 w
@@ -82,12 +87,12 @@ def create_ultrastar_txt_from_automation(
             # 'n2'  duration at real beat
             # 'n3'  pitch where 0 == C4
             # 'w'   lyric
-            f.write(": ")
-            f.write(str(start_beat) + " ")
-            f.write(str(duration) + " ")
-            f.write(str(note_numbers[i]) + " ")
-            f.write(transcribed_data[i].word)
-            f.write("\n")
+            file.write(": ")
+            file.write(str(start_beat) + " ")
+            file.write(str(duration) + " ")
+            file.write(str(note_numbers[i]) + " ")
+            file.write(transcribed_data[i].word)
+            file.write("\n")
 
             # detect silence between words
             if i < len(transcribed_data) - 1:
@@ -101,31 +106,32 @@ def create_ultrastar_txt_from_automation(
                 # - 10
                 # '-' end of current sing part
                 # 'n1' show next at time in real beat
-                f.write("- ")
+                file.write("- ")
                 show_next = (
                     second_to_beat(transcribed_data[i].end - gap, bpm)
                     * multiplication
                 )
-                f.write(str(round(show_next)))
-                f.write("\n")
-        f.write("E")
+                file.write(str(round(show_next)))
+                file.write("\n")
+        file.write("E")
 
 
 def create_repitched_txt_from_ultrastar_data(
     input_file, note_numbers, output_repitched_ultrastar
 ):
+    """Docstring"""
     # todo: just add '_repitched' to input_file
     print(
         "{PRINT_ULTRASTAR} Creating repitched ultrastar txt -> {input_file}_repitch.txt"
     )
 
     # todo: to reader
-    file = open(input_file, "r")
-    txt = file.readlines()
+    with open(input_file, "r", encoding="utf-8") as file:
+        txt = file.readlines()
 
     i = 0
     # todo: just add '_repitched' to input_file
-    with open(output_repitched_ultrastar, "w", encoding="utf8") as f:
+    with open(output_repitched_ultrastar, "w", encoding="utf-8") as file:
         for line in txt:
             if line.startswith(":"):
                 parts = re.findall(r"\S+|\s+", line)
@@ -137,24 +143,26 @@ def create_repitched_txt_from_ultrastar_data(
                 # [8] word
                 parts[6] = str(note_numbers[i])
                 delimiter = ""
-                f.write(delimiter.join(parts))
+                file.write(delimiter.join(parts))
                 i += 1
             else:
-                f.write(line)
+                file.write(line)
 
 
 def add_score_to_ultrastar_txt(ultrastar_file_output, score):
-    with open(ultrastar_file_output, "r", encoding="utf8") as f:
-        text = f.read()
+    """Docstring"""
+    with open(ultrastar_file_output, "r", encoding="utf-8") as file:
+        text = file.read()
     text = text.split("\n")
 
-    for i in range(len(text)):
+    for i in enumerate(text):
         if text[i].startswith("#COMMENT:"):
             text[
                 i
             ] = f"{text[i]} | Score: total: {score.score}, notes: {score.notes} line: {score.line_bonus}, golden: {score.golden}"
             break
-        elif text[i].startswith(("F ", ": ", "* ", "R ", "G ")):
+
+        if text[i].startswith(("F ", ": ", "* ", "R ", "G ")):
             text.insert(
                 i,
                 f"#COMMENT: UltraSinger [GitHub] | Score: total: {score.score}, notes: {score.notes} line: {score.line_bonus}, golden: {score.golden}",
@@ -163,9 +171,9 @@ def add_score_to_ultrastar_txt(ultrastar_file_output, score):
 
     text = "\n".join(text)
 
-    with open(ultrastar_file_output, "w", encoding="utf8") as f:
-        f.write(text)
+    with open(ultrastar_file_output, "w", encoding="utf-8") as file:
+        file.write(text)
 
 
 class UltraStarWriter:
-    pass
+    """Docstring"""

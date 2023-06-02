@@ -1,3 +1,6 @@
+"""Docstring"""
+
+
 class TranscribedData:
     """Transcribed data from json file"""
 

@@ -1,9 +1,12 @@
+"""Docstring"""
+
 import tensorflow as tf
 
 from modules.Log import PRINT_ULTRASTAR, print_red_highlighted_text
 
 
 def get_available_device():
+    """Docstring"""
     gpus = tf.config.list_physical_devices("GPU")
 
     if not gpus:
@@ -14,7 +17,7 @@ def get_available_device():
 
     print(f"{PRINT_ULTRASTAR} Found available GPUs:")
     for gpu in gpus:
-        print("Name:", gpu.name, "  Type:", gpu.device_type)
+        print(f"Name: {gpu.name}, Type: {gpu.device_type}")
 
     # Todo: Finish this
     print(

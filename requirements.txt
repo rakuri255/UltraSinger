@@ -18,3 +18,4 @@ language-data~=1.1
 Pillow~=9.5.0
 isort==5.12
 black==23.3
+pylint==2.17

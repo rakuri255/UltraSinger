@@ -1,3 +1,5 @@
+"""Docstring"""
+
 import whisperx
 
 from modules.Log import (
@@ -9,6 +11,8 @@ from modules.Speech_Recognition.TranscribedData import TranscribedData
 
 
 def transcribe_with_whisper(audio_path, model, device="cpu"):
+    """Docstring"""
+
     print(
         f"{PRINT_ULTRASTAR} Loading {print_blue_highlighted_text('whisper')} with model {print_blue_highlighted_text(model)} and {print_red_highlighted_text(device)} as worker"
     )
