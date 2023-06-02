@@ -1,7 +1,10 @@
-from moduls.Ultrastar.ultrastar_converter import real_bpm_to_ultrastar_bpm, second_to_beat
-from moduls.Log import PRINT_ULTRASTAR
-import langcodes
 import re
+
+import langcodes
+
+from moduls.Log import PRINT_ULTRASTAR
+from moduls.Ultrastar.ultrastar_converter import (real_bpm_to_ultrastar_bpm,
+                                                  second_to_beat)
 
 
 def get_multiplier(real_bpm):

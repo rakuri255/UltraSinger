@@ -1,33 +1,43 @@
-import getopt
 import copy
+import getopt
 import os
 import sys
+from time import sleep
+
 import Levenshtein
 import librosa
+from matplotlib import pyplot as plt
+from tqdm import tqdm
 
 from moduls import os_helper
-from moduls.Audio.vocal_chunks import export_chunks_from_ultrastar_data, convert_audio_to_mono_wav, \
-    export_chunks_from_transcribed_data, remove_silence_from_transcribtion_data, convert_wav_to_mp3, \
-    export_transcribed_data_to_csv
-from moduls.Audio.youtube import download_youtube_video, download_youtube_audio, get_youtube_title
-from moduls.Audio.separation import separate_audio
 from moduls.Audio.denoise import ffmpeg_reduce_noise
+from moduls.Audio.separation import separate_audio
+from moduls.Audio.vocal_chunks import (convert_audio_to_mono_wav,
+                                       convert_wav_to_mp3,
+                                       export_chunks_from_transcribed_data,
+                                       export_chunks_from_ultrastar_data,
+                                       export_transcribed_data_to_csv,
+                                       remove_silence_from_transcribtion_data)
+from moduls.Audio.youtube import (download_youtube_audio,
+                                  download_youtube_video, get_youtube_title)
+from moduls.DeviceDetection.device_detection import get_available_device
+from moduls.Log import (PRINT_ULTRASTAR, print_blue_highlighted_text,
+                        print_gold_highlighted_text,
+                        print_light_blue_highlighted_text,
+                        print_red_highlighted_text)
 from moduls.Midi import midi_creator
-from moduls.Midi.midi_creator import convert_frequencies_to_notes, most_frequent, create_midi_notes_from_pitched_data
-from moduls.Pitcher.pitcher import get_frequency_with_high_confidence, get_pitch_with_crepe_file
-from moduls.Ultrastar import ultrastar_parser, ultrastar_converter, ultrastar_writer, ultrastar_score_calculator
-from moduls.Speech_Recognition.Vosk import transcribe_with_vosk
+from moduls.Midi.midi_creator import (convert_frequencies_to_notes,
+                                      create_midi_notes_from_pitched_data,
+                                      most_frequent)
+from moduls.Pitcher.pitcher import (get_frequency_with_high_confidence,
+                                    get_pitch_with_crepe_file)
 from moduls.Speech_Recognition.hyphenation import hyphenation, language_check
+from moduls.Speech_Recognition.Vosk import transcribe_with_vosk
 from moduls.Speech_Recognition.Whisper import transcribe_with_whisper
-from moduls.Log import PRINT_ULTRASTAR, print_red_highlighted_text, print_blue_highlighted_text, \
-    print_gold_highlighted_text, \
-    print_light_blue_highlighted_text
-from matplotlib import pyplot as plt
+from moduls.Ultrastar import (ultrastar_converter, ultrastar_parser,
+                              ultrastar_score_calculator, ultrastar_writer)
 from moduls.Ultrastar.ultrastar_txt import UltrastarTxt
 from Settings import Settings
-from tqdm import tqdm
-from moduls.DeviceDetection.device_detection import get_available_device
-from time import sleep
 
 settings = Settings()
 

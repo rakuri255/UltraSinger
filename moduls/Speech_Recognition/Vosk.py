@@ -1,10 +1,10 @@
-import wave
 import json
+import wave
 
-from vosk import Model, KaldiRecognizer
-from moduls.Speech_Recognition.TranscribedData import TranscribedData
+from vosk import KaldiRecognizer, Model
+
 from moduls.Log import PRINT_ULTRASTAR
-
+from moduls.Speech_Recognition.TranscribedData import TranscribedData
 
 # todo: Rename to Transcoder?
 

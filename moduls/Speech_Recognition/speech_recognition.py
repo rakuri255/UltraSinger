@@ -1,9 +1,10 @@
+import os
+
 import speech_recognition as sr
 from pydub import AudioSegment
 from pydub.silence import split_on_silence
-from moduls.Log import PRINT_ULTRASTAR
-import os
 
+from moduls.Log import PRINT_ULTRASTAR
 
 # todo: Code from here: https://www.thepythoncode.com/article/using-speech-recognition-to-convert-speech-to-text-python
 
