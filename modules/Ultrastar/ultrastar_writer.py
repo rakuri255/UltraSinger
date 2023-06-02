@@ -26,9 +26,15 @@ def get_language_name(language):
 
 
 def create_ultrastar_txt_from_automation(
-    transcribed_data, note_numbers, ultrastar_file_output, ultrastar_class, bpm=120
+    transcribed_data,
+    note_numbers,
+    ultrastar_file_output,
+    ultrastar_class,
+    bpm=120,
 ):
-    print(f"{PRINT_ULTRASTAR} Creating {ultrastar_file_output} from transcription.")
+    print(
+        f"{PRINT_ULTRASTAR} Creating {ultrastar_file_output} from transcription."
+    )
 
     real_bpm = real_bpm_to_ultrastar_bpm(bpm)
     multiplication = get_multiplier(real_bpm)
@@ -42,12 +48,16 @@ def create_ultrastar_txt_from_automation(
         f.write(f"#CREATOR:{ultrastar_class.creator}\n")
         f.write(f"#FIXER:{ultrastar_class.fixer}\n")
         if ultrastar_class.language is not None:
-            f.write(f"#LANGUAGE:{get_language_name(ultrastar_class.language)}\n")
+            f.write(
+                f"#LANGUAGE:{get_language_name(ultrastar_class.language)}\n"
+            )
         if ultrastar_class.cover is not None:
             f.write(f"#COVER:{ultrastar_class.cover}\n")
         f.write(f"#MP3:{ultrastar_class.mp3}\n")
         f.write(f"#VIDEO:{ultrastar_class.video}\n")
-        f.write(f"#BPM:" + str(round(ultrastar_bpm, 2)) + "\n")  # not the real BPM!
+        f.write(
+            f"#BPM:" + str(round(ultrastar_bpm, 2)) + "\n"
+        )  # not the real BPM!
         f.write(f"#GAP:" + str(int(gap * 1000)) + "\n")
         f.write(f"#COMMENT:{ultrastar_class.comment}\n")
 
@@ -81,7 +91,9 @@ def create_ultrastar_txt_from_automation(
 
             # detect silence between words
             if i < len(transcribed_data) - 1:
-                silence = transcribed_data[i + 1].start - transcribed_data[i].end
+                silence = (
+                    transcribed_data[i + 1].start - transcribed_data[i].end
+                )
             else:
                 silence = 0
 
@@ -91,7 +103,8 @@ def create_ultrastar_txt_from_automation(
                 # 'n1' show next at time in real beat
                 f.write("- ")
                 show_next = (
-                    second_to_beat(transcribed_data[i].end - gap, bpm) * multiplication
+                    second_to_beat(transcribed_data[i].end - gap, bpm)
+                    * multiplication
                 )
                 f.write(str(round(show_next)))
                 f.write("\n")

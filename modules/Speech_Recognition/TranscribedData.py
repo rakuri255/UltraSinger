@@ -7,7 +7,9 @@ class TranscribedData:
             "conf", transcribed_json.get("confidence", None)
         )
         # Vosk = word, Whisper = text
-        self.word = transcribed_json.get("word", transcribed_json.get("text", None))
+        self.word = transcribed_json.get(
+            "word", transcribed_json.get("text", None)
+        )
         self.end = transcribed_json["end"]
         self.start = transcribed_json["start"]
         self.is_hyphen = None

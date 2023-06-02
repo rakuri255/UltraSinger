@@ -15,9 +15,7 @@ class Settings:
 
     # Whisper
     transcriber = "whisper"  # whisper|vosk
-    whisper_model = (
-        "large-v2"  # Multilingual model tiny|base|small|medium|large-v1|large-v2
-    )
+    whisper_model = "large-v2"  # Multilingual model tiny|base|small|medium|large-v1|large-v2
     # English-only model tiny.en|base.en|small.en|medium.en
 
     # Vosk

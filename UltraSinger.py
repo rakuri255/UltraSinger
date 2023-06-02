@@ -78,7 +78,9 @@ def convert_ultrastar_note_numbers(midi_notes):
     ultrastar_note_numbers = []
     for i in range(len(midi_notes)):
         note_number_librosa = librosa.note_to_midi(midi_notes[i])
-        pitch = ultrastar_converter.midi_note_to_ultrastar_note(note_number_librosa)
+        pitch = ultrastar_converter.midi_note_to_ultrastar_note(
+            note_number_librosa
+        )
         ultrastar_note_numbers.append(pitch)
         # todo: Progress?
         # print("Note: " + midi_notes[i] + " midi_note: " + str(note_number_librosa) + ' pitch: ' + str(pitch))
@@ -253,7 +255,9 @@ def hyphenate_each_word(language, transcribed_data):
 
     sleep(0.1)
     for i in tqdm(range(len(transcribed_data))):
-        hyphenated_word.append(hyphenation(transcribed_data[i].word, lang_region))
+        hyphenated_word.append(
+            hyphenation(transcribed_data[i].word, lang_region)
+        )
     return hyphenated_word
 
 
@@ -276,7 +280,9 @@ def run():
     real_bpm = None
 
     if not isAudio:  # Parse Ultrastar txt
-        print(f"{PRINT_ULTRASTAR} {print_gold_highlighted_text('re-pitch mode')}")
+        print(
+            f"{PRINT_ULTRASTAR} {print_gold_highlighted_text('re-pitch mode')}"
+        )
         (
             basename_without_ext,
             real_bpm,
@@ -285,14 +291,18 @@ def run():
             ultrastar_class,
         ) = parse_ultrastar_txt()
     elif settings.input_file_path.startswith("https:"):  # Youtube
-        print(f"{PRINT_ULTRASTAR} {print_gold_highlighted_text('full automatic mode')}")
+        print(
+            f"{PRINT_ULTRASTAR} {print_gold_highlighted_text('full automatic mode')}"
+        )
         (
             basename_without_ext,
             song_output,
             ultrastar_audio_input_path,
         ) = download_from_youtube()
     else:  # Audio File
-        print(f"{PRINT_ULTRASTAR} {print_gold_highlighted_text('full automatic mode')}")
+        print(
+            f"{PRINT_ULTRASTAR} {print_gold_highlighted_text('full automatic mode')}"
+        )
         (
             basename_without_ext,
             song_output,
@@ -300,7 +310,9 @@ def run():
         ) = setup_audio_input_file()
 
     cache_path = os.path.join(song_output, "cache")
-    settings.mono_audio_path = os.path.join(cache_path, basename_without_ext + ".wav")
+    settings.mono_audio_path = os.path.join(
+        cache_path, basename_without_ext + ".wav"
+    )
     os_helper.create_folder(cache_path)
 
     # Separate vocal from audio
@@ -324,7 +336,9 @@ def run():
         if settings.hyphenation:
             hyphen_words = hyphenate_each_word(language, transcribed_data)
             if hyphen_words is not None:
-                transcribed_data = add_hyphen_to_data(transcribed_data, hyphen_words)
+                transcribed_data = add_hyphen_to_data(
+                    transcribed_data, hyphen_words
+                )
 
         # todo: do we need to correct words?
         # lyric = 'input/faber_lyric.txt'
@@ -371,7 +385,9 @@ def run():
     )
 
     # Add calculated score to Ultrastar txt
-    ultrastar_writer.add_score_to_ultrastar_txt(ultrastar_file_output, simple_score)
+    ultrastar_writer.add_score_to_ultrastar_txt(
+        ultrastar_file_output, simple_score
+    )
 
     # Midi
     if settings.create_midi:
@@ -426,7 +442,9 @@ def separate_vocal_from_audio(
         vocals_path = os.path.join(audio_separation_path, "vocals.wav")
         convert_audio_to_mono_wav(vocals_path, settings.mono_audio_path)
     else:
-        convert_audio_to_mono_wav(ultrastar_audio_input_path, settings.mono_audio_path)
+        convert_audio_to_mono_wav(
+            ultrastar_audio_input_path, settings.mono_audio_path
+        )
     return audio_separation_path
 
 
@@ -434,27 +452,46 @@ def calculate_score_points(
     isAudio, pitched_data, ultrastar_class, ultrastar_file_output
 ):
     if isAudio:
-        ultrastar_class = ultrastar_parser.parse_ultrastar_txt(ultrastar_file_output)
-        simple_score, accurate_score = ultrastar_score_calculator.calculate_score(
+        ultrastar_class = ultrastar_parser.parse_ultrastar_txt(
+            ultrastar_file_output
+        )
+        (
+            simple_score,
+            accurate_score,
+        ) = ultrastar_score_calculator.calculate_score(
             pitched_data, ultrastar_class
         )
-        ultrastar_score_calculator.print_score_calculation(simple_score, accurate_score)
+        ultrastar_score_calculator.print_score_calculation(
+            simple_score, accurate_score
+        )
     else:
         print(
             f"{PRINT_ULTRASTAR} {print_blue_highlighted_text('Score of original Ultrastar txt')}"
         )
-        simple_score, accurate_score = ultrastar_score_calculator.calculate_score(
+        (
+            simple_score,
+            accurate_score,
+        ) = ultrastar_score_calculator.calculate_score(
             pitched_data, ultrastar_class
         )
-        ultrastar_score_calculator.print_score_calculation(simple_score, accurate_score)
+        ultrastar_score_calculator.print_score_calculation(
+            simple_score, accurate_score
+        )
         print(
             f"{PRINT_ULTRASTAR} {print_blue_highlighted_text('Score of re-pitched Ultrastar txt')}"
         )
-        ultrastar_class = ultrastar_parser.parse_ultrastar_txt(ultrastar_file_output)
-        simple_score, accurate_score = ultrastar_score_calculator.calculate_score(
+        ultrastar_class = ultrastar_parser.parse_ultrastar_txt(
+            ultrastar_file_output
+        )
+        (
+            simple_score,
+            accurate_score,
+        ) = ultrastar_score_calculator.calculate_score(
             pitched_data, ultrastar_class
         )
-        ultrastar_score_calculator.print_score_calculation(simple_score, accurate_score)
+        ultrastar_score_calculator.print_score_calculation(
+            simple_score, accurate_score
+        )
     return ultrastar_class, simple_score, accurate_score
 
 
@@ -465,7 +502,9 @@ def create_ultrastar_txt_from_ultrastar_data(
         song_output, ultrastar_class.title + ".txt"
     )
     ultrastar_writer.create_repitched_txt_from_ultrastar_data(
-        settings.input_file_path, ultrastar_note_numbers, output_repitched_ultrastar
+        settings.input_file_path,
+        ultrastar_note_numbers,
+        output_repitched_ultrastar,
     )
     return output_repitched_ultrastar
 
@@ -487,11 +526,15 @@ def create_ultrastar_txt_from_automation(
     ultrastar_header.language = language
     cover = basename_without_ext + " [CO].jpg"
     ultrastar_header.cover = (
-        cover if os_helper.check_file_exists(os.path.join(song_output, cover)) else None
+        cover
+        if os_helper.check_file_exists(os.path.join(song_output, cover))
+        else None
     )
 
     real_bpm = get_bpm_from_file(ultrastar_audio_input_path)
-    ultrastar_file_output = os.path.join(song_output, basename_without_ext + ".txt")
+    ultrastar_file_output = os.path.join(
+        song_output, basename_without_ext + ".txt"
+    )
     ultrastar_writer.create_ultrastar_txt_from_automation(
         transcribed_data,
         ultrastar_note_numbers,
@@ -548,8 +591,12 @@ def download_from_youtube():
     song_output = os.path.join(settings.output_file_path, basename_without_ext)
     song_output = get_unused_song_output_dir(song_output)
     os_helper.create_folder(song_output)
-    download_youtube_audio(settings.input_file_path, basename_without_ext, song_output)
-    download_youtube_video(settings.input_file_path, basename_without_ext, song_output)
+    download_youtube_audio(
+        settings.input_file_path, basename_without_ext, song_output
+    )
+    download_youtube_video(
+        settings.input_file_path, basename_without_ext, song_output
+    )
     download_youtube_thumbnail(
         settings.input_file_path, basename_without_ext, song_output
     )
@@ -558,7 +605,9 @@ def download_from_youtube():
 
 
 def parse_ultrastar_txt():
-    ultrastar_class = ultrastar_parser.parse_ultrastar_txt(settings.input_file_path)
+    ultrastar_class = ultrastar_parser.parse_ultrastar_txt(
+        settings.input_file_path
+    )
     real_bpm = ultrastar_converter.ultrastar_bpm_to_real_bpm(
         float(ultrastar_class.bpm.replace(",", "."))
     )
@@ -590,13 +639,17 @@ def create_midi_file(isAudio, real_bpm, song_output, ultrastar_class):
             midi_creator.convert_ultrastar_to_midi_instrument(ultrastar_class)
         ]
         midi_output = os.path.join(song_output, ultrastar_class.title + ".mid")
-        midi_creator.instruments_to_midi(voice_instrument, real_bpm, midi_output)
+        midi_creator.instruments_to_midi(
+            voice_instrument, real_bpm, midi_output
+        )
     else:
         voice_instrument = [
             midi_creator.convert_ultrastar_to_midi_instrument(ultrastar_class)
         ]
         midi_output = os.path.join(song_output, ultrastar_class.title + ".mid")
-        midi_creator.instruments_to_midi(voice_instrument, real_bpm, midi_output)
+        midi_creator.instruments_to_midi(
+            voice_instrument, real_bpm, midi_output
+        )
 
 
 def pitch_audio(isAudio, transcribed_data, ultrastar_class):
@@ -626,9 +679,15 @@ def pitch_audio(isAudio, transcribed_data, ultrastar_class):
 
 
 def create_audio_chunks(
-    cache_path, isAudio, transcribed_data, ultrastar_audio_input_path, ultrastar_class
+    cache_path,
+    isAudio,
+    transcribed_data,
+    ultrastar_audio_input_path,
+    ultrastar_class,
 ):
-    audio_chunks_path = os.path.join(cache_path, settings.audio_chunk_folder_name)
+    audio_chunks_path = os.path.join(
+        cache_path, settings.audio_chunk_folder_name
+    )
     os_helper.create_folder(audio_chunks_path)
     if isAudio:  # and csv
         csv_filename = os.path.join(audio_chunks_path, "_chunks.csv")
@@ -643,7 +702,9 @@ def create_audio_chunks(
 
 
 def denoise_vocal_audio(basename_without_ext, cache_path):
-    denoised_path = os.path.join(cache_path, basename_without_ext + "_denoised.wav")
+    denoised_path = os.path.join(
+        cache_path, basename_without_ext + "_denoised.wav"
+    )
     ffmpeg_reduce_noise(settings.mono_audio_path, denoised_path)
     settings.mono_audio_path = denoised_path
 

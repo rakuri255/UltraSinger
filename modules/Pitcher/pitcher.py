@@ -24,7 +24,9 @@ def get_pitch_with_crepe_file(filename, step_size, model_capacity):
         pitched_data.frequencies,
         pitched_data.confidence,
         activation,
-    ) = crepe.predict(audio, sr, model_capacity, step_size=step_size, viterbi=True)
+    ) = crepe.predict(
+        audio, sr, model_capacity, step_size=step_size, viterbi=True
+    )
     return pitched_data
 
 

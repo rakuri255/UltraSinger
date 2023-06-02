@@ -75,7 +75,9 @@ def create_midi_notes_from_pitched_data(start_times, end_times, pitched_data):
         start_time = start_times[i]
         end_time = end_times[i]
 
-        note = create_midi_note_from_pitched_data(start_time, end_time, pitched_data)
+        note = create_midi_note_from_pitched_data(
+            start_time, end_time, pitched_data
+        )
 
         midi_notes.append(note)
         # todo: Progress?

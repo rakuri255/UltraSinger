@@ -55,7 +55,9 @@ def get_score(points):
         if points.line_bonus == 0
         else MAX_SONG_SCORE - MAX_SONG_LINE_BONUS
     )
-    score.notes = round(score.max_score * (points.notes + points.rap) / points.parts)
+    score.notes = round(
+        score.max_score * (points.notes + points.rap) / points.parts
+    )
     score.golden = round(points.golden_notes + points.golden_rap)
     score.score = round(score.notes + points.line_bonus + score.golden)
     score.line_bonus = round(points.line_bonus)
@@ -74,7 +76,9 @@ def calculate_score(pitched_data, ultrastar_class):
     simple_points = Points()
     accurate_points = Points()
 
-    reachable_line_bonus_per_word = MAX_SONG_LINE_BONUS / len(ultrastar_class.words)
+    reachable_line_bonus_per_word = MAX_SONG_LINE_BONUS / len(
+        ultrastar_class.words
+    )
 
     for i in range(len(ultrastar_class.words)):
         if ultrastar_class.words == "":
@@ -101,11 +105,15 @@ def calculate_score(pitched_data, ultrastar_class):
         for p in range(parts):
             st = start_time + step_size * p
             end = st + step_size
-            pitch_note = create_midi_note_from_pitched_data(st, end, pitched_data)
+            pitch_note = create_midi_note_from_pitched_data(
+                st, end, pitched_data
+            )
 
             if pitch_note[:-1] == ultrastar_note[:-1]:
                 # Ignore octave high
-                simple_points = add_point(ultrastar_class.noteType[i], simple_points)
+                simple_points = add_point(
+                    ultrastar_class.noteType[i], simple_points
+                )
                 simple_part_line_bonus_points += 1
 
             if pitch_note == ultrastar_note:

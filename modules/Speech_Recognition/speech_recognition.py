@@ -78,8 +78,12 @@ def transcribe_audio(audio_file):
         audio = recognizer.record(source)
     try:
         transcript = recognizer.recognize_google(audio, show_all=True)
-        start_time = transcript["result"][0]["alternative"][0]["words"][0]["startTime"]
-        end_time = transcript["result"][0]["alternative"][0]["words"][-1]["endTime"]
+        start_time = transcript["result"][0]["alternative"][0]["words"][0][
+            "startTime"
+        ]
+        end_time = transcript["result"][0]["alternative"][0]["words"][-1][
+            "endTime"
+        ]
         return (
             transcript["result"][0]["alternative"][0]["transcript"],
             start_time,

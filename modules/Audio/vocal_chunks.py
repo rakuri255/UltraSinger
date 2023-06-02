@@ -42,7 +42,9 @@ def export_chunks_from_transcribed_data(
     audio_filename, transcribed_data, output_folder_name
 ):
     """Export transcribed_data as vocal chunks wav files"""
-    print(f"{PRINT_ULTRASTAR} Export transcribed data as vocal chunks wav files")
+    print(
+        f"{PRINT_ULTRASTAR} Export transcribed data as vocal chunks wav files"
+    )
 
     wf = wave.open(audio_filename, "rb")
     sr, n_channels = wf.getparams()[2], wf.getparams()[0]
@@ -85,19 +87,27 @@ def remove_silence_from_transcribtion_data(audio_path, transcribed_data):
             first_silence = onsets[0][0]
             last_silence = len(chunk) - onsets[-1][1]
 
-            first_silence_duration = librosa.samples_to_time(first_silence, sr=sr)
+            first_silence_duration = librosa.samples_to_time(
+                first_silence, sr=sr
+            )
             last_silence_duration = librosa.samples_to_time(last_silence, sr=sr)
         else:
             first_silence_duration = 0
             last_silence_duration = 0
 
-        transcribed_data[i].start = transcribed_data[i].start + first_silence_duration
-        transcribed_data[i].end = transcribed_data[i].end - last_silence_duration
+        transcribed_data[i].start = (
+            transcribed_data[i].start + first_silence_duration
+        )
+        transcribed_data[i].end = (
+            transcribed_data[i].end - last_silence_duration
+        )
 
     return transcribed_data
 
 
-def export_chunks_from_ultrastar_data(audio_filename, ultrastar_data, folder_name):
+def export_chunks_from_ultrastar_data(
+    audio_filename, ultrastar_data, folder_name
+):
     """Export ultrastar data as vocal chunks wav files"""
     print(f"{PRINT_ULTRASTAR} Export Ultrastar data as vocal chunks wav files")
 
@@ -114,7 +124,9 @@ def export_chunks_from_ultrastar_data(audio_filename, ultrastar_data, folder_nam
         end_byte = int(end_time * sr * n_channels)
 
         chunk = get_chunk(end_byte, start_byte, wf)
-        export_chunk_to_wav_file(chunk, folder_name, i, ultrastar_data.words[i], wf)
+        export_chunk_to_wav_file(
+            chunk, folder_name, i, ultrastar_data.words[i], wf
+        )
 
 
 def export_chunk_to_wav_file(chunk, folder_name, i, word, wf):

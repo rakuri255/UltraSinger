@@ -30,7 +30,9 @@ def transcribe_with_whisper(audio_path, model, device="cpu"):
     language = result["language"]
 
     # load alignment model and metadata
-    model_a, metadata = whisperx.load_align_model(language_code=language, device=device)
+    model_a, metadata = whisperx.load_align_model(
+        language_code=language, device=device
+    )
 
     # align whisper output
     result_aligned = whisperx.align(

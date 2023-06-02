@@ -22,7 +22,9 @@ def download_youtube_audio(url, clear_filename, output_path):
     ydl_opts = {
         "format": "bestaudio/best",
         "outtmpl": output_path + "/" + clear_filename,
-        "postprocessors": [{"key": "FFmpegExtractAudio", "preferredcodec": "mp3"}],
+        "postprocessors": [
+            {"key": "FFmpegExtractAudio", "preferredcodec": "mp3"}
+        ],
     }
 
     start_download(ydl_opts, url)
@@ -46,7 +48,9 @@ def download_and_convert_thumbnail(ydl_opts, url, clear_filename, output_path):
             response = ydl.urlopen(thumbnail_url)
             image_data = response.read()
             image = Image.open(io.BytesIO(image_data))
-            image.save(os.path.join(output_path, clear_filename + " [CO].jpg"), "JPEG")
+            image.save(
+                os.path.join(output_path, clear_filename + " [CO].jpg"), "JPEG"
+            )
 
 
 def download_youtube_video(url, clear_filename, output_path):
