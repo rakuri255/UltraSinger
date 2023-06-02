@@ -3,12 +3,12 @@ import csv
 import crepe
 from scipy.io import wavfile
 
-from moduls.Log import (
+from modules.Log import (
     PRINT_ULTRASTAR,
     print_blue_highlighted_text,
     print_red_highlighted_text,
 )
-from moduls.Pitcher.pitched_data import PitchedData
+from modules.Pitcher.pitched_data import PitchedData
 
 
 def get_pitch_with_crepe_file(filename, step_size, model_capacity):

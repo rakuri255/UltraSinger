@@ -5,9 +5,9 @@ import librosa
 import numpy as np
 import pretty_midi
 
-from moduls.Log import PRINT_ULTRASTAR
-from moduls.Pitcher.pitcher import get_frequency_with_high_confidence
-from moduls.Ultrastar.ultrastar_converter import (
+from modules.Log import PRINT_ULTRASTAR
+from modules.Pitcher.pitcher import get_frequency_with_high_confidence
+from modules.Ultrastar.ultrastar_converter import (
     get_end_time_from_ultrastar,
     get_start_time_from_ultrastar,
     ultrastar_note_to_midi_note,

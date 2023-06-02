@@ -2,7 +2,7 @@ import string
 
 from hyphen import Hyphenator, dictools
 
-from moduls.Log import (
+from modules.Log import (
     PRINT_ULTRASTAR,
     print_blue_highlighted_text,
     print_gold_highlighted_text,

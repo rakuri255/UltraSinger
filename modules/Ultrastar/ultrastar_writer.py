@@ -2,8 +2,8 @@ import re
 
 import langcodes
 
-from moduls.Log import PRINT_ULTRASTAR
-from moduls.Ultrastar.ultrastar_converter import (
+from modules.Log import PRINT_ULTRASTAR
+from modules.Ultrastar.ultrastar_converter import (
     real_bpm_to_ultrastar_bpm,
     second_to_beat,
 )

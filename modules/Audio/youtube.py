@@ -4,7 +4,7 @@ import os
 import yt_dlp
 from PIL import Image
 
-from moduls.Log import PRINT_ULTRASTAR
+from modules.Log import PRINT_ULTRASTAR
 
 
 def get_youtube_title(url):

@@ -1,6 +1,6 @@
 import librosa
 
-from moduls.Log import (
+from modules.Log import (
     PRINT_ULTRASTAR,
     print_blue_highlighted_text,
     print_cyan_highlighted_text,
@@ -8,8 +8,8 @@ from moduls.Log import (
     print_light_blue_highlighted_text,
     print_underlined_text,
 )
-from moduls.Midi.midi_creator import create_midi_note_from_pitched_data
-from moduls.Ultrastar.ultrastar_converter import (
+from modules.Midi.midi_creator import create_midi_note_from_pitched_data
+from modules.Ultrastar.ultrastar_converter import (
     get_end_time_from_ultrastar,
     get_start_time_from_ultrastar,
     ultrastar_note_to_midi_note,

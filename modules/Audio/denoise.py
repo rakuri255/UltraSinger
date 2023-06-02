@@ -1,6 +1,6 @@
 import ffmpeg
 
-from moduls.Log import PRINT_ULTRASTAR, print_blue_highlighted_text
+from modules.Log import PRINT_ULTRASTAR, print_blue_highlighted_text
 
 
 def ffmpeg_reduce_noise(input_file_path, output_file):

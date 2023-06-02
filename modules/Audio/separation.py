@@ -1,11 +1,11 @@
 import subprocess
 
-from moduls.Log import (
+from modules.Log import (
     PRINT_ULTRASTAR,
     print_blue_highlighted_text,
     print_red_highlighted_text,
 )
-from moduls.os_helper import current_executor_path, move, path_join
+from modules.os_helper import current_executor_path, move, path_join
 
 
 def separate_audio(input_file_path, output_file, device="cpu"):

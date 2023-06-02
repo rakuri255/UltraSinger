@@ -6,9 +6,9 @@ import wave
 import librosa
 from pydub import AudioSegment
 
-from moduls.Log import PRINT_ULTRASTAR
-from moduls.os_helper import create_folder
-from moduls.Ultrastar.ultrastar_converter import (
+from modules.Log import PRINT_ULTRASTAR
+from modules.os_helper import create_folder
+from modules.Ultrastar.ultrastar_converter import (
     get_end_time_from_ultrastar,
     get_start_time_from_ultrastar,
 )
