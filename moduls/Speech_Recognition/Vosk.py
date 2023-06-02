@@ -11,7 +11,9 @@ from moduls.Speech_Recognition.TranscribedData import TranscribedData
 
 def transcribe_with_vosk(audio_filename, model_path):
     # Code from here: https://towardsdatascience.com/speech-recognition-with-timestamps-934ede4234b2
-    print(f"{PRINT_ULTRASTAR} Transcribing {audio_filename} with vosk and model {model_path}")
+    print(
+        f"{PRINT_ULTRASTAR} Transcribing {audio_filename} with vosk and model {model_path}"
+    )
 
     model = Model(model_path)
     wf = wave.open(audio_filename, "rb")
@@ -41,9 +43,9 @@ def transcribe_with_vosk(audio_filename, model_path):
             # and it returns an empty dictionary
             # {'text': ''}
             continue
-        for obj in sentence['result']:
+        for obj in sentence["result"]:
             vtd = TranscribedData(obj)  # create custom Word object
-            vtd.word = vtd.word + ' '
+            vtd.word = vtd.word + " "
             transcribed_data.append(vtd)  # and add it to list
 
     # Todo: remove silent part from each word

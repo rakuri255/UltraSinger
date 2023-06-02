@@ -9,19 +9,21 @@ from pydub import AudioSegment
 from moduls.Log import PRINT_ULTRASTAR
 from moduls.os_helper import create_folder
 from moduls.Ultrastar.ultrastar_converter import (
-    get_end_time_from_ultrastar, get_start_time_from_ultrastar)
+    get_end_time_from_ultrastar,
+    get_start_time_from_ultrastar,
+)
 
 
 def convert_audio_to_mono_wav(input_file, output_file):
     """Convert audio to mono wav"""
     print(f"{PRINT_ULTRASTAR} Converting audio for AI")
 
-    if '.mp3' in input_file:
+    if ".mp3" in input_file:
         sound = AudioSegment.from_mp3(input_file)
-    elif '.wav' in input_file:
+    elif ".wav" in input_file:
         sound = AudioSegment.from_wav(input_file)
     else:
-        raise ValueError('data format not supported')
+        raise ValueError("data format not supported")
 
     sound = sound.set_channels(1)
     sound.export(output_file, format="wav")
@@ -36,7 +38,9 @@ class AudioManipulation:
     pass
 
 
-def export_chunks_from_transcribed_data(audio_filename, transcribed_data, output_folder_name):
+def export_chunks_from_transcribed_data(
+    audio_filename, transcribed_data, output_folder_name
+):
     """Export transcribed_data as vocal chunks wav files"""
     print(f"{PRINT_ULTRASTAR} Export transcribed data as vocal chunks wav files")
 
@@ -48,13 +52,17 @@ def export_chunks_from_transcribed_data(audio_filename, transcribed_data, output
         end_byte = int(transcribed_data[i].end * sr * n_channels)
 
         chunk = get_chunk(end_byte, start_byte, wf)
-        export_chunk_to_wav_file(chunk, output_folder_name, i, transcribed_data[i].word, wf)
+        export_chunk_to_wav_file(
+            chunk, output_folder_name, i, transcribed_data[i].word, wf
+        )
 
     wf.close()
 
 
 def remove_silence_from_transcribtion_data(audio_path, transcribed_data):
-    print(f"{PRINT_ULTRASTAR} Removing silent start and ending, from transcription data")
+    print(
+        f"{PRINT_ULTRASTAR} Removing silent start and ending, from transcription data"
+    )
 
     y, sr = librosa.load(audio_path, sr=None)
 
@@ -68,7 +76,9 @@ def remove_silence_from_transcribtion_data(audio_path, transcribed_data):
         # todo: why 5 works good? It should be 40db ?!?
         # max_dB = librosa.amplitude_to_db(chunk, ref=np.max)
         silence_threshold = 5
-        onsets = librosa.effects.split(chunk, top_db=silence_threshold, frame_length=2048, hop_length=100)
+        onsets = librosa.effects.split(
+            chunk, top_db=silence_threshold, frame_length=2048, hop_length=100
+        )
 
         # Get the duration of the first and last silent intervals
         if len(onsets) > 0:
@@ -110,11 +120,12 @@ def export_chunks_from_ultrastar_data(audio_filename, ultrastar_data, folder_nam
 def export_chunk_to_wav_file(chunk, folder_name, i, word, wf):
     """Export vocal chunks to wav file"""
 
-    clean_word = re.sub('[^A-Za-z0-9]+', '', word)
+    clean_word = re.sub("[^A-Za-z0-9]+", "", word)
     # todo: Progress?
     # print(str(i) + ' ' + clean_word)
-    with wave.open(os.path.join(folder_name, f"chunk_{i}_{clean_word}.wav"),
-                   "wb") as chunk_file:
+    with wave.open(
+        os.path.join(folder_name, f"chunk_{i}_{clean_word}.wav"), "wb"
+    ) as chunk_file:
         chunk_file.setparams(wf.getparams())
         chunk_file.writeframes(chunk)
 
@@ -135,11 +146,16 @@ def export_transcribed_data_to_csv(transcribed_data, filename):
     """Export transcribed data to csv"""
     print(f"{PRINT_ULTRASTAR} Exporting transcribed data to CSV")
 
-    with open(filename, 'w', newline='') as csvfile:
+    with open(filename, "w", newline="") as csvfile:
         writer = csv.writer(csvfile)
         header = ["word", "start", "end", "confidence"]
         writer.writerow(header)
         for i in range(len(transcribed_data)):
             writer.writerow(
-                [transcribed_data[i].word, transcribed_data[i].start, transcribed_data[i].end,
-                 transcribed_data[i].conf])
+                [
+                    transcribed_data[i].word,
+                    transcribed_data[i].start,
+                    transcribed_data[i].end,
+                    transcribed_data[i].conf,
+                ]
+            )

@@ -8,6 +8,7 @@ from moduls.Log import PRINT_ULTRASTAR
 
 # todo: Code from here: https://www.thepythoncode.com/article/using-speech-recognition-to-convert-speech-to-text-python
 
+
 def PrintText(wav_file):
     # English speach!
     r = sr.Recognizer()
@@ -31,14 +32,15 @@ def get_large_audio_transcription(wav_file):
     sound = AudioSegment.from_wav(wav_file)
 
     # split audio sound where silence is 700 miliseconds or more and get chunks
-    chunks = split_on_silence(sound,
-                              # experiment with this value for your target audio file
-                              min_silence_len=500,
-                              # adjust this per requirement
-                              silence_thresh=sound.dBFS - 14,
-                              # keep the silence for 1 second, adjustable as well
-                              keep_silence=500,
-                              )
+    chunks = split_on_silence(
+        sound,
+        # experiment with this value for your target audio file
+        min_silence_len=500,
+        # adjust this per requirement
+        silence_thresh=sound.dBFS - 14,
+        # keep the silence for 1 second, adjustable as well
+        keep_silence=500,
+    )
 
     folder_name = "audio-chunks"
     # create a directory to store the audio chunks
@@ -76,9 +78,13 @@ def transcribe_audio(audio_file):
         audio = recognizer.record(source)
     try:
         transcript = recognizer.recognize_google(audio, show_all=True)
-        start_time = transcript['result'][0]['alternative'][0]['words'][0]['startTime']
-        end_time = transcript['result'][0]['alternative'][0]['words'][-1]['endTime']
-        return transcript['result'][0]['alternative'][0]['transcript'], start_time, end_time
+        start_time = transcript["result"][0]["alternative"][0]["words"][0]["startTime"]
+        end_time = transcript["result"][0]["alternative"][0]["words"][-1]["endTime"]
+        return (
+            transcript["result"][0]["alternative"][0]["transcript"],
+            start_time,
+            end_time,
+        )
     except sr.UnknownValueError:
         print(f"{PRINT_ULTRASTAR} Could not understand audio")
     except sr.RequestError as e:

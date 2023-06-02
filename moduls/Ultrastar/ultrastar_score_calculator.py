@@ -1,14 +1,19 @@
 import librosa
 
-from moduls.Log import (PRINT_ULTRASTAR, print_blue_highlighted_text,
-                        print_cyan_highlighted_text,
-                        print_gold_highlighted_text,
-                        print_light_blue_highlighted_text,
-                        print_underlined_text)
+from moduls.Log import (
+    PRINT_ULTRASTAR,
+    print_blue_highlighted_text,
+    print_cyan_highlighted_text,
+    print_gold_highlighted_text,
+    print_light_blue_highlighted_text,
+    print_underlined_text,
+)
 from moduls.Midi.midi_creator import create_midi_note_from_pitched_data
 from moduls.Ultrastar.ultrastar_converter import (
-    get_end_time_from_ultrastar, get_start_time_from_ultrastar,
-    ultrastar_note_to_midi_note)
+    get_end_time_from_ultrastar,
+    get_start_time_from_ultrastar,
+    ultrastar_note_to_midi_note,
+)
 
 MAX_SONG_SCORE = 10000
 MAX_SONG_LINE_BONUS = 1000
@@ -24,15 +29,16 @@ class Points:
 
 
 def add_point(noteType, points):
-    if noteType == ':':
+    if noteType == ":":
         points.notes += 1
-    elif noteType == '*':
+    elif noteType == "*":
         points.golden_notes += 2
-    elif noteType == 'R':
+    elif noteType == "R":
         points.rap += 1
-    elif noteType == 'G':
+    elif noteType == "G":
         points.golden_rap += 2
     return points
+
 
 class Score:
     max_score = 0
@@ -41,17 +47,25 @@ class Score:
     line_bonus = 0
     score = 0
 
+
 def get_score(points):
     score = Score()
-    score.max_score = MAX_SONG_SCORE if points.line_bonus == 0 else MAX_SONG_SCORE - MAX_SONG_LINE_BONUS
+    score.max_score = (
+        MAX_SONG_SCORE
+        if points.line_bonus == 0
+        else MAX_SONG_SCORE - MAX_SONG_LINE_BONUS
+    )
     score.notes = round(score.max_score * (points.notes + points.rap) / points.parts)
     score.golden = round(points.golden_notes + points.golden_rap)
     score.score = round(score.notes + points.line_bonus + score.golden)
     score.line_bonus = round(points.line_bonus)
     return score
 
+
 def print_score(score):
-    print(f"{PRINT_ULTRASTAR} Total: {print_cyan_highlighted_text(str(score.score))}, notes: {print_blue_highlighted_text(str(score.notes))}, line bonus: {print_light_blue_highlighted_text(str(score.line_bonus))}, golden notes: {print_gold_highlighted_text(str(score.golden))}")
+    print(
+        f"{PRINT_ULTRASTAR} Total: {print_cyan_highlighted_text(str(score.score))}, notes: {print_blue_highlighted_text(str(score.notes))}, line bonus: {print_light_blue_highlighted_text(str(score.line_bonus))}, golden notes: {print_gold_highlighted_text(str(score.golden))}"
+    )
 
 
 def calculate_score(pitched_data, ultrastar_class):
@@ -66,7 +80,7 @@ def calculate_score(pitched_data, ultrastar_class):
         if ultrastar_class.words == "":
             continue
 
-        if ultrastar_class.noteType[i] == 'F':
+        if ultrastar_class.noteType[i] == "F":
             continue
 
         start_time = get_start_time_from_ultrastar(ultrastar_class, i)
@@ -79,7 +93,9 @@ def calculate_score(pitched_data, ultrastar_class):
         accurate_part_line_bonus_points = 0
         simple_part_line_bonus_points = 0
 
-        ultrastar_midi_note = ultrastar_note_to_midi_note(int(ultrastar_class.pitches[i]))
+        ultrastar_midi_note = ultrastar_note_to_midi_note(
+            int(ultrastar_class.pitches[i])
+        )
         ultrastar_note = librosa.midi_to_note(ultrastar_midi_note)
 
         for p in range(parts):
@@ -94,7 +110,9 @@ def calculate_score(pitched_data, ultrastar_class):
 
             if pitch_note == ultrastar_note:
                 # Octave high must be the same
-                accurate_points = add_point(ultrastar_class.noteType[i], accurate_points)
+                accurate_points = add_point(
+                    ultrastar_class.noteType[i], accurate_points
+                )
                 accurate_part_line_bonus_points += 1
 
             accurate_points.parts += 1
@@ -108,9 +126,14 @@ def calculate_score(pitched_data, ultrastar_class):
 
     return get_score(simple_points), get_score(accurate_points)
 
+
 def print_score_calculation(simple_points, accurate_points):
-    print(f"{PRINT_ULTRASTAR} {print_underlined_text('Simple (octave high ignored)')} points")
+    print(
+        f"{PRINT_ULTRASTAR} {print_underlined_text('Simple (octave high ignored)')} points"
+    )
     print_score(simple_points)
 
-    print(f"{PRINT_ULTRASTAR} {print_underlined_text('Accurate (octave high matches)')} points:")
+    print(
+        f"{PRINT_ULTRASTAR} {print_underlined_text('Accurate (octave high matches)')} points:"
+    )
     print_score(accurate_points)

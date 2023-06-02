@@ -2,11 +2,14 @@ import string
 
 from hyphen import Hyphenator, dictools
 
-from moduls.Log import (PRINT_ULTRASTAR, print_blue_highlighted_text,
-                        print_gold_highlighted_text)
+from moduls.Log import (
+    PRINT_ULTRASTAR,
+    print_blue_highlighted_text,
+    print_gold_highlighted_text,
+)
 
 
-def language_check(language='en'):
+def language_check(language="en"):
     dict_langs = dictools.LANGUAGES
 
     lang_region = None
@@ -18,7 +21,9 @@ def language_check(language='en'):
     if lang_region is None:
         return None
 
-    print(f"{PRINT_ULTRASTAR} Hyphenate using language code: {print_blue_highlighted_text(lang_region)}")
+    print(
+        f"{PRINT_ULTRASTAR} Hyphenate using language code: {print_blue_highlighted_text(lang_region)}"
+    )
     return lang_region
 
 

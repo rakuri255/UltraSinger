@@ -17,3 +17,4 @@ langcodes~=3.3.0
 language-data~=1.1
 Pillow~=9.5.0
 isort==5.12
+black==23.3

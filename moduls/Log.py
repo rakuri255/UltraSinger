@@ -26,10 +26,10 @@ def print_cyan_highlighted_text(text):
 
 
 class Bcolors:
-    BLUE = '\033[94m'
-    RED = '\033[91m'
-    LightBlue = '\033[96m'
-    Cyan = '\033[36m'
-    Gold = '\033[93m'
-    Underline = '\033[4m'
-    ENDC = '\033[0m'
+    BLUE = "\033[94m"
+    RED = "\033[91m"
+    LightBlue = "\033[96m"
+    Cyan = "\033[36m"
+    Gold = "\033[93m"
+    Underline = "\033[4m"
+    ENDC = "\033[0m"
