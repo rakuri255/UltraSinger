@@ -1,8 +1,9 @@
-from hyphen import Hyphenator
-from hyphen import dictools
-from moduls.Log import PRINT_ULTRASTAR
-from moduls.Log import print_blue_highlighted_text, print_gold_highlighted_text
 import string
+
+from hyphen import Hyphenator, dictools
+
+from moduls.Log import (PRINT_ULTRASTAR, print_blue_highlighted_text,
+                        print_gold_highlighted_text)
 
 
 def language_check(language='en'):

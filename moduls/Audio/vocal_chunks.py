@@ -1,14 +1,15 @@
 import csv
 import os
-import wave
 import re
+import wave
 
 import librosa
-
-from moduls.os_helper import create_folder
-from moduls.Ultrastar.ultrastar_converter import get_start_time_from_ultrastar, get_end_time_from_ultrastar
 from pydub import AudioSegment
+
 from moduls.Log import PRINT_ULTRASTAR
+from moduls.os_helper import create_folder
+from moduls.Ultrastar.ultrastar_converter import (
+    get_end_time_from_ultrastar, get_start_time_from_ultrastar)
 
 
 def convert_audio_to_mono_wav(input_file, output_file):

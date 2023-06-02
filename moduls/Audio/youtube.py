@@ -1,8 +1,10 @@
-import yt_dlp
-from moduls.Log import PRINT_ULTRASTAR
-from PIL import Image
 import io
 import os
+
+import yt_dlp
+from PIL import Image
+
+from moduls.Log import PRINT_ULTRASTAR
 
 
 def get_youtube_title(url):

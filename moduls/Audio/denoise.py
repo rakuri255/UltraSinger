@@ -1,4 +1,5 @@
 import ffmpeg
+
 from moduls.Log import PRINT_ULTRASTAR, print_blue_highlighted_text
 
 
