@@ -54,8 +54,8 @@ def download_and_convert_thumbnail(ydl_opts, url, clear_filename, output_path):
 def download_youtube_video(url, clear_filename, output_path):
     print(f"{PRINT_ULTRASTAR} Downloading Video")
     ydl_opts = {
-        'format': 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/mp4',
-        'outtmpl': output_path + '/' + clear_filename + '.mp4'
+        'format': 'bestvideo',
+        'outtmpl': output_path + '/' + clear_filename + '.%(ext)s'
     }
     start_download(ydl_opts, url)
 
