@@ -57,6 +57,7 @@ from modules.Ultrastar import (
 )
 from modules.Ultrastar.ultrastar_txt import UltrastarTxt
 from Settings import Settings
+from modules.musicbrainz_client import get_music_infos
 
 settings = Settings()
 
@@ -331,6 +332,9 @@ def run():
         cache_path, basename_without_ext + ".wav"
     )
     os_helper.create_folder(cache_path)
+
+    # Get additional data for song
+    get_music_infos(basename_without_ext)
 
     # Separate vocal from audio
     audio_separation_path = separate_vocal_from_audio(
