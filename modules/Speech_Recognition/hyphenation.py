@@ -1,11 +1,18 @@
-from hyphen import Hyphenator
-from hyphen import dictools
-from moduls.Log import PRINT_ULTRASTAR
-from moduls.Log import print_blue_highlighted_text, print_gold_highlighted_text
+"""Docstring"""
+
 import string
 
+from hyphen import Hyphenator, dictools
 
-def language_check(language='en'):
+from modules.Log import (
+    PRINT_ULTRASTAR,
+    print_blue_highlighted_text,
+)
+
+
+def language_check(language="en"):
+    """Docstring"""
+
     dict_langs = dictools.LANGUAGES
 
     lang_region = None
@@ -17,20 +24,26 @@ def language_check(language='en'):
     if lang_region is None:
         return None
 
-    print(f"{PRINT_ULTRASTAR} Hyphenate using language code: {print_blue_highlighted_text(lang_region)}")
+    print(
+        f"{PRINT_ULTRASTAR} Hyphenate using language code: {print_blue_highlighted_text(lang_region)}"
+    )
     return lang_region
 
 
 def contains_punctuation(word):
+    """Docstring"""
+
     return any(elem in word for elem in string.punctuation)
 
 
 def hyphenation(word, lang_region):
+    """Docstring"""
+
     if contains_punctuation(word):
         return None
 
-    hy = Hyphenator(lang_region)
-    syllabus = hy.syllables(word)
+    hyphenator = Hyphenator(lang_region)
+    syllabus = hyphenator.syllables(word)
 
     length = len(syllabus)
     if length > 1:
