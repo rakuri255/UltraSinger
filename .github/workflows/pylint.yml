@@ -1,14 +1,23 @@
 name: PyLint
 
-on: [push, pull_request]
+#on: [push, pull_request]
+on:
+  push:
+    branches:
+      - CI
+    paths:
+      #- "requirements.txt"
+
+  pull_request:
+    branches:
+      - CI
+    paths:
+      #- "requirements.txt"
 
 jobs:
-  python-lint:
+  build:
     runs-on: ubuntu-latest
-    name: CI workflow
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@CI
-
-    - name: linting
+    - uses: actions/checkout@v2
+    - name: Python Linter
       uses: rakuri255/UltraSinger@CI

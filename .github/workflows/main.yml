@@ -1,17 +1,13 @@
-name: Python CI
+name: Check Requirements
 
 on:
   push:
-    branches:
-      - CI
     paths:
-      #- "requirements.txt"
+      - "requirements.txt"
 
   pull_request:
-    branches:
-      - CI
     paths:
-      #- "requirements.txt"
+      - "requirements.txt"
 
 jobs:
   build:
