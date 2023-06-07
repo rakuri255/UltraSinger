@@ -4,7 +4,7 @@ pretty_midi==0.2.9
 pydub==0.25.1
 Levenshtein==0.20.9
 scipy==1.10.0
-vosk==0.3.45
+vosk==0.3.44
 tensorflow~=2.12.0
 matplotlib~=3.7.1
 yt_dlp~=2023.3.4
