@@ -7,8 +7,8 @@ jobs:
     runs-on: ubuntu-latest
     name: CI workflow
     steps:
-    - name: checkout source repo
-      uses: actions/checkout@main
+    - name: Checkout repository
+      uses: actions/checkout@v3
 
     - name: linting
       uses: rakuri255/UltraSinger@main
