@@ -69,10 +69,10 @@ def create_ultrastar_txt_from_automation(
 
         # Write the singing part
         previous_end_beat = 0
-        for i in enumerate(transcribed_data):
-            start_time = (transcribed_data[i].start - gap) * multiplication
+        for i, data in enumerate(transcribed_data):
+            start_time = (data.start - gap) * multiplication
             end_time = (
-                transcribed_data[i].end - transcribed_data[i].start
+                data.end - data.start
             ) * multiplication
             start_beat = round(second_to_beat(start_time, bpm))
             duration = round(second_to_beat(end_time, bpm))
@@ -91,13 +91,13 @@ def create_ultrastar_txt_from_automation(
             file.write(str(start_beat) + " ")
             file.write(str(duration) + " ")
             file.write(str(note_numbers[i]) + " ")
-            file.write(transcribed_data[i].word)
+            file.write(data.word)
             file.write("\n")
 
             # detect silence between words
             if i < len(transcribed_data) - 1:
                 silence = (
-                    transcribed_data[i + 1].start - transcribed_data[i].end
+                    transcribed_data[i + 1].start - data.end
                 )
             else:
                 silence = 0
@@ -108,7 +108,7 @@ def create_ultrastar_txt_from_automation(
                 # 'n1' show next at time in real beat
                 file.write("- ")
                 show_next = (
-                    second_to_beat(transcribed_data[i].end - gap, bpm)
+                    second_to_beat(data.end - gap, bpm)
                     * multiplication
                 )
                 file.write(str(round(show_next)))
@@ -155,14 +155,14 @@ def add_score_to_ultrastar_txt(ultrastar_file_output, score):
         text = file.read()
     text = text.split("\n")
 
-    for i in enumerate(text):
-        if text[i].startswith("#COMMENT:"):
+    for i, line in enumerate(text):
+        if line.startswith("#COMMENT:"):
             text[
                 i
-            ] = f"{text[i]} | Score: total: {score.score}, notes: {score.notes} line: {score.line_bonus}, golden: {score.golden}"
+            ] = f"{line} | Score: total: {score.score}, notes: {score.notes} line: {score.line_bonus}, golden: {score.golden}"
             break
 
-        if text[i].startswith(("F ", ": ", "* ", "R ", "G ")):
+        if line.startswith(("F ", ": ", "* ", "R ", "G ")):
             text.insert(
                 i,
                 f"#COMMENT: UltraSinger [GitHub] | Score: total: {score.score}, notes: {score.notes} line: {score.line_bonus}, golden: {score.golden}",

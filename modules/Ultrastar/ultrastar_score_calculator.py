@@ -95,14 +95,15 @@ def calculate_score(pitched_data, ultrastar_class):
     )
 
     for i in enumerate(ultrastar_class.words):
+        pos = i[0]
         if ultrastar_class.words == "":
             continue
 
-        if ultrastar_class.noteType[i] == "F":
+        if ultrastar_class.noteType[pos] == "F":
             continue
 
-        start_time = get_start_time_from_ultrastar(ultrastar_class, i)
-        end_time = get_end_time_from_ultrastar(ultrastar_class, i)
+        start_time = get_start_time_from_ultrastar(ultrastar_class, pos)
+        end_time = get_end_time_from_ultrastar(ultrastar_class, pos)
         duration = end_time - start_time
         step_size = 0.01  # todo: should be beat length ?
         parts = int(duration / step_size)
@@ -112,7 +113,7 @@ def calculate_score(pitched_data, ultrastar_class):
         simple_part_line_bonus_points = 0
 
         ultrastar_midi_note = ultrastar_note_to_midi_note(
-            int(ultrastar_class.pitches[i])
+            int(ultrastar_class.pitches[pos])
         )
         ultrastar_note = librosa.midi_to_note(ultrastar_midi_note)
 
@@ -126,14 +127,14 @@ def calculate_score(pitched_data, ultrastar_class):
             if pitch_note[:-1] == ultrastar_note[:-1]:
                 # Ignore octave high
                 simple_points = add_point(
-                    ultrastar_class.noteType[i], simple_points
+                    ultrastar_class.noteType[pos], simple_points
                 )
                 simple_part_line_bonus_points += 1
 
             if pitch_note == ultrastar_note:
                 # Octave high must be the same
                 accurate_points = add_point(
-                    ultrastar_class.noteType[i], accurate_points
+                    ultrastar_class.noteType[pos], accurate_points
                 )
                 accurate_part_line_bonus_points += 1
 

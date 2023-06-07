@@ -47,14 +47,15 @@ def get_pitch_with_crepe(audio, sample_rate, step_size, model_capacity):
     return pitched_data
 
 
-def write_lists_to_csv(time, frequency, confidence, filename):
+def write_lists_to_csv(times, frequencies, confidences, filename):
     """Docstring"""
     with open(filename, "w", encoding="utf-8", newline="") as csvfile:
         writer = csv.writer(csvfile)
         header = ["time", "frequency", "confidence"]
         writer.writerow(header)
-        for i in enumerate(time):
-            writer.writerow([time[i], frequency[i], confidence[i]])
+        for i in enumerate(times):
+            pos = i[0]
+            writer.writerow([times[pos], frequencies[pos], confidences[pos]])
 
 
 def read_data_from_csv(filename):
@@ -71,8 +72,8 @@ def read_data_from_csv(filename):
 def get_frequency_with_high_confidence(freqs, confs, threshold=0.4):
     """Docstring"""
     conf_f = []
-    for i in enumerate(confs):
-        if confs[i] > threshold:
+    for i, conf in enumerate(confs):
+        if conf > threshold:
             conf_f.append(freqs[i])
     if not conf_f:
         conf_f = freqs

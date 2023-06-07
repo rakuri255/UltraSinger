@@ -68,10 +68,11 @@ def get_confidence(pitched_data, threshold):
     conf_f = []
     conf_c = []
     for i in enumerate(pitched_data.times):
+        pos = i[0]
         if pitched_data.confidence[i] > threshold:
-            conf_t.append(pitched_data.times[i])
-            conf_f.append(pitched_data.frequencies[i])
-            conf_c.append(pitched_data.confidence[i])
+            conf_t.append(pitched_data.times[pos])
+            conf_f.append(pitched_data.frequencies[pos])
+            conf_c.append(pitched_data.confidence[pos])
     return conf_t, conf_f, conf_c
 
 
@@ -80,8 +81,8 @@ def convert_ultrastar_note_numbers(midi_notes):
     print(f"{PRINT_ULTRASTAR} Creating Ultrastar notes from midi data")
 
     ultrastar_note_numbers = []
-    for i in enumerate(midi_notes):
-        note_number_librosa = librosa.note_to_midi(midi_notes[i])
+    for i, note in enumerate(midi_notes):
+        note_number_librosa = librosa.note_to_midi(note)
         pitch = ultrastar_converter.midi_note_to_ultrastar_note(
             note_number_librosa
         )
@@ -125,28 +126,28 @@ def pitch_each_chunk_with_crepe(directory):
 
 def add_hyphen_to_data(transcribed_data, hyphen_words):
     """Docstring"""
-    data = []
+    new_data = []
 
-    for i in enumerate(transcribed_data):
+    for i, data in enumerate(transcribed_data):
         if not hyphen_words[i]:
-            data.append(transcribed_data[i])
+            new_data.append(data)
         else:
-            chunk_duration = transcribed_data[i].end - transcribed_data[i].start
+            chunk_duration = data.end - data.start
             chunk_duration = chunk_duration / (len(hyphen_words[i]))
 
-            next_start = transcribed_data[i].start
-            for j in enumerate(hyphen_words[i]):
-                dup = copy.copy(transcribed_data[i])
+            next_start = data.start
+            for j, hyphens in enumerate(hyphen_words[i]):
+                dup = copy.copy(data)
                 dup.start = next_start
-                next_start = transcribed_data[i].end - chunk_duration * (
-                    len(hyphen_words[i]) - 1 - j
+                next_start = data.end - chunk_duration * (
+                    len(hyphens) - 1 - j
                 )
                 dup.end = next_start
                 dup.word = hyphen_words[i][j]
                 dup.is_hyphen = True
-                data.append(dup)
+                new_data.append(dup)
 
-    return data
+    return new_data
 
 
 def get_bpm_from_data(data, sampling_rate):
@@ -238,10 +239,10 @@ def plot(input_file, vosk_transcribed_data, midi_notes):
     plt.plot(conf_t, conf_f, linewidth=0.1)
     plt.savefig(os.path.join("test", "crepe_0.4.png"))
 
-    for i in enumerate(vosk_transcribed_data):
+    for i, data in enumerate(vosk_transcribed_data):
         note_frequency = librosa.note_to_hz(midi_notes[i])
         plt.plot(
-            [vosk_transcribed_data[i].start, vosk_transcribed_data[i].end],
+            [data.start, data.end],
             [note_frequency, note_frequency],
             linewidth=1,
             alpha=0.5,
@@ -252,8 +253,8 @@ def plot(input_file, vosk_transcribed_data, midi_notes):
 def remove_unecessary_punctuations(transcribed_data):
     """Docstring"""
     punctuation = ".,"
-    for i in enumerate(transcribed_data):
-        transcribed_data[i].word = transcribed_data[i].word.translate(
+    for i, data in enumerate(transcribed_data):
+        data.word = data.word.translate(
             {ord(i): None for i in punctuation}
         )
 
@@ -269,9 +270,9 @@ def hyphenate_each_word(language, transcribed_data):
         return None
 
     sleep(0.1)
-    for i in tqdm(enumerate(transcribed_data)):
+    for i, data in tqdm(enumerate(transcribed_data)):
         hyphenated_word.append(
-            hyphenation(transcribed_data[i].word, lang_region)
+            hyphenation(data.word, lang_region)
         )
     return hyphenated_word
 
@@ -692,9 +693,9 @@ def pitch_audio(is_audio, transcribed_data, ultrastar_class):
     if is_audio:
         start_times = []
         end_times = []
-        for i in enumerate(transcribed_data):
-            start_times.append(transcribed_data[i].start)
-            end_times.append(transcribed_data[i].end)
+        for i, data in enumerate(transcribed_data):
+            start_times.append(data.start)
+            end_times.append(data.end)
         midi_notes = create_midi_notes_from_pitched_data(
             start_times, end_times, pitched_data
         )

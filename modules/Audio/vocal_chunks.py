@@ -53,13 +53,13 @@ def export_chunks_from_transcribed_data(
     wave_file = wave.open(audio_filename, "rb")
     sample_rate, n_channels = wave_file.getparams()[2], wave_file.getparams()[0]
 
-    for i in enumerate(transcribed_data):
-        start_byte = int(transcribed_data[i].start * sample_rate * n_channels)
-        end_byte = int(transcribed_data[i].end * sample_rate * n_channels)
+    for i, data in enumerate(transcribed_data):
+        start_byte = int(data.start * sample_rate * n_channels)
+        end_byte = int(data.end * sample_rate * n_channels)
 
         chunk = get_chunk(end_byte, start_byte, wave_file)
         export_chunk_to_wav_file(
-            chunk, output_folder_name, i, transcribed_data[i].word, wave_file
+            chunk, output_folder_name, i, data.word, wave_file
         )
 
     wave_file.close()
@@ -74,9 +74,9 @@ def remove_silence_from_transcribtion_data(audio_path, transcribed_data):
 
     audio, sample_rate = librosa.load(audio_path, sr=None)
 
-    for i in enumerate(transcribed_data):
-        start_time = transcribed_data[i].start
-        end_time = transcribed_data[i].end
+    for i, data in enumerate(transcribed_data):
+        start_time = data.start
+        end_time = data.end
         start_sample = int(start_time * sample_rate)
         end_sample = int(end_time * sample_rate)
         chunk = audio[start_sample:end_sample]
@@ -103,11 +103,11 @@ def remove_silence_from_transcribtion_data(audio_path, transcribed_data):
             first_silence_duration = 0
             last_silence_duration = 0
 
-        transcribed_data[i].start = (
-            transcribed_data[i].start + first_silence_duration
+        data.start = (
+            data.start + first_silence_duration
         )
-        transcribed_data[i].end = (
-            transcribed_data[i].end - last_silence_duration
+        data.end = (
+            data.end - last_silence_duration
         )
 
     return transcribed_data
@@ -124,7 +124,7 @@ def export_chunks_from_ultrastar_data(
     wave_file = wave.open(audio_filename, "rb")
     sample_rate, n_channels = wave_file.getparams()[2], wave_file.getparams()[0]
 
-    for i in enumerate(ultrastar_data.words):
+    for i, word in enumerate(ultrastar_data.words):
         start_time = get_start_time_from_ultrastar(ultrastar_data, i)
         end_time = get_end_time_from_ultrastar(ultrastar_data, i)
 
@@ -133,7 +133,7 @@ def export_chunks_from_ultrastar_data(
 
         chunk = get_chunk(end_byte, start_byte, wave_file)
         export_chunk_to_wav_file(
-            chunk, folder_name, i, ultrastar_data.words[i], wave_file
+            chunk, folder_name, i, word, wave_file
         )
 
 
@@ -170,12 +170,12 @@ def export_transcribed_data_to_csv(transcribed_data, filename):
         writer = csv.writer(csvfile)
         header = ["word", "start", "end", "confidence"]
         writer.writerow(header)
-        for i in enumerate(transcribed_data):
+        for i, data in enumerate(transcribed_data):
             writer.writerow(
                 [
-                    transcribed_data[i].word,
-                    transcribed_data[i].start,
-                    transcribed_data[i].end,
-                    transcribed_data[i].conf,
+                    data.word,
+                    data.start,
+                    data.end,
+                    data.conf,
                 ]
             )
