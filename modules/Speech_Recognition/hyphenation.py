@@ -4,9 +4,9 @@ import string
 
 from hyphen import Hyphenator, dictools
 
-from modules.Log import (
-    PRINT_ULTRASTAR,
-    print_blue_highlighted_text,
+from modules.console_colors import (
+    ULTRASINGER_HEAD,
+    blue_highlighted,
 )
 
 
@@ -25,7 +25,7 @@ def language_check(language="en"):
         return None
 
     print(
-        f"{PRINT_ULTRASTAR} Hyphenate using language code: {print_blue_highlighted_text(lang_region)}"
+        f"{ULTRASINGER_HEAD} Hyphenate using language code: {blue_highlighted(lang_region)}"
     )
     return lang_region
 

@@ -4,7 +4,7 @@ import re
 
 import langcodes
 
-from modules.Log import PRINT_ULTRASTAR
+from modules.console_colors import ULTRASINGER_HEAD
 from modules.Ultrastar.ultrastar_converter import (
     real_bpm_to_ultrastar_bpm,
     second_to_beat,
@@ -41,7 +41,7 @@ def create_ultrastar_txt_from_automation(
     """Docstring"""
 
     print(
-        f"{PRINT_ULTRASTAR} Creating {ultrastar_file_output} from transcription."
+        f"{ULTRASINGER_HEAD} Creating {ultrastar_file_output} from transcription."
     )
 
     real_bpm = real_bpm_to_ultrastar_bpm(bpm)

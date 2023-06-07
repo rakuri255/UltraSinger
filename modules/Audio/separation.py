@@ -1,20 +1,20 @@
-"""Docstring"""
+"""Separate vocals from audio"""
 
 import subprocess
 
-from modules.Log import (
-    PRINT_ULTRASTAR,
-    print_blue_highlighted_text,
-    print_red_highlighted_text,
+from modules.console_colors import (
+    ULTRASINGER_HEAD,
+    blue_highlighted,
+    red_highlighted,
 )
 from modules.os_helper import current_executor_path, move, path_join
 
 
-def separate_audio(input_file_path, output_file, device="cpu"):
-    """Docstring"""
+def separate_audio(input_file_path: str, output_file: str, device="cpu") -> None:
+    """Separate vocals from audio with demucs."""
 
     print(
-        f"{PRINT_ULTRASTAR} Separating vocals from audio with {print_blue_highlighted_text('demucs')} and {print_red_highlighted_text(device)} as worker."
+        f"{ULTRASINGER_HEAD} Separating vocals from audio with {blue_highlighted('demucs')} and {red_highlighted(device)} as worker."
     )
     # Model selection?
     # -n mdx_q

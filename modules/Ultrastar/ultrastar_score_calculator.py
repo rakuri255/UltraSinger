@@ -2,13 +2,13 @@
 
 import librosa
 
-from modules.Log import (
-    PRINT_ULTRASTAR,
-    print_blue_highlighted_text,
-    print_cyan_highlighted_text,
-    print_gold_highlighted_text,
-    print_light_blue_highlighted_text,
-    print_underlined_text,
+from modules.console_colors import (
+    ULTRASINGER_HEAD,
+    blue_highlighted,
+    cyan_highlighted,
+    gold_highlighted,
+    light_blue_highlighted,
+    underlined,
 )
 from modules.Midi.midi_creator import create_midi_note_from_pitched_data
 from modules.Ultrastar.ultrastar_converter import (
@@ -78,14 +78,14 @@ def print_score(score):
     """Docstring"""
 
     print(
-        f"{PRINT_ULTRASTAR} Total: {print_cyan_highlighted_text(str(score.score))}, notes: {print_blue_highlighted_text(str(score.notes))}, line bonus: {print_light_blue_highlighted_text(str(score.line_bonus))}, golden notes: {print_gold_highlighted_text(str(score.golden))}"
+        f"{ULTRASINGER_HEAD} Total: {cyan_highlighted(str(score.score))}, notes: {blue_highlighted(str(score.notes))}, line bonus: {light_blue_highlighted(str(score.line_bonus))}, golden notes: {gold_highlighted(str(score.golden))}"
     )
 
 
 def calculate_score(pitched_data, ultrastar_class):
     """Docstring"""
 
-    print(PRINT_ULTRASTAR + " Calculating Ultrastar Points")
+    print(ULTRASINGER_HEAD + " Calculating Ultrastar Points")
 
     simple_points = Points()
     accurate_points = Points()
@@ -154,11 +154,11 @@ def print_score_calculation(simple_points, accurate_points):
     """Docstring"""
 
     print(
-        f"{PRINT_ULTRASTAR} {print_underlined_text('Simple (octave high ignored)')} points"
+        f"{ULTRASINGER_HEAD} {underlined('Simple (octave high ignored)')} points"
     )
     print_score(simple_points)
 
     print(
-        f"{PRINT_ULTRASTAR} {print_underlined_text('Accurate (octave high matches)')} points:"
+        f"{ULTRASINGER_HEAD} {underlined('Accurate (octave high matches)')} points:"
     )
     print_score(accurate_points)

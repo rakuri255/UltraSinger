@@ -11,7 +11,7 @@ class UltrastarTxt:
     bpm = ""
     cover = None
     creator = "UltraSinger [GitHub]"
-    fixer = "YOUR NAME"
+    fixer = "YOUR NAME" # Only for UltraStar World Party
     comment = "UltraSinger [GitHub]"
     startBeat = []
     startTimes = []
