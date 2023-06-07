@@ -19,9 +19,9 @@ def separate_audio(input_file_path: str, output_file: str, device="cpu") -> None
     # Model selection?
     # -n mdx_q
     # -n htdemucs_ft
-    # todo: -d cpu otherwise it automatically uses gpu
+    device = "cpu" if device != "cuda" else "cuda"
     subprocess.run(
-        ["demucs", "--two-stems=vocals", input_file_path], check=True
+        ["demucs", "-d", device, "--two-stems=vocals", input_file_path]
     )
     separated_folder = path_join(current_executor_path(), "separated")
     move(separated_folder, output_file)
