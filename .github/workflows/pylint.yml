@@ -1,0 +1,14 @@
+name: PyLint
+
+on: [push, pull_request]
+
+jobs:
+  python-lint:
+    runs-on: ubuntu-latest
+    name: CI workflow
+    steps:
+    - name: checkout source repo
+      uses: actions/checkout@main
+
+    - name: linting
+      uses: rakuri255/UltraSinger@main
