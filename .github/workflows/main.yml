@@ -16,8 +16,8 @@ jobs:
         include:
           - os: ubuntu-latest
             TARGET: Linux
-          #- os: macos-latest
-          #  TARGET: macOS
+          - os: macos-latest
+            TARGET: macOS
           - os: windows-latest
             TARGET: Windows
     steps:
