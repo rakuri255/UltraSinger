@@ -4,9 +4,14 @@ on:
   push:
     branches:
       - CI
+    paths:
+      #- "requirements.txt"
+
   pull_request:
     branches:
       - CI
+    paths:
+      #- "requirements.txt"
 
 jobs:
   build:
@@ -23,9 +28,6 @@ jobs:
     steps:
     - name: Checkout repository
       uses: actions/checkout@v3
-      with:
-        repository: rakuri255/UltraSinger
-        path: UltraSinger
 
     - name: Set up Python 3.10
       uses: actions/setup-python@v4
