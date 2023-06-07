@@ -2,10 +2,10 @@
 
 import whisperx
 
-from modules.Log import (
-    PRINT_ULTRASTAR,
-    print_blue_highlighted_text,
-    print_red_highlighted_text,
+from modules.console_colors import (
+    ULTRASINGER_HEAD,
+    blue_highlighted,
+    red_highlighted,
 )
 from modules.Speech_Recognition.TranscribedData import TranscribedData
 
@@ -14,7 +14,7 @@ def transcribe_with_whisper(audio_path, model, device="cpu"):
     """Docstring"""
 
     print(
-        f"{PRINT_ULTRASTAR} Loading {print_blue_highlighted_text('whisper')} with model {print_blue_highlighted_text(model)} and {print_red_highlighted_text(device)} as worker"
+        f"{ULTRASINGER_HEAD} Loading {blue_highlighted('whisper')} with model {blue_highlighted(model)} and {red_highlighted(device)} as worker"
     )
 
     batch_size = 16  # reduce if low on GPU mem
@@ -28,7 +28,7 @@ def transcribe_with_whisper(audio_path, model, device="cpu"):
     )
     audio = whisperx.load_audio(audio_path)
 
-    print(f"{PRINT_ULTRASTAR} Transcribing {audio_path}")
+    print(f"{ULTRASINGER_HEAD} Transcribing {audio_path}")
 
     result = loaded_whisper_model.transcribe(audio, batch_size=batch_size)
     language = result["language"]
@@ -54,7 +54,7 @@ def transcribe_with_whisper(audio_path, model, device="cpu"):
         for obj in segment["words"]:
             if len(obj) < 4:
                 print(
-                    f"{print_red_highlighted_text('Error: Skipping Word {}, because of missing timings'.format(obj['word']))}"
+                    f"{red_highlighted('Error: Skipping Word {}, because of missing timings'.format(obj['word']))}"
                 )
                 continue
             vtd = TranscribedData(obj)  # create custom Word object

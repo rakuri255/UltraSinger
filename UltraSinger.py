@@ -15,13 +15,12 @@ from modules import os_helper
 from modules.Audio.denoise import ffmpeg_reduce_noise
 from modules.Audio.separation import separate_audio
 from modules.Audio.vocal_chunks import (
-    convert_audio_to_mono_wav,
-    convert_wav_to_mp3,
     export_chunks_from_transcribed_data,
     export_chunks_from_ultrastar_data,
-    export_transcribed_data_to_csv,
-    remove_silence_from_transcribtion_data,
 )
+from modules.Audio.silence_processing import remove_silence_from_transcribtion_data
+from modules.csv_export import export_transcribed_data_to_csv
+from modules.Audio.convert_audio import convert_audio_to_mono_wav, convert_wav_to_mp3
 from modules.Audio.youtube import (
     download_youtube_audio,
     download_youtube_thumbnail,
@@ -29,12 +28,12 @@ from modules.Audio.youtube import (
     get_youtube_title,
 )
 from modules.DeviceDetection.device_detection import get_available_device
-from modules.Log import (
-    PRINT_ULTRASTAR,
-    print_blue_highlighted_text,
-    print_gold_highlighted_text,
-    print_light_blue_highlighted_text,
-    print_red_highlighted_text,
+from modules.console_colors import (
+    ULTRASINGER_HEAD,
+    blue_highlighted,
+    gold_highlighted,
+    light_blue_highlighted,
+    red_highlighted,
 )
 from modules.Midi import midi_creator
 from modules.Midi.midi_creator import (
@@ -68,20 +67,21 @@ def get_confidence(pitched_data, threshold):
     conf_f = []
     conf_c = []
     for i in enumerate(pitched_data.times):
+        pos = i[0]
         if pitched_data.confidence[i] > threshold:
-            conf_t.append(pitched_data.times[i])
-            conf_f.append(pitched_data.frequencies[i])
-            conf_c.append(pitched_data.confidence[i])
+            conf_t.append(pitched_data.times[pos])
+            conf_f.append(pitched_data.frequencies[pos])
+            conf_c.append(pitched_data.confidence[pos])
     return conf_t, conf_f, conf_c
 
 
 def convert_ultrastar_note_numbers(midi_notes):
     """Docstring"""
-    print(f"{PRINT_ULTRASTAR} Creating Ultrastar notes from midi data")
+    print(f"{ULTRASINGER_HEAD} Creating Ultrastar notes from midi data")
 
     ultrastar_note_numbers = []
-    for i in enumerate(midi_notes):
-        note_number_librosa = librosa.note_to_midi(midi_notes[i])
+    for i, note in enumerate(midi_notes):
+        note_number_librosa = librosa.note_to_midi(note)
         pitch = ultrastar_converter.midi_note_to_ultrastar_note(
             note_number_librosa
         )
@@ -96,7 +96,7 @@ def convert_ultrastar_note_numbers(midi_notes):
 def pitch_each_chunk_with_crepe(directory):
     """Docstring"""
     print(
-        f"{PRINT_ULTRASTAR} Pitching each chunk with {print_blue_highlighted_text('crepe')}"
+        f"{ULTRASINGER_HEAD} Pitching each chunk with {blue_highlighted('crepe')}"
     )
 
     midi_notes = []
@@ -125,28 +125,28 @@ def pitch_each_chunk_with_crepe(directory):
 
 def add_hyphen_to_data(transcribed_data, hyphen_words):
     """Docstring"""
-    data = []
+    new_data = []
 
-    for i in enumerate(transcribed_data):
+    for i, data in enumerate(transcribed_data):
         if not hyphen_words[i]:
-            data.append(transcribed_data[i])
+            new_data.append(data)
         else:
-            chunk_duration = transcribed_data[i].end - transcribed_data[i].start
+            chunk_duration = data.end - data.start
             chunk_duration = chunk_duration / (len(hyphen_words[i]))
 
-            next_start = transcribed_data[i].start
-            for j in enumerate(hyphen_words[i]):
-                dup = copy.copy(transcribed_data[i])
+            next_start = data.start
+            for j, hyphens in enumerate(hyphen_words[i]):
+                dup = copy.copy(data)
                 dup.start = next_start
-                next_start = transcribed_data[i].end - chunk_duration * (
-                    len(hyphen_words[i]) - 1 - j
+                next_start = data.end - chunk_duration * (
+                    len(hyphens) - 1 - j
                 )
                 dup.end = next_start
                 dup.word = hyphen_words[i][j]
                 dup.is_hyphen = True
-                data.append(dup)
+                new_data.append(dup)
 
-    return data
+    return new_data
 
 
 def get_bpm_from_data(data, sampling_rate):
@@ -155,7 +155,7 @@ def get_bpm_from_data(data, sampling_rate):
     wav_tempo = librosa.beat.tempo(onset_envelope=onset_env, sr=sampling_rate)
 
     print(
-        f"{PRINT_ULTRASTAR} BPM is {print_blue_highlighted_text(str(round(wav_tempo[0], 2)))}"
+        f"{ULTRASINGER_HEAD} BPM is {blue_highlighted(str(round(wav_tempo[0], 2)))}"
     )
     return wav_tempo[0]
 
@@ -238,10 +238,10 @@ def plot(input_file, vosk_transcribed_data, midi_notes):
     plt.plot(conf_t, conf_f, linewidth=0.1)
     plt.savefig(os.path.join("test", "crepe_0.4.png"))
 
-    for i in enumerate(vosk_transcribed_data):
+    for i, data in enumerate(vosk_transcribed_data):
         note_frequency = librosa.note_to_hz(midi_notes[i])
         plt.plot(
-            [vosk_transcribed_data[i].start, vosk_transcribed_data[i].end],
+            [data.start, data.end],
             [note_frequency, note_frequency],
             linewidth=1,
             alpha=0.5,
@@ -252,8 +252,8 @@ def plot(input_file, vosk_transcribed_data, midi_notes):
 def remove_unecessary_punctuations(transcribed_data):
     """Docstring"""
     punctuation = ".,"
-    for i in enumerate(transcribed_data):
-        transcribed_data[i].word = transcribed_data[i].word.translate(
+    for i, data in enumerate(transcribed_data):
+        data.word = data.word.translate(
             {ord(i): None for i in punctuation}
         )
 
@@ -264,14 +264,14 @@ def hyphenate_each_word(language, transcribed_data):
     lang_region = language_check(language)
     if lang_region is None:
         print(
-            f"{PRINT_ULTRASTAR} {print_red_highlighted_text('Error in hyphenation for language ')} {print_blue_highlighted_text(language)} {print_red_highlighted_text(', maybe you want to disable it?')}"
+            f"{ULTRASINGER_HEAD} {red_highlighted('Error in hyphenation for language ')} {blue_highlighted(language)} {red_highlighted(', maybe you want to disable it?')}"
         )
         return None
 
     sleep(0.1)
-    for i in tqdm(enumerate(transcribed_data)):
+    for i, data in tqdm(enumerate(transcribed_data)):
         hyphenated_word.append(
-            hyphenation(transcribed_data[i].word, lang_region)
+            hyphenation(data.word, lang_region)
         )
     return hyphenated_word
 
@@ -280,13 +280,13 @@ def print_support():
     """Docstring"""
     print()
     print(
-        f"{PRINT_ULTRASTAR} {print_gold_highlighted_text('Do you like UltraSinger? And want it to be even better? Then help with your')} {print_light_blue_highlighted_text('support')}{print_gold_highlighted_text('!')}"
+        f"{ULTRASINGER_HEAD} {gold_highlighted('Do you like UltraSinger? And want it to be even better? Then help with your')} {light_blue_highlighted('support')}{gold_highlighted('!')}"
     )
     print(
-        f"{PRINT_ULTRASTAR} See project page -> https://github.com/rakuri255/UltraSinger"
+        f"{ULTRASINGER_HEAD} See project page -> https://github.com/rakuri255/UltraSinger"
     )
     print(
-        f"{PRINT_ULTRASTAR} {print_gold_highlighted_text('This will help alot to keep this project alive and improved.')}"
+        f"{ULTRASINGER_HEAD} {gold_highlighted('This will help alot to keep this project alive and improved.')}"
     )
 
 
@@ -298,7 +298,7 @@ def run():
 
     if not is_audio:  # Parse Ultrastar txt
         print(
-            f"{PRINT_ULTRASTAR} {print_gold_highlighted_text('re-pitch mode')}"
+            f"{ULTRASINGER_HEAD} {gold_highlighted('re-pitch mode')}"
         )
         (
             basename_without_ext,
@@ -309,7 +309,7 @@ def run():
         ) = parse_ultrastar_txt()
     elif settings.input_file_path.startswith("https:"):  # Youtube
         print(
-            f"{PRINT_ULTRASTAR} {print_gold_highlighted_text('full automatic mode')}"
+            f"{ULTRASINGER_HEAD} {gold_highlighted('full automatic mode')}"
         )
         (
             basename_without_ext,
@@ -318,7 +318,7 @@ def run():
         ) = download_from_youtube()
     else:  # Audio File
         print(
-            f"{PRINT_ULTRASTAR} {print_gold_highlighted_text('full automatic mode')}"
+            f"{ULTRASINGER_HEAD} {gold_highlighted('full automatic mode')}"
         )
         (
             basename_without_ext,
@@ -428,7 +428,7 @@ def get_unused_song_output_dir(path):
         i += 1
         if i > 999:
             print(
-                f"{PRINT_ULTRASTAR} {print_red_highlighted_text('Error: Could not create output folder! (999) is the maximum number of tries.')}"
+                f"{ULTRASINGER_HEAD} {red_highlighted('Error: Could not create output folder! (999) is the maximum number of tries.')}"
             )
             sys.exit(1)
     return path
@@ -437,9 +437,9 @@ def get_unused_song_output_dir(path):
 def transcribe_audio(transcribed_data):
     """Docstring"""
     if settings.transcriber == "whisper":
+        device = "cpu" if settings.force_whisper_cpu else settings.device
         transcribed_data, language = transcribe_with_whisper(
-            settings.mono_audio_path, settings.whisper_model, settings.device
-        )
+            settings.mono_audio_path, settings.whisper_model, device)
     else:  # vosk
         transcribed_data = transcribe_with_vosk(
             settings.mono_audio_path, settings.vosk_model_path
@@ -450,14 +450,15 @@ def transcribe_audio(transcribed_data):
 
 
 def separate_vocal_from_audio(
-    basename_without_ext, cache_path, ultrastar_audio_input_path
+        basename_without_ext, cache_path, ultrastar_audio_input_path
 ):
     """Docstring"""
     audio_separation_path = os.path.join(
         cache_path, "separated", "htdemucs", basename_without_ext
     )
+    device = "cpu" if settings.force_separation_cpu else settings.device
     if settings.use_separated_vocal or settings.create_karaoke:
-        separate_audio(ultrastar_audio_input_path, cache_path)
+        separate_audio(ultrastar_audio_input_path, cache_path, device)
     if settings.use_separated_vocal:
         vocals_path = os.path.join(audio_separation_path, "vocals.wav")
         convert_audio_to_mono_wav(vocals_path, settings.mono_audio_path)
@@ -487,7 +488,7 @@ def calculate_score_points(
         )
     else:
         print(
-            f"{PRINT_ULTRASTAR} {print_blue_highlighted_text('Score of original Ultrastar txt')}"
+            f"{ULTRASINGER_HEAD} {blue_highlighted('Score of original Ultrastar txt')}"
         )
         (
             simple_score,
@@ -499,7 +500,7 @@ def calculate_score_points(
             simple_score, accurate_score
         )
         print(
-            f"{PRINT_ULTRASTAR} {print_blue_highlighted_text('Score of re-pitched Ultrastar txt')}"
+            f"{ULTRASINGER_HEAD} {blue_highlighted('Score of re-pitched Ultrastar txt')}"
         )
         ultrastar_class = ultrastar_parser.parse_ultrastar_txt(
             ultrastar_file_output
@@ -660,7 +661,7 @@ def parse_ultrastar_txt():
 def create_midi_file(is_audio, real_bpm, song_output, ultrastar_class):
     """Docstring"""
     print(
-        f"{PRINT_ULTRASTAR} Creating Midi with {print_blue_highlighted_text('pretty_midi')}"
+        f"{ULTRASINGER_HEAD} Creating Midi with {blue_highlighted('pretty_midi')}"
     )
     if is_audio:
         voice_instrument = [
@@ -692,9 +693,9 @@ def pitch_audio(is_audio, transcribed_data, ultrastar_class):
     if is_audio:
         start_times = []
         end_times = []
-        for i in enumerate(transcribed_data):
-            start_times.append(transcribed_data[i].start)
-            end_times.append(transcribed_data[i].end)
+        for i, data in enumerate(transcribed_data):
+            start_times.append(data.start)
+            end_times.append(data.end)
         midi_notes = create_midi_notes_from_pitched_data(
             start_times, end_times, pitched_data
         )
@@ -761,6 +762,8 @@ def init_settings(argv):
         "disable_separation=",
         "disable_karaoke=",
         "create_audio_chunks=",
+        "force_whisper_cpu=",
+        "force_separation_cpu="
     ]
     opts, args = getopt.getopt(argv, short, long)
     if len(opts) == 0:
@@ -790,6 +793,10 @@ def init_settings(argv):
             settings.create_karaoke = not arg
         elif opt in ("--create_audio_chunks"):
             settings.create_audio_chunks = arg
+        elif opt in ("--force_whisper_cpu"):
+            settings.force_whisper_cpu = arg
+        elif opt in ("--force_separation_cpu"):
+            settings.force_separation_cpu = arg
     if settings.output_file_path == "":
         if settings.input_file_path.startswith("https:"):
             dirname = os.getcwd()

@@ -1,6 +1,6 @@
 """Docstring"""
 
-from modules.Log import PRINT_ULTRASTAR
+from modules.console_colors import ULTRASINGER_HEAD
 from modules.Ultrastar.ultrastar_converter import (
     get_end_time_from_ultrastar,
     get_start_time_from_ultrastar,
@@ -10,7 +10,7 @@ from modules.Ultrastar.ultrastar_txt import UltrastarTxt
 
 def parse_ultrastar_txt(input_file):
     """Docstring"""
-    print(f"{PRINT_ULTRASTAR} Parse ultrastar txt -> {input_file}")
+    print(f"{ULTRASINGER_HEAD} Parse ultrastar txt -> {input_file}")
 
     with open(input_file, "r", encoding="utf-8") as file:
         txt = file.readlines()
