@@ -9,6 +9,9 @@ jobs:
     steps:
     - name: Checkout repository
       uses: actions/checkout@v3
+      with:
+        repository: rakuri255/UltraSinger
+        path: UltraSinger
 
     - name: linting
       uses: rakuri255/UltraSinger@main
