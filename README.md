@@ -3,7 +3,8 @@
 ![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/rakuri255/UltraSinger/main.yml)
 [![GitHub](https://img.shields.io/github/license/rakuri255/UltraSinger)](https://github.com/rakuri255/UltraSinger/blob/main/LICENSE)
 [![CodeFactor](https://www.codefactor.io/repository/github/rakuri255/ultrasinger/badge)](https://www.codefactor.io/repository/github/rakuri255/ultrasinger)
-[![Pylint](https://github.com/rakuri255/UltraSinger/actions/workflows/pylint.yml/badge.svg)](https://github.com/rakuri255/UltraSinger/actions/workflows/pylint.yml)
+
+[![Check Requirements](https://github.com/rakuri255/UltraSinger/actions/workflows/main.yml/badge.svg)](https://github.com/rakuri255/UltraSinger/actions/workflows/main.yml)
 
 # UltraSinger
 
