@@ -6,7 +6,7 @@ import speech_recognition as sr
 from pydub import AudioSegment
 from pydub.silence import split_on_silence
 
-from modules.Log import PRINT_ULTRASTAR
+from modules.console_colors import ULTRASINGER_HEAD
 
 # todo: Code from here: https://www.thepythoncode.com/article/using-speech-recognition-to-convert-speech-to-text-python
 
@@ -96,9 +96,9 @@ def transcribe_audio(audio_file):
             end_time,
         )
     except sr.UnknownValueError:
-        print(f"{PRINT_ULTRASTAR} Could not understand audio")
+        print(f"{ULTRASINGER_HEAD} Could not understand audio")
     except sr.RequestError as error:
-        print(f"{PRINT_ULTRASTAR} Error with recognizing service; {error}")
+        print(f"{ULTRASINGER_HEAD} Error with recognizing service; {error}")
 
 
 class SpeechToText:

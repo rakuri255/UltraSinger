@@ -13,16 +13,16 @@ from modules.Ultrastar.ultrastar_converter import (
     get_start_time_from_ultrastar,
     ultrastar_note_to_midi_note,
 )
-from modules.Log import (
-    PRINT_ULTRASTAR,
-    print_red_highlighted_text,
+from modules.console_colors import (
+    ULTRASINGER_HEAD,
+    red_highlighted,
 )
 
 
 def convert_ultrastar_to_midi_instrument(ultrastar_class):
     """Docstring"""
 
-    print(f"{PRINT_ULTRASTAR} Creating midi instrument from Ultrastar txt")
+    print(f"{ULTRASINGER_HEAD} Creating midi instrument from Ultrastar txt")
 
     instrument = pretty_midi.Instrument(program=0)
     velocity = 100
@@ -42,7 +42,7 @@ def convert_ultrastar_to_midi_instrument(ultrastar_class):
 def instruments_to_midi(instruments, bpm, midi_output):
     """Docstring"""
 
-    print(f"{PRINT_ULTRASTAR} Creating midi file -> {midi_output}")
+    print(f"{ULTRASINGER_HEAD} Creating midi file -> {midi_output}")
 
     midi_data = pretty_midi.PrettyMIDI(initial_tempo=bpm)
     for instrument in instruments:
@@ -81,7 +81,7 @@ def find_nearest_index(array, value):
 
 def create_midi_notes_from_pitched_data(start_times, end_times, pitched_data):
     """Docstring"""
-    print(f"{PRINT_ULTRASTAR} Creating midi notes from pitched data")
+    print(f"{ULTRASINGER_HEAD} Creating midi notes from pitched data")
 
     midi_notes = []
 
@@ -108,7 +108,7 @@ def create_midi_note_from_pitched_data(start_time, end_time, pitched_data):
 
     # fixme: why is end smaller as start?
     if end < start:
-        print(f"{PRINT_ULTRASTAR} {print_red_highlighted_text('Error: end time is smaller as start time. The note is C0 now ...')}")
+        print(f"{ULTRASINGER_HEAD} {red_highlighted('Error: end time is smaller as start time. The note is C0 now ...')}")
         return "C0"
 
     if start == end:

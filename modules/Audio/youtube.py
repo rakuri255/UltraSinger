@@ -6,7 +6,7 @@ import os
 import yt_dlp
 from PIL import Image
 
-from modules.Log import PRINT_ULTRASTAR
+from modules.console_colors import ULTRASINGER_HEAD
 
 
 def get_youtube_title(url):
@@ -24,7 +24,7 @@ def get_youtube_title(url):
 def download_youtube_audio(url, clear_filename, output_path):
     """Docstring"""
 
-    print(f"{PRINT_ULTRASTAR} Downloading Audio")
+    print(f"{ULTRASINGER_HEAD} Downloading Audio")
     ydl_opts = {
         "format": "bestaudio/best",
         "outtmpl": output_path + "/" + clear_filename,
@@ -39,7 +39,7 @@ def download_youtube_audio(url, clear_filename, output_path):
 def download_youtube_thumbnail(url, clear_filename, output_path):
     """Docstring"""
 
-    print(f"{PRINT_ULTRASTAR} Downloading thumbnail")
+    print(f"{ULTRASINGER_HEAD} Downloading thumbnail")
     ydl_opts = {
         "skip_download": True,
         "writethumbnail": True,
@@ -66,7 +66,7 @@ def download_and_convert_thumbnail(ydl_opts, url, clear_filename, output_path):
 def download_youtube_video(url, clear_filename, output_path):
     """Docstring"""
 
-    print(f"{PRINT_ULTRASTAR} Downloading Video")
+    print(f"{ULTRASINGER_HEAD} Downloading Video")
     ydl_opts = {
         "format": "bestvideo[ext=mp4]+bestaudio[ext=m4a]/mp4",
         "outtmpl": output_path + "/" + clear_filename + ".mp4",

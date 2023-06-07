@@ -8,7 +8,7 @@ import wave
 import librosa
 from pydub import AudioSegment
 
-from modules.Log import PRINT_ULTRASTAR
+from modules.console_colors import ULTRASINGER_HEAD
 from modules.os_helper import create_folder
 from modules.Ultrastar.ultrastar_converter import (
     get_end_time_from_ultrastar,
@@ -18,7 +18,7 @@ from modules.Ultrastar.ultrastar_converter import (
 
 def convert_audio_to_mono_wav(input_file, output_file):
     """Convert audio to mono wav"""
-    print(f"{PRINT_ULTRASTAR} Converting audio for AI")
+    print(f"{ULTRASINGER_HEAD} Converting audio for AI")
 
     if ".mp3" in input_file:
         sound = AudioSegment.from_mp3(input_file)
@@ -47,7 +47,7 @@ def export_chunks_from_transcribed_data(
 ):
     """Export transcribed_data as vocal chunks wav files"""
     print(
-        f"{PRINT_ULTRASTAR} Export transcribed data as vocal chunks wav files"
+        f"{ULTRASINGER_HEAD} Export transcribed data as vocal chunks wav files"
     )
 
     wave_file = wave.open(audio_filename, "rb")
@@ -69,7 +69,7 @@ def remove_silence_from_transcribtion_data(audio_path, transcribed_data):
     """Docstring"""
 
     print(
-        f"{PRINT_ULTRASTAR} Removing silent start and ending, from transcription data"
+        f"{ULTRASINGER_HEAD} Removing silent start and ending, from transcription data"
     )
 
     audio, sample_rate = librosa.load(audio_path, sr=None)
@@ -117,7 +117,7 @@ def export_chunks_from_ultrastar_data(
     audio_filename, ultrastar_data, folder_name
 ):
     """Export ultrastar data as vocal chunks wav files"""
-    print(f"{PRINT_ULTRASTAR} Export Ultrastar data as vocal chunks wav files")
+    print(f"{ULTRASINGER_HEAD} Export Ultrastar data as vocal chunks wav files")
 
     create_folder(folder_name)
 
@@ -164,7 +164,7 @@ def get_chunk(end_byte, start_byte, wave_file):
 
 def export_transcribed_data_to_csv(transcribed_data, filename):
     """Export transcribed data to csv"""
-    print(f"{PRINT_ULTRASTAR} Exporting transcribed data to CSV")
+    print(f"{ULTRASINGER_HEAD} Exporting transcribed data to CSV")
 
     with open(filename, "w", encoding="utf-8", newline="") as csvfile:
         writer = csv.writer(csvfile)

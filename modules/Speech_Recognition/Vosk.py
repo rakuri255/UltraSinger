@@ -5,7 +5,7 @@ import wave
 
 from vosk import KaldiRecognizer, Model
 
-from modules.Log import PRINT_ULTRASTAR
+from modules.console_colors import ULTRASINGER_HEAD
 from modules.Speech_Recognition.TranscribedData import TranscribedData
 
 # todo: Rename to Transcoder?
@@ -15,7 +15,7 @@ def transcribe_with_vosk(audio_filename, model_path):
     """Docstring"""
     # Code from here: https://towardsdatascience.com/speech-recognition-with-timestamps-934ede4234b2
     print(
-        f"{PRINT_ULTRASTAR} Transcribing {audio_filename} with vosk and model {model_path}"
+        f"{ULTRASINGER_HEAD} Transcribing {audio_filename} with vosk and model {model_path}"
     )
 
     model = Model(model_path)
