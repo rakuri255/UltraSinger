@@ -3,12 +3,12 @@
 import os
 import shutil
 
-from modules.Log import PRINT_ULTRASTAR
+from modules.console_colors import ULTRASINGER_HEAD
 
 
 def create_folder(folder_name):
     """Docstring"""
-    print(f"{PRINT_ULTRASTAR} Creating output folder. -> {folder_name}")
+    print(f"{ULTRASINGER_HEAD} Creating output folder. -> {folder_name}")
     is_exist = os.path.exists(folder_name)
     if not is_exist:
         os.makedirs(folder_name)

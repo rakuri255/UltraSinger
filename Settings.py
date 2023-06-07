@@ -26,4 +26,7 @@ class Settings:
     crepe_step_size = 10
 
     # Device
-    device = "cpu"  # cpu|cuda|gpu
+    device = 'cpu'  # cpu|cuda
+    force_whisper_cpu = False
+    force_separation_cpu = False
+

@@ -7,27 +7,31 @@ import librosa
 import numpy as np
 import pretty_midi
 
-from modules.Log import PRINT_ULTRASTAR
 from modules.Pitcher.pitcher import get_frequency_with_high_confidence
 from modules.Ultrastar.ultrastar_converter import (
     get_end_time_from_ultrastar,
     get_start_time_from_ultrastar,
     ultrastar_note_to_midi_note,
 )
+from modules.console_colors import (
+    ULTRASINGER_HEAD,
+    red_highlighted,
+)
 
 
 def convert_ultrastar_to_midi_instrument(ultrastar_class):
     """Docstring"""
 
-    print(f"{PRINT_ULTRASTAR} Creating midi instrument from Ultrastar txt")
+    print(f"{ULTRASINGER_HEAD} Creating midi instrument from Ultrastar txt")
 
     instrument = pretty_midi.Instrument(program=0)
     velocity = 100
 
     for i in enumerate(ultrastar_class.words):
-        start_time = get_start_time_from_ultrastar(ultrastar_class, i)
-        end_time = get_end_time_from_ultrastar(ultrastar_class, i)
-        pitch = ultrastar_note_to_midi_note(int(ultrastar_class.pitches[i]))
+        pos = i[0]
+        start_time = get_start_time_from_ultrastar(ultrastar_class, pos)
+        end_time = get_end_time_from_ultrastar(ultrastar_class, pos)
+        pitch = ultrastar_note_to_midi_note(int(ultrastar_class.pitches[pos]))
 
         note = pretty_midi.Note(velocity, pitch, start_time, end_time)
         instrument.notes.append(note)
@@ -38,7 +42,7 @@ def convert_ultrastar_to_midi_instrument(ultrastar_class):
 def instruments_to_midi(instruments, bpm, midi_output):
     """Docstring"""
 
-    print(f"{PRINT_ULTRASTAR} Creating midi file -> {midi_output}")
+    print(f"{ULTRASINGER_HEAD} Creating midi file -> {midi_output}")
 
     midi_data = pretty_midi.PrettyMIDI(initial_tempo=bpm)
     for instrument in instruments:
@@ -77,13 +81,14 @@ def find_nearest_index(array, value):
 
 def create_midi_notes_from_pitched_data(start_times, end_times, pitched_data):
     """Docstring"""
-    print(f"{PRINT_ULTRASTAR} Creating midi notes from pitched data")
+    print(f"{ULTRASINGER_HEAD} Creating midi notes from pitched data")
 
     midi_notes = []
 
     for i in enumerate(start_times):
-        start_time = start_times[i]
-        end_time = end_times[i]
+        pos = i[0]
+        start_time = start_times[pos]
+        end_time = end_times[pos]
 
         note = create_midi_note_from_pitched_data(
             start_time, end_time, pitched_data
@@ -100,6 +105,11 @@ def create_midi_note_from_pitched_data(start_time, end_time, pitched_data):
 
     start = find_nearest_index(pitched_data.times, start_time)
     end = find_nearest_index(pitched_data.times, end_time)
+
+    # fixme: why is end smaller as start?
+    if end < start:
+        print(f"{ULTRASINGER_HEAD} {red_highlighted('Error: end time is smaller as start time. The note is C0 now ...')}")
+        return "C0"
 
     if start == end:
         freqs = [pitched_data.frequencies[start]]

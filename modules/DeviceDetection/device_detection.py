@@ -1,26 +1,21 @@
 """Docstring"""
 
-import tensorflow as tf
+import torch
 
-from modules.Log import PRINT_ULTRASTAR, print_red_highlighted_text
+from modules.console_colors import ULTRASINGER_HEAD, red_highlighted
 
 
 def get_available_device():
     """Docstring"""
-    gpus = tf.config.list_physical_devices("GPU")
+    isCuda = torch.cuda.is_available()
 
-    if not gpus:
+    if not isCuda:
         print(
-            f"{PRINT_ULTRASTAR} There are no GPUs available. Using {print_red_highlighted_text('cpu')}."
+            f"{ULTRASINGER_HEAD} There are no {red_highlighted('cuda')} devices available. -> Using {red_highlighted('cpu')}."
         )
+
         return "cpu"
+    else:
+        print(f"{ULTRASINGER_HEAD} Using {red_highlighted('cuda')} GPU.")
 
-    print(f"{PRINT_ULTRASTAR} Found available GPUs:")
-    for gpu in gpus:
-        print(f"Name: {gpu.name}, Type: {gpu.device_type}")
-
-    # Todo: Finish this
-    print(
-        f"{PRINT_ULTRASTAR} GPU usage are currently in development. Using {print_red_highlighted_text('cpu')}"
-    )
-    return "cpu"
+    return "cuda"

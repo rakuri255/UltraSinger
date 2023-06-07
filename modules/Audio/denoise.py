@@ -1,12 +1,13 @@
-"""Docstring"""
+"""Reduce noise from audio"""
 
 import ffmpeg
 
-from modules.Log import PRINT_ULTRASTAR, print_blue_highlighted_text
+from modules.console_colors import ULTRASINGER_HEAD, blue_highlighted
 
 
-def ffmpeg_reduce_noise(input_file_path, output_file):
-    """Docstring"""
+def ffmpeg_reduce_noise(input_file_path: str, output_file: str) -> None:
+    """Reduce noise from vocal audio with ffmpeg."""
+
     # Denoise audio samples with FFT.
     # A description of the accepted parameters follows.
 
@@ -19,7 +20,7 @@ def ffmpeg_reduce_noise(input_file_path, output_file):
     #    With this enabled, noise floor is automatically adjusted.
 
     print(
-        f"{PRINT_ULTRASTAR} Reduce noise from vocal audio with {print_blue_highlighted_text('ffmpeg')}."
+        f"{ULTRASINGER_HEAD} Reduce noise from vocal audio with {blue_highlighted('ffmpeg')}."
     )
     (
         ffmpeg.input(input_file_path)
