@@ -437,9 +437,9 @@ def get_unused_song_output_dir(path):
 def transcribe_audio(transcribed_data):
     """Docstring"""
     if settings.transcriber == "whisper":
+        device = "cpu" if settings.force_whisper_cpu else settings.device
         transcribed_data, language = transcribe_with_whisper(
-            settings.mono_audio_path, settings.whisper_model, settings.device
-        )
+            settings.mono_audio_path, settings.whisper_model, device)
     else:  # vosk
         transcribed_data = transcribe_with_vosk(
             settings.mono_audio_path, settings.vosk_model_path
@@ -450,14 +450,15 @@ def transcribe_audio(transcribed_data):
 
 
 def separate_vocal_from_audio(
-    basename_without_ext, cache_path, ultrastar_audio_input_path
+        basename_without_ext, cache_path, ultrastar_audio_input_path
 ):
     """Docstring"""
     audio_separation_path = os.path.join(
         cache_path, "separated", "htdemucs", basename_without_ext
     )
+    device = "cpu" if settings.force_separation_cpu else settings.device
     if settings.use_separated_vocal or settings.create_karaoke:
-        separate_audio(ultrastar_audio_input_path, cache_path)
+        separate_audio(ultrastar_audio_input_path, cache_path, device)
     if settings.use_separated_vocal:
         vocals_path = os.path.join(audio_separation_path, "vocals.wav")
         convert_audio_to_mono_wav(vocals_path, settings.mono_audio_path)
@@ -761,6 +762,8 @@ def init_settings(argv):
         "disable_separation=",
         "disable_karaoke=",
         "create_audio_chunks=",
+        "force_whisper_cpu=",
+        "force_separation_cpu="
     ]
     opts, args = getopt.getopt(argv, short, long)
     if len(opts) == 0:
@@ -790,6 +793,10 @@ def init_settings(argv):
             settings.create_karaoke = not arg
         elif opt in ("--create_audio_chunks"):
             settings.create_audio_chunks = arg
+        elif opt in ("--force_whisper_cpu"):
+            settings.force_whisper_cpu = arg
+        elif opt in ("--force_separation_cpu"):
+            settings.force_separation_cpu = arg
     if settings.output_file_path == "":
         if settings.input_file_path.startswith("https:"):
             dirname = os.getcwd()
