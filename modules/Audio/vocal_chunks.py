@@ -1,12 +1,8 @@
-"""Docstring"""
+"""Vocal chunks module."""
 
-import csv
 import os
 import re
 import wave
-
-import librosa
-from pydub import AudioSegment
 
 from modules.console_colors import ULTRASINGER_HEAD
 from modules.os_helper import create_folder
@@ -14,28 +10,7 @@ from modules.Ultrastar.ultrastar_converter import (
     get_end_time_from_ultrastar,
     get_start_time_from_ultrastar,
 )
-
-
-def convert_audio_to_mono_wav(input_file, output_file):
-    """Convert audio to mono wav"""
-    print(f"{ULTRASINGER_HEAD} Converting audio for AI")
-
-    if ".mp3" in input_file:
-        sound = AudioSegment.from_mp3(input_file)
-    elif ".wav" in input_file:
-        sound = AudioSegment.from_wav(input_file)
-    else:
-        raise ValueError("data format not supported")
-
-    sound = sound.set_channels(1)
-    sound.export(output_file, format="wav")
-
-
-def convert_wav_to_mp3(input_file, output_file):
-    """Docstring"""
-
-    sound = AudioSegment.from_wav(input_file)
-    sound.export(output_file, format="mp3")
+from modules.Ultrastar.ultrastar_txt import UltrastarTxt
 
 
 class AudioManipulation:
@@ -43,8 +18,8 @@ class AudioManipulation:
 
 
 def export_chunks_from_transcribed_data(
-    audio_filename, transcribed_data, output_folder_name
-):
+    audio_filename: str, transcribed_data: [], output_folder_name: str
+) -> None:
     """Export transcribed_data as vocal chunks wav files"""
     print(
         f"{ULTRASINGER_HEAD} Export transcribed data as vocal chunks wav files"
@@ -65,57 +40,9 @@ def export_chunks_from_transcribed_data(
     wave_file.close()
 
 
-def remove_silence_from_transcribtion_data(audio_path, transcribed_data):
-    """Docstring"""
-
-    print(
-        f"{ULTRASINGER_HEAD} Removing silent start and ending, from transcription data"
-    )
-
-    audio, sample_rate = librosa.load(audio_path, sr=None)
-
-    for i, data in enumerate(transcribed_data):
-        start_time = data.start
-        end_time = data.end
-        start_sample = int(start_time * sample_rate)
-        end_sample = int(end_time * sample_rate)
-        chunk = audio[start_sample:end_sample]
-
-        # todo: why 5 works good? It should be 40db ?!?
-        # max_dB = librosa.amplitude_to_db(chunk, ref=np.max)
-        silence_threshold = 5
-        onsets = librosa.effects.split(
-            chunk, top_db=silence_threshold, frame_length=2048, hop_length=100
-        )
-
-        # Get the duration of the first and last silent intervals
-        if len(onsets) > 0:
-            first_silence = onsets[0][0]
-            last_silence = len(chunk) - onsets[-1][1]
-
-            first_silence_duration = librosa.samples_to_time(
-                first_silence, sr=sample_rate
-            )
-            last_silence_duration = librosa.samples_to_time(
-                last_silence, sr=sample_rate
-            )
-        else:
-            first_silence_duration = 0
-            last_silence_duration = 0
-
-        data.start = (
-            data.start + first_silence_duration
-        )
-        data.end = (
-            data.end - last_silence_duration
-        )
-
-    return transcribed_data
-
-
 def export_chunks_from_ultrastar_data(
-    audio_filename, ultrastar_data, folder_name
-):
+    audio_filename: str, ultrastar_data: UltrastarTxt, folder_name: str
+) -> None:
     """Export ultrastar data as vocal chunks wav files"""
     print(f"{ULTRASINGER_HEAD} Export Ultrastar data as vocal chunks wav files")
 
@@ -137,7 +64,7 @@ def export_chunks_from_ultrastar_data(
         )
 
 
-def export_chunk_to_wav_file(chunk, folder_name, i, word, wave_file):
+def export_chunk_to_wav_file(chunk, folder_name: str, i: int, word: str, wave_file) -> None:
     """Export vocal chunks to wav file"""
 
     clean_word = re.sub("[^A-Za-z0-9]+", "", word)
@@ -150,7 +77,7 @@ def export_chunk_to_wav_file(chunk, folder_name, i, word, wave_file):
         chunk_file.writeframes(chunk)
 
 
-def get_chunk(end_byte, start_byte, wave_file):
+def get_chunk(end_byte: int, start_byte: int, wave_file):
     """
     Gets the chunk from wave file.
     Returns chunk as n frames of audio, as a bytes object.
@@ -160,22 +87,3 @@ def get_chunk(end_byte, start_byte, wave_file):
     wave_file.setpos(start_byte)  # ({:.2f})
     chunk = wave_file.readframes(end_byte - start_byte)
     return chunk
-
-
-def export_transcribed_data_to_csv(transcribed_data, filename):
-    """Export transcribed data to csv"""
-    print(f"{ULTRASINGER_HEAD} Exporting transcribed data to CSV")
-
-    with open(filename, "w", encoding="utf-8", newline="") as csvfile:
-        writer = csv.writer(csvfile)
-        header = ["word", "start", "end", "confidence"]
-        writer.writerow(header)
-        for i, data in enumerate(transcribed_data):
-            writer.writerow(
-                [
-                    data.word,
-                    data.start,
-                    data.end,
-                    data.conf,
-                ]
-            )

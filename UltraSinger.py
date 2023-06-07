@@ -15,13 +15,12 @@ from modules import os_helper
 from modules.Audio.denoise import ffmpeg_reduce_noise
 from modules.Audio.separation import separate_audio
 from modules.Audio.vocal_chunks import (
-    convert_audio_to_mono_wav,
-    convert_wav_to_mp3,
     export_chunks_from_transcribed_data,
     export_chunks_from_ultrastar_data,
-    export_transcribed_data_to_csv,
-    remove_silence_from_transcribtion_data,
 )
+from modules.Audio.silence_processing import remove_silence_from_transcribtion_data
+from modules.csv_export import export_transcribed_data_to_csv
+from modules.Audio.convert_audio import convert_audio_to_mono_wav, convert_wav_to_mp3
 from modules.Audio.youtube import (
     download_youtube_audio,
     download_youtube_thumbnail,

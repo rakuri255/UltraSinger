@@ -1,4 +1,4 @@
-"""Docstring"""
+"""YouTube Downloader"""
 
 import io
 import os
@@ -9,8 +9,8 @@ from PIL import Image
 from modules.console_colors import ULTRASINGER_HEAD
 
 
-def get_youtube_title(url):
-    """Docstring"""
+def get_youtube_title(url: str) -> str:
+    """Get the title of the YouTube video"""
 
     ydl_opts = {}
     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
@@ -21,8 +21,8 @@ def get_youtube_title(url):
     return result["title"]
 
 
-def download_youtube_audio(url, clear_filename, output_path):
-    """Docstring"""
+def download_youtube_audio(url: str, clear_filename: str, output_path: str):
+    """Download audio from YouTube"""
 
     print(f"{ULTRASINGER_HEAD} Downloading Audio")
     ydl_opts = {
@@ -36,8 +36,8 @@ def download_youtube_audio(url, clear_filename, output_path):
     start_download(ydl_opts, url)
 
 
-def download_youtube_thumbnail(url, clear_filename, output_path):
-    """Docstring"""
+def download_youtube_thumbnail(url: str, clear_filename: str, output_path: str):
+    """Download thumbnail from YouTube"""
 
     print(f"{ULTRASINGER_HEAD} Downloading thumbnail")
     ydl_opts = {
@@ -48,8 +48,8 @@ def download_youtube_thumbnail(url, clear_filename, output_path):
     download_and_convert_thumbnail(ydl_opts, url, clear_filename, output_path)
 
 
-def download_and_convert_thumbnail(ydl_opts, url, clear_filename, output_path):
-    """Docstring"""
+def download_and_convert_thumbnail(ydl_opts, url: str, clear_filename: str, output_path: str) -> None:
+    """Download and convert thumbnail from YouTube"""
 
     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
         info_dict = ydl.extract_info(url, download=False)
@@ -63,8 +63,8 @@ def download_and_convert_thumbnail(ydl_opts, url, clear_filename, output_path):
             )
 
 
-def download_youtube_video(url, clear_filename, output_path):
-    """Docstring"""
+def download_youtube_video(url: str, clear_filename: str, output_path: str) -> None:
+    """Download video from YouTube"""
 
     print(f"{ULTRASINGER_HEAD} Downloading Video")
     ydl_opts = {
@@ -74,8 +74,8 @@ def download_youtube_video(url, clear_filename, output_path):
     start_download(ydl_opts, url)
 
 
-def start_download(ydl_opts, url):
-    """Docstring"""
+def start_download(ydl_opts, url: str) -> None:
+    """Start the download the ydl_opts"""
 
     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
         errors = ydl.download(url)

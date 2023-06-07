@@ -8,7 +8,7 @@ from modules.console_colors import (
     cyan_highlighted,
     gold_highlighted,
     light_blue_highlighted,
-    print_underlined_text,
+    underlined,
 )
 from modules.Midi.midi_creator import create_midi_note_from_pitched_data
 from modules.Ultrastar.ultrastar_converter import (
@@ -154,11 +154,11 @@ def print_score_calculation(simple_points, accurate_points):
     """Docstring"""
 
     print(
-        f"{ULTRASINGER_HEAD} {print_underlined_text('Simple (octave high ignored)')} points"
+        f"{ULTRASINGER_HEAD} {underlined('Simple (octave high ignored)')} points"
     )
     print_score(simple_points)
 
     print(
-        f"{ULTRASINGER_HEAD} {print_underlined_text('Accurate (octave high matches)')} points:"
+        f"{ULTRASINGER_HEAD} {underlined('Accurate (octave high matches)')} points:"
     )
     print_score(accurate_points)

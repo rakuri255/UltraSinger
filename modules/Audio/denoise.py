@@ -1,12 +1,13 @@
-"""Docstring"""
+"""Reduce noise from audio"""
 
 import ffmpeg
 
 from modules.console_colors import ULTRASINGER_HEAD, blue_highlighted
 
 
-def ffmpeg_reduce_noise(input_file_path, output_file):
-    """Docstring"""
+def ffmpeg_reduce_noise(input_file_path: str, output_file: str) -> None:
+    """Reduce noise from vocal audio with ffmpeg."""
+
     # Denoise audio samples with FFT.
     # A description of the accepted parameters follows.
 
