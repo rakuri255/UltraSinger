@@ -7,18 +7,18 @@ import librosa
 import numpy as np
 import pretty_midi
 
-from modules.Pitcher.pitcher import get_frequency_with_high_confidence
-from modules.Ultrastar.ultrastar_converter import (
+from src.modules.Pitcher.pitcher import get_frequency_with_high_confidence
+from src.modules.Ultrastar.ultrastar_converter import (
     get_end_time_from_ultrastar,
     get_start_time_from_ultrastar,
     ultrastar_note_to_midi_note,
 )
-from modules.console_colors import (
+from src.modules.console_colors import (
     ULTRASINGER_HEAD,
     red_highlighted,
 )
-from modules.Ultrastar.ultrastar_txt import UltrastarTxtValue
-from modules.Pitcher.pitched_data import PitchedData
+from src.modules.Ultrastar.ultrastar_txt import UltrastarTxtValue
+from src.modules.Pitcher.pitched_data import PitchedData
 
 
 def convert_ultrastar_to_midi_instrument(ultrastar_class: UltrastarTxtValue) -> object:

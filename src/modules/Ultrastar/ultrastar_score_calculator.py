@@ -2,7 +2,7 @@
 
 import librosa
 
-from modules.console_colors import (
+from src.modules.console_colors import (
     ULTRASINGER_HEAD,
     blue_highlighted,
     cyan_highlighted,
@@ -10,14 +10,14 @@ from modules.console_colors import (
     light_blue_highlighted,
     underlined,
 )
-from modules.Midi.midi_creator import create_midi_note_from_pitched_data
-from modules.Ultrastar.ultrastar_converter import (
+from src.modules.Midi.midi_creator import create_midi_note_from_pitched_data
+from src.modules.Ultrastar.ultrastar_converter import (
     get_end_time_from_ultrastar,
     get_start_time_from_ultrastar,
     ultrastar_note_to_midi_note,
 )
-from modules.Ultrastar.ultrastar_txt import UltrastarTxtValue
-from modules.Pitcher.pitched_data import PitchedData
+from src.modules.Ultrastar.ultrastar_txt import UltrastarTxtValue
+from src.modules.Pitcher.pitched_data import PitchedData
 
 MAX_SONG_SCORE = 10000
 MAX_SONG_LINE_BONUS = 1000
