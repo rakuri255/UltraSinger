@@ -1,4 +1,4 @@
-"""Docstring"""
+"""Vosk speech recognition module."""
 
 import json
 import wave
@@ -11,8 +11,8 @@ from modules.Speech_Recognition.TranscribedData import TranscribedData
 # todo: Rename to Transcoder?
 
 
-def transcribe_with_vosk(audio_filename, model_path):
-    """Docstring"""
+def transcribe_with_vosk(audio_filename: str, model_path: str) -> list[TranscribedData]:
+    """Transcribe with vosk"""
     # Code from here: https://towardsdatascience.com/speech-recognition-with-timestamps-934ede4234b2
     print(
         f"{ULTRASINGER_HEAD} Transcribing {audio_filename} with vosk and model {model_path}"

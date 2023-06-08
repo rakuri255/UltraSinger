@@ -1,4 +1,4 @@
-"""Docstring"""
+"""Midi creator module"""
 
 import math
 from collections import Counter
@@ -17,10 +17,12 @@ from modules.console_colors import (
     ULTRASINGER_HEAD,
     red_highlighted,
 )
+from modules.Ultrastar.ultrastar_txt import UltrastarTxtValue
+from modules.Pitcher.pitched_data import PitchedData
 
 
-def convert_ultrastar_to_midi_instrument(ultrastar_class):
-    """Docstring"""
+def convert_ultrastar_to_midi_instrument(ultrastar_class: UltrastarTxtValue) -> object:
+    """Converts an Ultrastar data to a midi instrument"""
 
     print(f"{ULTRASINGER_HEAD} Creating midi instrument from Ultrastar txt")
 
@@ -39,8 +41,8 @@ def convert_ultrastar_to_midi_instrument(ultrastar_class):
     return instrument
 
 
-def instruments_to_midi(instruments, bpm, midi_output):
-    """Docstring"""
+def instruments_to_midi(instruments: list[object], bpm: float, midi_output: str) -> None:
+    """Write instruments to midi file"""
 
     print(f"{ULTRASINGER_HEAD} Creating midi file -> {midi_output}")
 
@@ -54,21 +56,21 @@ class MidiCreator:
     """Docstring"""
 
 
-def convert_frequencies_to_notes(frequency):
-    """Docstring"""
+def convert_frequencies_to_notes(frequency: [str]) -> list[list[str]]:
+    """Converts frequencies to notes"""
     notes = []
     for freq in frequency:
         notes.append(librosa.hz_to_note(float(freq)))
     return notes
 
 
-def most_frequent(array):
-    """Docstring"""
+def most_frequent(array: [str]) -> list[tuple[str, int]]:
+    """Get most frequent item in array"""
     return Counter(array).most_common(1)
 
 
-def find_nearest_index(array, value):
-    """Docstring"""
+def find_nearest_index(array: list[float], value: float) -> int:
+    """Nearest index in array"""
     idx = np.searchsorted(array, value, side="left")
     if idx > 0 and (
         idx == len(array)
@@ -79,8 +81,8 @@ def find_nearest_index(array, value):
     return idx
 
 
-def create_midi_notes_from_pitched_data(start_times, end_times, pitched_data):
-    """Docstring"""
+def create_midi_notes_from_pitched_data(start_times: list[float], end_times: list[float], pitched_data: PitchedData) -> list[str]:
+    """Create midi notes from pitched data"""
     print(f"{ULTRASINGER_HEAD} Creating midi notes from pitched data")
 
     midi_notes = []
@@ -100,8 +102,8 @@ def create_midi_notes_from_pitched_data(start_times, end_times, pitched_data):
     return midi_notes
 
 
-def create_midi_note_from_pitched_data(start_time, end_time, pitched_data):
-    """Docstring"""
+def create_midi_note_from_pitched_data(start_time: float, end_time: float, pitched_data: PitchedData) -> str:
+    """Create midi note from pitched data"""
 
     start = find_nearest_index(pitched_data.times, start_time)
     end = find_nearest_index(pitched_data.times, end_time)

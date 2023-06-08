@@ -1,4 +1,4 @@
-"""Docstring"""
+"""Whisper Speech Recognition Module"""
 
 import whisperx
 
@@ -10,8 +10,8 @@ from modules.console_colors import (
 from modules.Speech_Recognition.TranscribedData import TranscribedData
 
 
-def transcribe_with_whisper(audio_path, model, device="cpu"):
-    """Docstring"""
+def transcribe_with_whisper(audio_path: str, model: str, device="cpu") -> (list[TranscribedData], str):
+    """Transcribe with whisper"""
 
     print(
         f"{ULTRASINGER_HEAD} Loading {blue_highlighted('whisper')} with model {blue_highlighted(model)} and {red_highlighted(device)} as worker"

@@ -1,4 +1,4 @@
-"""Docstring"""
+"""Ultrastar score calculator."""
 
 import librosa
 
@@ -16,6 +16,8 @@ from modules.Ultrastar.ultrastar_converter import (
     get_start_time_from_ultrastar,
     ultrastar_note_to_midi_note,
 )
+from modules.Ultrastar.ultrastar_txt import UltrastarTxtValue
+from modules.Pitcher.pitched_data import PitchedData
 
 MAX_SONG_SCORE = 10000
 MAX_SONG_LINE_BONUS = 1000
@@ -32,8 +34,8 @@ class Points:
     parts = 0
 
 
-def add_point(note_type, points):
-    """Docstring"""
+def add_point(note_type: str, points: Points) -> Points:
+    """Add calculated points to the points object."""
 
     if note_type == ":":
         points.notes += 1
@@ -56,8 +58,8 @@ class Score:
     score = 0
 
 
-def get_score(points):
-    """Docstring"""
+def get_score(points: Points) -> Score:
+    """Score calculation."""
 
     score = Score()
     score.max_score = (
@@ -74,16 +76,16 @@ def get_score(points):
     return score
 
 
-def print_score(score):
-    """Docstring"""
+def print_score(score: Score) -> None:
+    """Print score."""
 
     print(
         f"{ULTRASINGER_HEAD} Total: {cyan_highlighted(str(score.score))}, notes: {blue_highlighted(str(score.notes))}, line bonus: {light_blue_highlighted(str(score.line_bonus))}, golden notes: {gold_highlighted(str(score.golden))}"
     )
 
 
-def calculate_score(pitched_data, ultrastar_class):
-    """Docstring"""
+def calculate_score(pitched_data: PitchedData, ultrastar_class: UltrastarTxtValue) -> (Score, Score):
+    """Calculate score."""
 
     print(ULTRASINGER_HEAD + " Calculating Ultrastar Points")
 
@@ -150,8 +152,8 @@ def calculate_score(pitched_data, ultrastar_class):
     return get_score(simple_points), get_score(accurate_points)
 
 
-def print_score_calculation(simple_points, accurate_points):
-    """Docstring"""
+def print_score_calculation(simple_points: Score, accurate_points: Score) -> None:
+    """Print score calculation."""
 
     print(
         f"{ULTRASINGER_HEAD} {underlined('Simple (octave high ignored)')} points"

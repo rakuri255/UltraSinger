@@ -1,4 +1,4 @@
-"""Docstring"""
+"""Hyphenation module"""
 
 import string
 
@@ -10,8 +10,8 @@ from modules.console_colors import (
 )
 
 
-def language_check(language="en"):
-    """Docstring"""
+def language_check(language="en") -> str | None:
+    """Check if language is supported"""
 
     dict_langs = dictools.LANGUAGES
 
@@ -30,14 +30,14 @@ def language_check(language="en"):
     return lang_region
 
 
-def contains_punctuation(word):
-    """Docstring"""
+def contains_punctuation(word: str) -> bool:
+    """Check if word contains punctuation"""
 
     return any(elem in word for elem in string.punctuation)
 
 
-def hyphenation(word, lang_region):
-    """Docstring"""
+def hyphenation(word: str, lang_region: str) -> list[str] | None:
+    """Hyphenate word"""
 
     if contains_punctuation(word):
         return None

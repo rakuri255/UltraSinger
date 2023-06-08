@@ -5,6 +5,7 @@ import getopt
 import os
 import sys
 from time import sleep
+from typing import Tuple, Any
 
 import Levenshtein
 import librosa
@@ -19,7 +20,7 @@ from modules.Audio.vocal_chunks import (
     export_chunks_from_ultrastar_data,
 )
 from modules.Audio.silence_processing import remove_silence_from_transcribtion_data
-from modules.csv_export import export_transcribed_data_to_csv
+from modules.csv_handler import export_transcribed_data_to_csv
 from modules.Audio.convert_audio import convert_audio_to_mono_wav, convert_wav_to_mp3
 from modules.Audio.youtube import (
     download_youtube_audio,
@@ -45,6 +46,7 @@ from modules.Pitcher.pitcher import (
     get_frequency_with_high_confidence,
     get_pitch_with_crepe_file,
 )
+from modules.Pitcher.pitched_data import PitchedData
 from modules.Speech_Recognition.hyphenation import hyphenation, language_check
 from modules.Speech_Recognition.Vosk import transcribe_with_vosk
 from modules.Speech_Recognition.Whisper import transcribe_with_whisper
@@ -54,14 +56,15 @@ from modules.Ultrastar import (
     ultrastar_score_calculator,
     ultrastar_writer,
 )
-from modules.Ultrastar.ultrastar_txt import UltrastarTxt
+from modules.Ultrastar.ultrastar_txt import UltrastarTxtValue
 from Settings import Settings
+from modules.Speech_Recognition.TranscribedData import TranscribedData
 
 settings = Settings()
 
 
-def get_confidence(pitched_data, threshold):
-    """Docstring"""
+def get_confidence(pitched_data: PitchedData, threshold: float) -> tuple[list[float], list[float], list[float]]:
+    """Get high confidence data"""
     # todo: replace get_frequency_with_high_conf from pitcher
     conf_t = []
     conf_f = []
@@ -75,8 +78,8 @@ def get_confidence(pitched_data, threshold):
     return conf_t, conf_f, conf_c
 
 
-def convert_ultrastar_note_numbers(midi_notes):
-    """Docstring"""
+def convert_midi_notes_to_ultrastar_notes(midi_notes: list[str]) -> list[int]:
+    """Convert midi notes to ultrastar notes"""
     print(f"{ULTRASINGER_HEAD} Creating Ultrastar notes from midi data")
 
     ultrastar_note_numbers = []
@@ -93,8 +96,8 @@ def convert_ultrastar_note_numbers(midi_notes):
     return ultrastar_note_numbers
 
 
-def pitch_each_chunk_with_crepe(directory):
-    """Docstring"""
+def pitch_each_chunk_with_crepe(directory: str) -> list[str]:
+    """Pitch each chunk with crepe and return midi notes"""
     print(
         f"{ULTRASINGER_HEAD} Pitching each chunk with {blue_highlighted('crepe')}"
     )
@@ -123,8 +126,8 @@ def pitch_each_chunk_with_crepe(directory):
     return midi_notes
 
 
-def add_hyphen_to_data(transcribed_data, hyphen_words):
-    """Docstring"""
+def add_hyphen_to_data(transcribed_data: list[TranscribedData], hyphen_words: list[list[str]]):
+    """Add hyphen to transcribed data return new data list"""
     new_data = []
 
     for i, data in enumerate(transcribed_data):
@@ -150,7 +153,7 @@ def add_hyphen_to_data(transcribed_data, hyphen_words):
 
 
 def get_bpm_from_data(data, sampling_rate):
-    """Docstring"""
+    """Get real bpm from audio data"""
     onset_env = librosa.onset.onset_strength(y=data, sr=sampling_rate)
     wav_tempo = librosa.beat.tempo(onset_envelope=onset_env, sr=sampling_rate)
 
@@ -160,8 +163,8 @@ def get_bpm_from_data(data, sampling_rate):
     return wav_tempo[0]
 
 
-def get_bpm_from_file(wav_file):
-    """Docstring"""
+def get_bpm_from_file(wav_file: str):
+    """Get real bpm from audio file"""
     data, sampling_rate = librosa.load(wav_file, sr=None)
     return get_bpm_from_data(data, sampling_rate)
 
@@ -184,8 +187,8 @@ def correct_words(recognized_words, word_list_file):
     return recognized_words
 
 
-def print_help():
-    """Docstring"""
+def print_help() -> None:
+    """Print help text"""
     help_string = """
     UltraSinger.py [opt] [mode] [transcription] [pitcher] [extra]
     
@@ -226,8 +229,8 @@ def print_help():
     print(help_string)
 
 
-def plot(input_file, vosk_transcribed_data, midi_notes):
-    """Docstring"""
+def plot(input_file: str, transcribed_data: list[TranscribedData], midi_notes: list[str]) -> None:
+    """Plot transcribed data"""
     pitched_data = get_pitch_with_crepe_file(
         input_file, settings.crepe_step_size, settings.crepe_model_capacity
     )
@@ -238,7 +241,7 @@ def plot(input_file, vosk_transcribed_data, midi_notes):
     plt.plot(conf_t, conf_f, linewidth=0.1)
     plt.savefig(os.path.join("test", "crepe_0.4.png"))
 
-    for i, data in enumerate(vosk_transcribed_data):
+    for i, data in enumerate(transcribed_data):
         note_frequency = librosa.note_to_hz(midi_notes[i])
         plt.plot(
             [data.start, data.end],
@@ -249,8 +252,8 @@ def plot(input_file, vosk_transcribed_data, midi_notes):
     plt.savefig(os.path.join("test", "pit.png"), dpi=2000)
 
 
-def remove_unecessary_punctuations(transcribed_data):
-    """Docstring"""
+def remove_unecessary_punctuations(transcribed_data: list[TranscribedData]) -> None:
+    """Remove unecessary punctuations from transcribed data"""
     punctuation = ".,"
     for i, data in enumerate(transcribed_data):
         data.word = data.word.translate(
@@ -258,8 +261,8 @@ def remove_unecessary_punctuations(transcribed_data):
         )
 
 
-def hyphenate_each_word(language, transcribed_data):
-    """Docstring"""
+def hyphenate_each_word(language: str, transcribed_data: list[TranscribedData]) -> list[list[str]] | None:
+    """Hyphenate each word in the transcribed data."""
     hyphenated_word = []
     lang_region = language_check(language)
     if lang_region is None:
@@ -276,8 +279,8 @@ def hyphenate_each_word(language, transcribed_data):
     return hyphenated_word
 
 
-def print_support():
-    """Docstring"""
+def print_support() -> None:
+    """Print support text"""
     print()
     print(
         f"{ULTRASINGER_HEAD} {gold_highlighted('Do you like UltraSinger? And want it to be even better? Then help with your')} {light_blue_highlighted('support')}{gold_highlighted('!')}"
@@ -290,8 +293,8 @@ def print_support():
     )
 
 
-def run():
-    """Docstring"""
+def run() -> None:
+    """The processing function of this program"""
     is_audio = ".txt" not in settings.input_file_path
     ultrastar_class = None
     real_bpm = None
@@ -324,7 +327,7 @@ def run():
             basename_without_ext,
             song_output,
             ultrastar_audio_input_path,
-        ) = setup_audio_input_file()
+        ) = infos_from_audio_input_file()
 
     cache_path = os.path.join(song_output, "cache")
     settings.mono_audio_path = os.path.join(
@@ -344,7 +347,7 @@ def run():
     transcribed_data = None
     language = None
     if is_audio:
-        language, transcribed_data = transcribe_audio(transcribed_data)
+        language, transcribed_data = transcribe_audio()
         remove_unecessary_punctuations(transcribed_data)
         transcribed_data = remove_silence_from_transcribtion_data(
             settings.mono_audio_path, transcribed_data
@@ -414,8 +417,8 @@ def run():
     print_support()
 
 
-def get_unused_song_output_dir(path):
-    """Docstring"""
+def get_unused_song_output_dir(path: str) -> str:
+    """Get an unused song output dir"""
     # check if dir exists and add (i) if it does
     i = 1
     if os_helper.check_if_folder_exists(path):
@@ -434,8 +437,8 @@ def get_unused_song_output_dir(path):
     return path
 
 
-def transcribe_audio(transcribed_data):
-    """Docstring"""
+def transcribe_audio() -> (str, list[TranscribedData]):
+    """Transcribe audio with AI"""
     if settings.transcriber == "whisper":
         device = "cpu" if settings.force_whisper_cpu else settings.device
         transcribed_data, language = transcribe_with_whisper(
@@ -450,9 +453,9 @@ def transcribe_audio(transcribed_data):
 
 
 def separate_vocal_from_audio(
-        basename_without_ext, cache_path, ultrastar_audio_input_path
-):
-    """Docstring"""
+        basename_without_ext: str, cache_path: str, ultrastar_audio_input_path: str
+) -> str:
+    """Separate vocal from audio"""
     audio_separation_path = os.path.join(
         cache_path, "separated", "htdemucs", basename_without_ext
     )
@@ -470,9 +473,9 @@ def separate_vocal_from_audio(
 
 
 def calculate_score_points(
-    is_audio, pitched_data, ultrastar_class, ultrastar_file_output
+    is_audio: bool, pitched_data: PitchedData, ultrastar_class: UltrastarTxtValue, ultrastar_file_output: str
 ):
-    """Docstring"""
+    """Calculate score points"""
     if is_audio:
         ultrastar_class = ultrastar_parser.parse_ultrastar_txt(
             ultrastar_file_output
@@ -518,9 +521,9 @@ def calculate_score_points(
 
 
 def create_ultrastar_txt_from_ultrastar_data(
-    song_output, ultrastar_class, ultrastar_note_numbers
-):
-    """Docstring"""
+    song_output: str, ultrastar_class: UltrastarTxtValue, ultrastar_note_numbers: list[int]
+) -> str:
+    """Create Ultrastar txt from Ultrastar data"""
     output_repitched_ultrastar = os.path.join(
         song_output, ultrastar_class.title + ".txt"
     )
@@ -533,16 +536,16 @@ def create_ultrastar_txt_from_ultrastar_data(
 
 
 def create_ultrastar_txt_from_automation(
-    audio_separation_path,
-    basename_without_ext,
-    song_output,
-    transcribed_data,
-    ultrastar_audio_input_path,
-    ultrastar_note_numbers,
-    language,
+    audio_separation_path: str,
+    basename_without_ext: str,
+    song_output: str,
+    transcribed_data: list[TranscribedData],
+    ultrastar_audio_input_path: str,
+    ultrastar_note_numbers: list[int],
+    language: str,
 ):
-    """Docstring"""
-    ultrastar_header = UltrastarTxt()
+    """Create Ultrastar txt from automation"""
+    ultrastar_header = UltrastarTxtValue()
     ultrastar_header.title = basename_without_ext
     ultrastar_header.artist = basename_without_ext
     ultrastar_header.mp3 = basename_without_ext + ".mp3"
@@ -585,8 +588,8 @@ def create_ultrastar_txt_from_automation(
     return real_bpm, ultrastar_file_output
 
 
-def setup_audio_input_file():
-    """Docstring"""
+def infos_from_audio_input_file() -> tuple[str, str, str]:
+    """Infos from audio input file"""
     basename = os.path.basename(settings.input_file_path)
     basename_without_ext = os.path.splitext(basename)[0]
     song_output = os.path.join(settings.output_file_path, basename_without_ext)
@@ -601,7 +604,7 @@ FILENAME_REPLACEMENTS = (('?:"', ""), ("<", "("), (">", ")"), ("/\\|*", "-"))
 
 
 def sanitize_filename(fname: str) -> str:
-    """Docstring"""
+    """Sanitize filename"""
     for old, new in FILENAME_REPLACEMENTS:
         for char in old:
             fname = fname.replace(char, new)
@@ -610,8 +613,8 @@ def sanitize_filename(fname: str) -> str:
     return fname
 
 
-def download_from_youtube():
-    """Docstring"""
+def download_from_youtube() -> tuple[str, str, str]:
+    """Download from YouTube"""
     title = get_youtube_title(settings.input_file_path)
     basename_without_ext = sanitize_filename(title)
     basename = basename_without_ext + ".mp3"
@@ -631,8 +634,8 @@ def download_from_youtube():
     return basename_without_ext, song_output, ultrastar_audio_input_path
 
 
-def parse_ultrastar_txt():
-    """Docstring"""
+def parse_ultrastar_txt() -> tuple[str, float, str, str, UltrastarTxtValue]:
+    """Parse Ultrastar txt"""
     ultrastar_class = ultrastar_parser.parse_ultrastar_txt(
         settings.input_file_path
     )
@@ -658,8 +661,8 @@ def parse_ultrastar_txt():
     )
 
 
-def create_midi_file(is_audio, real_bpm, song_output, ultrastar_class):
-    """Docstring"""
+def create_midi_file(is_audio: bool, real_bpm: float, song_output: str, ultrastar_class: UltrastarTxtValue) -> None:
+    """Create midi file"""
     print(
         f"{ULTRASINGER_HEAD} Creating Midi with {blue_highlighted('pretty_midi')}"
     )
@@ -681,8 +684,8 @@ def create_midi_file(is_audio, real_bpm, song_output, ultrastar_class):
         )
 
 
-def pitch_audio(is_audio, transcribed_data, ultrastar_class):
-    """Docstring"""
+def pitch_audio(is_audio: bool, transcribed_data: list[TranscribedData], ultrastar_class: UltrastarTxtValue):
+    """Pitch audio"""
     # todo: chunk pitching as option?
     # midi_notes = pitch_each_chunk_with_crepe(chunk_folder_name)
     pitched_data = get_pitch_with_crepe_file(
@@ -704,18 +707,18 @@ def pitch_audio(is_audio, transcribed_data, ultrastar_class):
         midi_notes = create_midi_notes_from_pitched_data(
             ultrastar_class.startTimes, ultrastar_class.endTimes, pitched_data
         )
-    ultrastar_note_numbers = convert_ultrastar_note_numbers(midi_notes)
+    ultrastar_note_numbers = convert_midi_notes_to_ultrastar_notes(midi_notes)
     return midi_notes, pitched_data, ultrastar_note_numbers
 
 
 def create_audio_chunks(
-    cache_path,
-    is_audio,
-    transcribed_data,
-    ultrastar_audio_input_path,
-    ultrastar_class,
-):
-    """Docstring"""
+    cache_path: str,
+    is_audio: bool,
+    transcribed_data: list[TranscribedData],
+    ultrastar_audio_input_path: str,
+    ultrastar_class: UltrastarTxtValue
+) -> None:
+    """Create audio chunks"""
     audio_chunks_path = os.path.join(
         cache_path, settings.audio_chunk_folder_name
     )
@@ -732,8 +735,8 @@ def create_audio_chunks(
         )
 
 
-def denoise_vocal_audio(basename_without_ext, cache_path):
-    """Docstring"""
+def denoise_vocal_audio(basename_without_ext: str, cache_path: str) -> None:
+    """Denoise vocal audio"""
     denoised_path = os.path.join(
         cache_path, basename_without_ext + "_denoised.wav"
     )
@@ -741,30 +744,17 @@ def denoise_vocal_audio(basename_without_ext, cache_path):
     settings.mono_audio_path = denoised_path
 
 
-def main(argv):
-    """Docstring"""
+def main(argv: list[str]) -> None:
+    """Main function"""
     init_settings(argv)
     run()
     # todo: cleanup
     sys.exit()
 
 
-def init_settings(argv):
-    """Docstring"""
-    short = "hi:o:amv:"
-    long = [
-        "ifile=",
-        "ofile=",
-        "crepe=",
-        "vosk=",
-        "whisper=",
-        "hyphenation=",
-        "disable_separation=",
-        "disable_karaoke=",
-        "create_audio_chunks=",
-        "force_whisper_cpu=",
-        "force_separation_cpu="
-    ]
+def init_settings(argv: list[str]) -> None:
+    """Init settings"""
+    long, short = arg_options()
     opts, args = getopt.getopt(argv, short, long)
     if len(opts) == 0:
         print_help()
@@ -804,6 +794,24 @@ def init_settings(argv):
             dirname = os.path.dirname(settings.input_file_path)
         settings.output_file_path = os.path.join(dirname, "output")
     settings.device = get_available_device()
+
+
+def arg_options():
+    short = "hi:o:amv:"
+    long = [
+        "ifile=",
+        "ofile=",
+        "crepe=",
+        "vosk=",
+        "whisper=",
+        "hyphenation=",
+        "disable_separation=",
+        "disable_karaoke=",
+        "create_audio_chunks=",
+        "force_whisper_cpu=",
+        "force_separation_cpu="
+    ]
+    return long, short
 
 
 if __name__ == "__main__":

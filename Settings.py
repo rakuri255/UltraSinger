@@ -29,4 +29,3 @@ class Settings:
     device = 'cpu'  # cpu|cuda
     force_whisper_cpu = False
     force_separation_cpu = False
-

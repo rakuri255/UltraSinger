@@ -1,9 +1,9 @@
-"""Docstring"""
+"""Pitched data"""
 
 
 class PitchedData:
-    """Docstring"""
+    """Pitched data from crepe"""
 
-    times = []
-    frequencies = []
-    confidence = []
+    times = list[float]
+    frequencies = list[float]
+    confidence = list[float]
