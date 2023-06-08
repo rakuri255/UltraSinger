@@ -1,6 +1,6 @@
 """Ultrastar Converter"""
 
-from modules.Ultrastar.ultrastar_txt import UltrastarTxt
+from modules.Ultrastar.ultrastar_txt import UltrastarTxtValue
 
 def real_bpm_to_ultrastar_bpm(real_bpm: float) -> float:
     """Converts real BPM to UltraStar BPM"""
@@ -48,7 +48,7 @@ def ultrastar_note_to_midi_note(ultrastar_note: int) -> int:
     return midi_note
 
 
-def get_start_time_from_ultrastar(ultrastar_class: UltrastarTxt, pos: int) -> float:
+def get_start_time_from_ultrastar(ultrastar_class: UltrastarTxtValue, pos: int) -> float:
     """Calculates the start time from the Ultrastar txt"""
 
     gap = int(ultrastar_class.gap) / 1000
@@ -61,7 +61,7 @@ def get_start_time_from_ultrastar(ultrastar_class: UltrastarTxt, pos: int) -> fl
     return start_time
 
 
-def get_end_time_from_ultrastar(ultrastar_class: UltrastarTxt, pos: int) -> float:
+def get_end_time_from_ultrastar(ultrastar_class: UltrastarTxtValue, pos: int) -> float:
     """Calculates the end time from the Ultrastar txt"""
 
     gap = int(ultrastar_class.gap) / 1000

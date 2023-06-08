@@ -5,34 +5,38 @@ from modules.Ultrastar.ultrastar_converter import (
     get_end_time_from_ultrastar,
     get_start_time_from_ultrastar,
 )
-from modules.Ultrastar.ultrastar_txt import UltrastarTxt
+from modules.Ultrastar.ultrastar_txt import UltrastarTxtValue, UltrastarTxtTag, UltrastarTxtNoteTypeTag, FILE_ENCODING
 
-
-def parse_ultrastar_txt(input_file: str) -> UltrastarTxt:
+def parse_ultrastar_txt(input_file: str) -> UltrastarTxtValue:
     """Parse ultrastar txt file to UltrastarTxt class"""
     print(f"{ULTRASINGER_HEAD} Parse ultrastar txt -> {input_file}")
 
-    with open(input_file, "r", encoding="utf-8") as file:
+    with open(input_file, "r", encoding=FILE_ENCODING) as file:
         txt = file.readlines()
 
-    ultrastar_class = UltrastarTxt()
+    ultrastar_class = UltrastarTxtValue()
     count = 0
 
     # Strips the newline character
     for line in txt:
         count += 1
         if line.startswith("#"):
-            if line.startswith("#ARTIST"):
+            if line.startswith(f"#{UltrastarTxtTag.ARTIST}"):
                 ultrastar_class.artist = line.split(":")[1].replace("\n", "")
-            elif line.startswith("#TITLE"):
+            elif line.startswith(f"#{UltrastarTxtTag.TITLE}"):
                 ultrastar_class.title = line.split(":")[1].replace("\n", "")
-            elif line.startswith("#MP3"):
+            elif line.startswith(f"#{UltrastarTxtTag.MP3}"):
                 ultrastar_class.mp3 = line.split(":")[1].replace("\n", "")
-            elif line.startswith("#GAP"):
+            elif line.startswith(f"#{UltrastarTxtTag.GAP}"):
                 ultrastar_class.gap = line.split(":")[1].replace("\n", "")
-            elif line.startswith("#BPM"):
+            elif line.startswith(f"#{UltrastarTxtTag.BPM}"):
                 ultrastar_class.bpm = line.split(":")[1].replace("\n", "")
-        elif line.startswith(("F ", ": ", "* ", "R ", "G ")):
+        elif line.startswith((
+                f"{UltrastarTxtNoteTypeTag.FREESTYLE} ",
+                f"{UltrastarTxtNoteTypeTag.NORMAL} ",
+                f"{UltrastarTxtNoteTypeTag.GOLDEN} ",
+                f"{UltrastarTxtNoteTypeTag.RAP} ",
+                f"{UltrastarTxtNoteTypeTag.RAP_GOLDEN} ")):
             parts = line.split()
             # [0] F : * R G
             # [1] start beat

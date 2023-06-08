@@ -17,11 +17,11 @@ from modules.console_colors import (
     ULTRASINGER_HEAD,
     red_highlighted,
 )
-from modules.Ultrastar.ultrastar_txt import UltrastarTxt
+from modules.Ultrastar.ultrastar_txt import UltrastarTxtValue
 from modules.Pitcher.pitched_data import PitchedData
 
 
-def convert_ultrastar_to_midi_instrument(ultrastar_class: UltrastarTxt) -> object:
+def convert_ultrastar_to_midi_instrument(ultrastar_class: UltrastarTxtValue) -> object:
     """Converts an Ultrastar data to a midi instrument"""
 
     print(f"{ULTRASINGER_HEAD} Creating midi instrument from Ultrastar txt")

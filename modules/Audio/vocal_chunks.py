@@ -10,7 +10,7 @@ from modules.Ultrastar.ultrastar_converter import (
     get_end_time_from_ultrastar,
     get_start_time_from_ultrastar,
 )
-from modules.Ultrastar.ultrastar_txt import UltrastarTxt
+from modules.Ultrastar.ultrastar_txt import UltrastarTxtValue
 
 
 class AudioManipulation:
@@ -41,7 +41,7 @@ def export_chunks_from_transcribed_data(
 
 
 def export_chunks_from_ultrastar_data(
-    audio_filename: str, ultrastar_data: UltrastarTxt, folder_name: str
+    audio_filename: str, ultrastar_data: UltrastarTxtValue, folder_name: str
 ) -> None:
     """Export ultrastar data as vocal chunks wav files"""
     print(f"{ULTRASINGER_HEAD} Export Ultrastar data as vocal chunks wav files")

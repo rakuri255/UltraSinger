@@ -56,7 +56,7 @@ from modules.Ultrastar import (
     ultrastar_score_calculator,
     ultrastar_writer,
 )
-from modules.Ultrastar.ultrastar_txt import UltrastarTxt
+from modules.Ultrastar.ultrastar_txt import UltrastarTxtValue
 from Settings import Settings
 from modules.Speech_Recognition.TranscribedData import TranscribedData
 
@@ -473,7 +473,7 @@ def separate_vocal_from_audio(
 
 
 def calculate_score_points(
-    is_audio: bool, pitched_data: PitchedData, ultrastar_class: UltrastarTxt, ultrastar_file_output: str
+    is_audio: bool, pitched_data: PitchedData, ultrastar_class: UltrastarTxtValue, ultrastar_file_output: str
 ):
     """Calculate score points"""
     if is_audio:
@@ -521,7 +521,7 @@ def calculate_score_points(
 
 
 def create_ultrastar_txt_from_ultrastar_data(
-    song_output: str, ultrastar_class: UltrastarTxt, ultrastar_note_numbers: list[int]
+    song_output: str, ultrastar_class: UltrastarTxtValue, ultrastar_note_numbers: list[int]
 ) -> str:
     """Create Ultrastar txt from Ultrastar data"""
     output_repitched_ultrastar = os.path.join(
@@ -545,7 +545,7 @@ def create_ultrastar_txt_from_automation(
     language: str,
 ):
     """Create Ultrastar txt from automation"""
-    ultrastar_header = UltrastarTxt()
+    ultrastar_header = UltrastarTxtValue()
     ultrastar_header.title = basename_without_ext
     ultrastar_header.artist = basename_without_ext
     ultrastar_header.mp3 = basename_without_ext + ".mp3"
@@ -634,7 +634,7 @@ def download_from_youtube() -> tuple[str, str, str]:
     return basename_without_ext, song_output, ultrastar_audio_input_path
 
 
-def parse_ultrastar_txt() -> tuple[str, float, str, str, UltrastarTxt]:
+def parse_ultrastar_txt() -> tuple[str, float, str, str, UltrastarTxtValue]:
     """Parse Ultrastar txt"""
     ultrastar_class = ultrastar_parser.parse_ultrastar_txt(
         settings.input_file_path
@@ -661,7 +661,7 @@ def parse_ultrastar_txt() -> tuple[str, float, str, str, UltrastarTxt]:
     )
 
 
-def create_midi_file(is_audio: bool, real_bpm: float, song_output: str, ultrastar_class: UltrastarTxt) -> None:
+def create_midi_file(is_audio: bool, real_bpm: float, song_output: str, ultrastar_class: UltrastarTxtValue) -> None:
     """Create midi file"""
     print(
         f"{ULTRASINGER_HEAD} Creating Midi with {blue_highlighted('pretty_midi')}"
@@ -684,7 +684,7 @@ def create_midi_file(is_audio: bool, real_bpm: float, song_output: str, ultrasta
         )
 
 
-def pitch_audio(is_audio: bool, transcribed_data: list[TranscribedData], ultrastar_class: UltrastarTxt):
+def pitch_audio(is_audio: bool, transcribed_data: list[TranscribedData], ultrastar_class: UltrastarTxtValue):
     """Pitch audio"""
     # todo: chunk pitching as option?
     # midi_notes = pitch_each_chunk_with_crepe(chunk_folder_name)
@@ -716,7 +716,7 @@ def create_audio_chunks(
     is_audio: bool,
     transcribed_data: list[TranscribedData],
     ultrastar_audio_input_path: str,
-    ultrastar_class: UltrastarTxt
+    ultrastar_class: UltrastarTxtValue
 ) -> None:
     """Create audio chunks"""
     audio_chunks_path = os.path.join(

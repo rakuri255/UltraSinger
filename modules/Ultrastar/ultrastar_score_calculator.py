@@ -16,7 +16,7 @@ from modules.Ultrastar.ultrastar_converter import (
     get_start_time_from_ultrastar,
     ultrastar_note_to_midi_note,
 )
-from modules.Ultrastar.ultrastar_txt import UltrastarTxt
+from modules.Ultrastar.ultrastar_txt import UltrastarTxtValue
 from modules.Pitcher.pitched_data import PitchedData
 
 MAX_SONG_SCORE = 10000
@@ -84,7 +84,7 @@ def print_score(score: Score) -> None:
     )
 
 
-def calculate_score(pitched_data: PitchedData, ultrastar_class: UltrastarTxt) -> (Score, Score):
+def calculate_score(pitched_data: PitchedData, ultrastar_class: UltrastarTxtValue) -> (Score, Score):
     """Calculate score."""
 
     print(ULTRASINGER_HEAD + " Calculating Ultrastar Points")

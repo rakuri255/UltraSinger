@@ -9,7 +9,7 @@ from modules.Ultrastar.ultrastar_converter import (
     real_bpm_to_ultrastar_bpm,
     second_to_beat,
 )
-from modules.Ultrastar.ultrastar_txt import UltrastarTxt
+from modules.Ultrastar.ultrastar_txt import UltrastarTxtValue, UltrastarTxtTag, UltrastarTxtNoteTypeTag, FILE_ENCODING
 from modules.Speech_Recognition.TranscribedData import TranscribedData
 from modules.Ultrastar.ultrastar_score_calculator import Score
 
@@ -38,7 +38,7 @@ def create_ultrastar_txt_from_automation(
         transcribed_data: list[TranscribedData],
         note_numbers: list[int],
         ultrastar_file_output: str,
-        ultrastar_class: UltrastarTxt,
+        ultrastar_class: UltrastarTxtValue,
         bpm=120,
 ) -> None:
     """Creates an Ultrastar txt file from the automation data"""
@@ -51,24 +51,24 @@ def create_ultrastar_txt_from_automation(
     multiplication = get_multiplier(real_bpm)
     ultrastar_bpm = real_bpm * get_multiplier(real_bpm)
 
-    with open(ultrastar_file_output, "w", encoding="utf-8") as file:
+    with open(ultrastar_file_output, "w", encoding=FILE_ENCODING) as file:
         gap = transcribed_data[0].start
 
-        file.write(f"#ARTIST:{ultrastar_class.artist}\n")
-        file.write(f"#TITLE:{ultrastar_class.title}\n")
-        file.write(f"#CREATOR:{ultrastar_class.creator}\n")
-        file.write(f"#FIXER:{ultrastar_class.fixer}\n")
+        file.write(f"#{UltrastarTxtTag.ARTIST}:{ultrastar_class.artist}\n")
+        file.write(f"#{UltrastarTxtTag.TITLE}:{ultrastar_class.title}\n")
+        file.write(f"#{UltrastarTxtTag.CREATOR}:{ultrastar_class.creator}\n")
+        file.write(f"#{UltrastarTxtTag.FIXER}:{ultrastar_class.fixer}\n")
         if ultrastar_class.language is not None:
             file.write(
-                f"#LANGUAGE:{get_language_name(ultrastar_class.language)}\n"
+                f"#{UltrastarTxtTag.LANGUAGE}:{get_language_name(ultrastar_class.language)}\n"
             )
         if ultrastar_class.cover is not None:
-            file.write(f"#COVER:{ultrastar_class.cover}\n")
-        file.write(f"#MP3:{ultrastar_class.mp3}\n")
-        file.write(f"#VIDEO:{ultrastar_class.video}\n")
-        file.write(f"#BPM:{round(ultrastar_bpm, 2)}\n")  # not the real BPM!
-        file.write(f"#GAP:{int(gap * 1000)}\n")
-        file.write(f"#COMMENT:{ultrastar_class.comment}\n")
+            file.write(f"#{UltrastarTxtTag.COVER}:{ultrastar_class.cover}\n")
+        file.write(f"#{UltrastarTxtTag.MP3}:{ultrastar_class.mp3}\n")
+        file.write(f"#{UltrastarTxtTag.VIDEO}:{ultrastar_class.video}\n")
+        file.write(f"#{UltrastarTxtTag.BPM}:{round(ultrastar_bpm, 2)}\n")  # not the real BPM!
+        file.write(f"#{UltrastarTxtTag.GAP}:{int(gap * 1000)}\n")
+        file.write(f"#{UltrastarTxtTag.COMMENT}:{ultrastar_class.comment}\n")
 
         # Write the singing part
         previous_end_beat = 0
@@ -90,7 +90,7 @@ def create_ultrastar_txt_from_automation(
             # 'n2'  duration at real beat
             # 'n3'  pitch where 0 == C4
             # 'w'   lyric
-            file.write(": ")
+            file.write(f"{UltrastarTxtNoteTypeTag.NORMAL} ")
             file.write(str(start_beat) + " ")
             file.write(str(duration) + " ")
             file.write(str(note_numbers[i]) + " ")
@@ -109,14 +109,14 @@ def create_ultrastar_txt_from_automation(
                 # - 10
                 # '-' end of current sing part
                 # 'n1' show next at time in real beat
-                file.write("- ")
+                file.write(f"{UltrastarTxtTag.LINEBREAK} ")
                 show_next = (
                         second_to_beat(data.end - gap, bpm)
                         * multiplication
                 )
                 file.write(str(round(show_next)))
                 file.write("\n")
-        file.write("E")
+        file.write(f"{UltrastarTxtTag.FILE_END}")
 
 
 def create_repitched_txt_from_ultrastar_data(
@@ -129,14 +129,14 @@ def create_repitched_txt_from_ultrastar_data(
     )
 
     # todo: to reader
-    with open(input_file, "r", encoding="utf-8") as file:
+    with open(input_file, "r", encoding=FILE_ENCODING) as file:
         txt = file.readlines()
 
     i = 0
     # todo: just add '_repitched' to input_file
-    with open(output_repitched_ultrastar, "w", encoding="utf-8") as file:
+    with open(output_repitched_ultrastar, "w", encoding=FILE_ENCODING) as file:
         for line in txt:
-            if line.startswith(":"):
+            if line.startswith(f"#{UltrastarTxtNoteTypeTag.NORMAL} "):
                 parts = re.findall(r"\S+|\s+", line)
                 # between are whitespaces
                 # [0] :
@@ -154,27 +154,32 @@ def create_repitched_txt_from_ultrastar_data(
 
 def add_score_to_ultrastar_txt(ultrastar_file_output: str, score: Score) -> None:
     """Adds the score to the ultrastar txt file"""
-    with open(ultrastar_file_output, "r", encoding="utf-8") as file:
+    with open(ultrastar_file_output, "r", encoding=FILE_ENCODING) as file:
         text = file.read()
     text = text.split("\n")
 
     for i, line in enumerate(text):
-        if line.startswith("#COMMENT:"):
+        if line.startswith(f"#{UltrastarTxtTag.COMMENT}:"):
             text[
                 i
             ] = f"{line} | Score: total: {score.score}, notes: {score.notes} line: {score.line_bonus}, golden: {score.golden}"
             break
 
-        if line.startswith(("F ", ": ", "* ", "R ", "G ")):
+        if line.startswith((
+                f"{UltrastarTxtNoteTypeTag.FREESTYLE} ",
+                f"{UltrastarTxtNoteTypeTag.NORMAL} ",
+                f"{UltrastarTxtNoteTypeTag.GOLDEN} ",
+                f"{UltrastarTxtNoteTypeTag.RAP} ",
+                f"{UltrastarTxtNoteTypeTag.RAP_GOLDEN} ")):
             text.insert(
                 i,
-                f"#COMMENT: UltraSinger [GitHub] | Score: total: {score.score}, notes: {score.notes} line: {score.line_bonus}, golden: {score.golden}",
+                f"#{UltrastarTxtTag.COMMENT}: UltraSinger [GitHub] | Score: total: {score.score}, notes: {score.notes} line: {score.line_bonus}, golden: {score.golden}",
             )
             break
 
     text = "\n".join(text)
 
-    with open(ultrastar_file_output, "w", encoding="utf-8") as file:
+    with open(ultrastar_file_output, "w", encoding=FILE_ENCODING) as file:
         file.write(text)
 
 
