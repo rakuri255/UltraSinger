@@ -7,11 +7,13 @@ class UltrastarTxt:
     artist = ""
     title = ""
     mp3 = ""
+    video = None
     gap = ""
     bpm = ""
+    language = None
     cover = None
     creator = "UltraSinger [GitHub]"
-    fixer = "YOUR NAME" # Only for UltraStar World Party
+    fixer = "YOUR NAME"  # Only for UltraStar World Party
     comment = "UltraSinger [GitHub]"
     startBeat = []
     startTimes = []
@@ -19,4 +21,4 @@ class UltrastarTxt:
     durations = []
     pitches = []
     words = []
-    noteType = []
+    noteType = []  # F, R, G, *, :

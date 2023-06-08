@@ -1,4 +1,4 @@
-"""Docstring"""
+"""Ultrastar txt parser"""
 
 from modules.console_colors import ULTRASINGER_HEAD
 from modules.Ultrastar.ultrastar_converter import (
@@ -8,8 +8,8 @@ from modules.Ultrastar.ultrastar_converter import (
 from modules.Ultrastar.ultrastar_txt import UltrastarTxt
 
 
-def parse_ultrastar_txt(input_file):
-    """Docstring"""
+def parse_ultrastar_txt(input_file: str) -> UltrastarTxt:
+    """Parse ultrastar txt file to UltrastarTxt class"""
     print(f"{ULTRASINGER_HEAD} Parse ultrastar txt -> {input_file}")
 
     with open(input_file, "r", encoding="utf-8") as file:

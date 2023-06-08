@@ -1,4 +1,4 @@
-"""Docstring"""
+"""Ultrastar writer module"""
 
 import re
 
@@ -9,10 +9,13 @@ from modules.Ultrastar.ultrastar_converter import (
     real_bpm_to_ultrastar_bpm,
     second_to_beat,
 )
+from modules.Ultrastar.ultrastar_txt import UltrastarTxt
+from modules.Speech_Recognition.TranscribedData import TranscribedData
+from modules.Ultrastar.ultrastar_score_calculator import Score
 
 
-def get_multiplier(real_bpm):
-    """Docstring"""
+def get_multiplier(real_bpm: float) -> int:
+    """Calculates the multiplier for the BPM"""
 
     if real_bpm == 0:
         raise Exception("BPM is 0")
@@ -25,20 +28,20 @@ def get_multiplier(real_bpm):
     return multiplier - 2
 
 
-def get_language_name(language):
-    """Docstring"""
+def get_language_name(language: str) -> str:
+    """Creates the language name from the language code"""
 
     return langcodes.Language.make(language=language).display_name()
 
 
 def create_ultrastar_txt_from_automation(
-    transcribed_data,
-    note_numbers,
-    ultrastar_file_output,
-    ultrastar_class,
-    bpm=120,
-):
-    """Docstring"""
+        transcribed_data: list[TranscribedData],
+        note_numbers: list[int],
+        ultrastar_file_output: str,
+        ultrastar_class: UltrastarTxt,
+        bpm=120,
+) -> None:
+    """Creates an Ultrastar txt file from the automation data"""
 
     print(
         f"{ULTRASINGER_HEAD} Creating {ultrastar_file_output} from transcription."
@@ -72,8 +75,8 @@ def create_ultrastar_txt_from_automation(
         for i, data in enumerate(transcribed_data):
             start_time = (data.start - gap) * multiplication
             end_time = (
-                data.end - data.start
-            ) * multiplication
+                               data.end - data.start
+                       ) * multiplication
             start_beat = round(second_to_beat(start_time, bpm))
             duration = round(second_to_beat(end_time, bpm))
 
@@ -97,7 +100,7 @@ def create_ultrastar_txt_from_automation(
             # detect silence between words
             if i < len(transcribed_data) - 1:
                 silence = (
-                    transcribed_data[i + 1].start - data.end
+                        transcribed_data[i + 1].start - data.end
                 )
             else:
                 silence = 0
@@ -108,8 +111,8 @@ def create_ultrastar_txt_from_automation(
                 # 'n1' show next at time in real beat
                 file.write("- ")
                 show_next = (
-                    second_to_beat(data.end - gap, bpm)
-                    * multiplication
+                        second_to_beat(data.end - gap, bpm)
+                        * multiplication
                 )
                 file.write(str(round(show_next)))
                 file.write("\n")
@@ -117,9 +120,9 @@ def create_ultrastar_txt_from_automation(
 
 
 def create_repitched_txt_from_ultrastar_data(
-    input_file, note_numbers, output_repitched_ultrastar
-):
-    """Docstring"""
+        input_file: str, note_numbers: list[int], output_repitched_ultrastar: str
+) -> None:
+    """Creates a repitched ultrastar txt file from the original one"""
     # todo: just add '_repitched' to input_file
     print(
         "{PRINT_ULTRASTAR} Creating repitched ultrastar txt -> {input_file}_repitch.txt"
@@ -149,8 +152,8 @@ def create_repitched_txt_from_ultrastar_data(
                 file.write(line)
 
 
-def add_score_to_ultrastar_txt(ultrastar_file_output, score):
-    """Docstring"""
+def add_score_to_ultrastar_txt(ultrastar_file_output: str, score: Score) -> None:
+    """Adds the score to the ultrastar txt file"""
     with open(ultrastar_file_output, "r", encoding="utf-8") as file:
         text = file.read()
     text = text.split("\n")
