@@ -2,12 +2,12 @@
 
 import whisperx
 
-from modules.console_colors import (
+from src.modules.console_colors import (
     ULTRASINGER_HEAD,
     blue_highlighted,
     red_highlighted,
 )
-from modules.Speech_Recognition.TranscribedData import TranscribedData
+from src.modules.Speech_Recognition.TranscribedData import TranscribedData
 
 
 def transcribe_with_whisper(audio_path: str, model: str, device="cpu") -> (list[TranscribedData], str):

@@ -3,7 +3,7 @@
 import os
 import shutil
 
-from modules.console_colors import ULTRASINGER_HEAD
+from src.modules.console_colors import ULTRASINGER_HEAD
 
 
 def create_folder(folder_name: str) -> None:

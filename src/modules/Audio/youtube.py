@@ -6,7 +6,7 @@ import os
 import yt_dlp
 from PIL import Image
 
-from modules.console_colors import ULTRASINGER_HEAD
+from src.modules.console_colors import ULTRASINGER_HEAD
 
 
 def get_youtube_title(url: str) -> str:

@@ -5,8 +5,8 @@ import wave
 
 from vosk import KaldiRecognizer, Model
 
-from modules.console_colors import ULTRASINGER_HEAD
-from modules.Speech_Recognition.TranscribedData import TranscribedData
+from src.modules.console_colors import ULTRASINGER_HEAD
+from src.modules.Speech_Recognition.TranscribedData import TranscribedData
 
 # todo: Rename to Transcoder?
 

@@ -2,7 +2,7 @@
 
 import torch
 
-from modules.console_colors import ULTRASINGER_HEAD, red_highlighted
+from src.modules.console_colors import ULTRASINGER_HEAD, red_highlighted
 
 
 def get_available_device() -> str:

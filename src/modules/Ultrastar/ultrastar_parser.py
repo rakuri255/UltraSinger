@@ -1,11 +1,11 @@
 """Ultrastar txt parser"""
 
-from modules.console_colors import ULTRASINGER_HEAD
-from modules.Ultrastar.ultrastar_converter import (
+from src.modules.console_colors import ULTRASINGER_HEAD
+from src.modules.Ultrastar.ultrastar_converter import (
     get_end_time_from_ultrastar,
     get_start_time_from_ultrastar,
 )
-from modules.Ultrastar.ultrastar_txt import UltrastarTxtValue, UltrastarTxtTag, UltrastarTxtNoteTypeTag, FILE_ENCODING
+from src.modules.Ultrastar.ultrastar_txt import UltrastarTxtValue, UltrastarTxtTag, UltrastarTxtNoteTypeTag, FILE_ENCODING
 
 def parse_ultrastar_txt(input_file: str) -> UltrastarTxtValue:
     """Parse ultrastar txt file to UltrastarTxt class"""

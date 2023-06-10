@@ -1,6 +1,6 @@
 """Ultrastar Converter"""
 
-from modules.Ultrastar.ultrastar_txt import UltrastarTxtValue
+from src.modules.Ultrastar.ultrastar_txt import UltrastarTxtValue
 
 def real_bpm_to_ultrastar_bpm(real_bpm: float) -> float:
     """Converts real BPM to UltraStar BPM"""

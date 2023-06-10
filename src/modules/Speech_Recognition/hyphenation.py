@@ -4,7 +4,7 @@ import string
 
 from hyphen import Hyphenator, dictools
 
-from modules.console_colors import (
+from src.modules.console_colors import (
     ULTRASINGER_HEAD,
     blue_highlighted,
 )
