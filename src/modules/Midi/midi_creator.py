@@ -108,11 +108,6 @@ def create_midi_note_from_pitched_data(start_time: float, end_time: float, pitch
     start = find_nearest_index(pitched_data.times, start_time)
     end = find_nearest_index(pitched_data.times, end_time)
 
-    # fixme: why is end smaller as start?
-    if end < start:
-        print(f"{ULTRASINGER_HEAD} {red_highlighted('Error: end time is smaller as start time. The note is C0 now ...')}")
-        return "C0"
-
     if start == end:
         freqs = [pitched_data.frequencies[start]]
         confs = [pitched_data.confidence[start]]

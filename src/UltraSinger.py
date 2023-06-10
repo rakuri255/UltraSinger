@@ -118,14 +118,15 @@ def add_hyphen_to_data(transcribed_data: list[TranscribedData], hyphen_words: li
             chunk_duration = chunk_duration / (len(hyphen_words[i]))
 
             next_start = data.start
-            for j, hyphens in enumerate(hyphen_words[i]):
+            for j in enumerate(hyphen_words[i]):
+                hyphenated_word_index = j[0]
                 dup = copy.copy(data)
                 dup.start = next_start
                 next_start = data.end - chunk_duration * (
-                    len(hyphens) - 1 - j
+                    len(hyphen_words[i]) - 1 - hyphenated_word_index
                 )
                 dup.end = next_start
-                dup.word = hyphen_words[i][j]
+                dup.word = hyphen_words[i][hyphenated_word_index]
                 dup.is_hyphen = True
                 new_data.append(dup)
 
