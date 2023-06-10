@@ -26,8 +26,8 @@ def plot(pitched_data: PitchedData,
 
     conf_t, conf_f, conf_c = get_confidence(pitched_data, 0.4)
 
-    plt.ylim(0, 600)
-    plt.xlim(0, 50)
+    plt.ylim(0, max(conf_f))
+    plt.xlim(0, pitched_data.times[-1])
     plt.plot(conf_t, conf_f, linewidth=0.1)
 
     for i, data in enumerate(transcribed_data):
@@ -44,7 +44,13 @@ def plot(pitched_data: PitchedData,
             facecolor='red',
             alpha=0.5)
         plt.gca().add_patch(rect)
-    plt.savefig(os.path.join(output_path, "plot.png"), dpi=3000)
+
+    plt.xlabel("Time (s)")
+    plt.ylabel("Frequency (Hz)")
+    plt.ylim(0, 800)
+    dpi = 4000
+
+    plt.savefig(os.path.join(output_path, "plot.png"), dpi=dpi)
 
 
 def get_confidence(
