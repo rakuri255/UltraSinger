@@ -62,8 +62,9 @@ def convert_midi_notes_to_ultrastar_notes(midi_notes: list[str]) -> list[int]:
     print(f"{ULTRASINGER_HEAD} Creating Ultrastar notes from midi data")
 
     ultrastar_note_numbers = []
-    for i, note in enumerate(midi_notes):
-        note_number_librosa = librosa.note_to_midi(note)
+    for i in enumerate(midi_notes):
+        pos = i[0]
+        note_number_librosa = librosa.note_to_midi(midi_notes[pos])
         pitch = ultrastar_converter.midi_note_to_ultrastar_note(
             note_number_librosa
         )
@@ -640,7 +641,8 @@ def create_midi_file(is_audio: bool, real_bpm: float, song_output: str, ultrasta
         )
 
 
-def pitch_audio(is_audio: bool, transcribed_data: list[TranscribedData], ultrastar_class: UltrastarTxtValue):
+def pitch_audio(is_audio: bool, transcribed_data: list[TranscribedData], ultrastar_class: UltrastarTxtValue) -> tuple[
+    list[str], PitchedData, list[int]]:
     """Pitch audio"""
     # todo: chunk pitching as option?
     # midi_notes = pitch_each_chunk_with_crepe(chunk_folder_name)
@@ -731,6 +733,8 @@ def init_settings(argv: list[str]) -> None:
             settings.vosk_model_path = arg
         elif opt in ("--crepe"):
             settings.crepe_model_capacity = arg
+        elif opt in ("--plot"):
+            settings.create_plot = arg
         elif opt in ("--hyphenation"):
             settings.hyphenation = arg
         elif opt in ("--disable_separation"):
@@ -760,6 +764,7 @@ def arg_options():
         "crepe=",
         "vosk=",
         "whisper=",
+        "plot=",
         "hyphenation=",
         "disable_separation=",
         "disable_karaoke=",

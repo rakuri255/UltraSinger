@@ -116,15 +116,16 @@ _Not all options working now!_
                 English-only model > tiny.en|base.en|small.en|medium.en
     --vosk      Needs model
     
+    [pitcher]
+    # Default is crepe
+    --crepe     tiny|small|medium|large|full >> ((default) is full)
+    
     [extra]
     --hyphenation           True|False >> ((default) is True)
     --disable_separation    True|False >> ((default) is False)
     --disable_karaoke       True|False >> ((default) is False)
     --create_audio_chunks   True|False >> ((default) is False)
-
-    [pitcher]
-    # Default is crepe
-    --crepe     tiny|small|medium|large|full >> ((default) is full)
+    --plot                  True|False >> ((default) is False)
 ```
 
 For standard use, you only need to use [opt]. All other options are optional.
