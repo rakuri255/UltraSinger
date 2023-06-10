@@ -50,13 +50,34 @@ This will help me alot to keep this project alive and improve it.
 
 For more information about Python environments look [here](https://code.visualstudio.com/docs/python/environments#_global-virtual-or-conda-environments).
 
-As copy:
+Installation As copy:
     
 ```commandline
 py -m venv .venv
 .venv\Scripts\activate
 pip install -r requirements.txt
 pip3 install torch==2.0.1+cu117 torchvision==0.15.2+cu117 torchaudio==2.0.2+cu117 --index-url https://download.pytorch.org/whl/cu117
+
+```
+
+Run UltraSinger:
+
+* Activate the environment with `.venv\Scripts\activate`. (You dont need this if you already activated it, or just installed with the step above)
+* Navigate to src folder `cd src`
+* Start UltraSinger `py UltraSinger.py`
+
+Start environment only once:
+
+```commandline
+.venv\Scripts\activate
+cd src
+
+```
+
+Start UltraSinger:
+
+```commandline
+py UltraSinger.py
 
 ```
 
