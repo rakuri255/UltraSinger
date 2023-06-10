@@ -8,7 +8,6 @@ from time import sleep
 
 import Levenshtein
 import librosa
-from matplotlib import pyplot as plt
 from tqdm import tqdm
 
 from src.modules import os_helper
@@ -53,23 +52,9 @@ from src.modules.Ultrastar import ultrastar_score_calculator, ultrastar_writer, 
 from src.modules.Ultrastar.ultrastar_txt import UltrastarTxtValue
 from Settings import Settings
 from src.modules.Speech_Recognition.TranscribedData import TranscribedData
+from src.modules.plot import plot
 
 settings = Settings()
-
-
-def get_confidence(pitched_data: PitchedData, threshold: float) -> tuple[list[float], list[float], list[float]]:
-    """Get high confidence data"""
-    # todo: replace get_frequency_with_high_conf from pitcher
-    conf_t = []
-    conf_f = []
-    conf_c = []
-    for i in enumerate(pitched_data.times):
-        pos = i[0]
-        if pitched_data.confidence[i] > threshold:
-            conf_t.append(pitched_data.times[pos])
-            conf_f.append(pitched_data.frequencies[pos])
-            conf_c.append(pitched_data.confidence[pos])
-    return conf_t, conf_f, conf_c
 
 
 def convert_midi_notes_to_ultrastar_notes(midi_notes: list[str]) -> list[int]:
@@ -223,29 +208,6 @@ def print_help() -> None:
     print(help_string)
 
 
-def plot(input_file: str, transcribed_data: list[TranscribedData], midi_notes: list[str]) -> None:
-    """Plot transcribed data"""
-    pitched_data = get_pitch_with_crepe_file(
-        input_file, settings.crepe_step_size, settings.crepe_model_capacity
-    )
-    conf_t, conf_f, conf_c = get_confidence(pitched_data, 0.4)
-
-    plt.ylim(0, 600)
-    plt.xlim(0, 50)
-    plt.plot(conf_t, conf_f, linewidth=0.1)
-    plt.savefig(os.path.join("test", "crepe_0.4.png"))
-
-    for i, data in enumerate(transcribed_data):
-        note_frequency = librosa.note_to_hz(midi_notes[i])
-        plt.plot(
-            [data.start, data.end],
-            [note_frequency, note_frequency],
-            linewidth=1,
-            alpha=0.5,
-        )
-    plt.savefig(os.path.join("test", "pit.png"), dpi=2000)
-
-
 def remove_unecessary_punctuations(transcribed_data: list[TranscribedData]) -> None:
     """Remove unecessary punctuations from transcribed data"""
     punctuation = ".,"
@@ -374,8 +336,8 @@ def run() -> None:
     )
 
     # Create plot
-    if is_audio and settings.create_plot:
-        plot(ultrastar_audio_input_path, transcribed_data, midi_notes)
+    if settings.create_plot:
+        plot(pitched_data, transcribed_data, midi_notes, song_output)
 
     # Write Ultrastar txt
     if is_audio:
@@ -786,7 +748,7 @@ def init_settings(argv: list[str]) -> None:
             dirname = os.getcwd()
         else:
             dirname = os.path.dirname(settings.input_file_path)
-        settings.output_file_path = os.path.join(dirname, "../output")
+        settings.output_file_path = os.path.join(dirname, "output")
     settings.device = get_available_device()
 
 
