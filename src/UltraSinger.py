@@ -45,7 +45,7 @@ from src.modules.Pitcher.pitcher import (
     get_pitch_with_crepe_file,
 )
 from src.modules.Pitcher.pitched_data import PitchedData
-from src.modules.Speech_Recognition.hyphenation import hyphenation, language_check
+from src.modules.Speech_Recognition.hyphenation import hyphenation, language_check, create_hyphenator
 from src.modules.Speech_Recognition.Vosk import transcribe_with_vosk
 from src.modules.Speech_Recognition.Whisper import transcribe_with_whisper
 from src.modules.Ultrastar import ultrastar_score_calculator, ultrastar_writer, ultrastar_converter, ultrastar_parser
@@ -230,9 +230,11 @@ def hyphenate_each_word(language: str, transcribed_data: list[TranscribedData]) 
         return None
 
     sleep(0.1)
-    for i, data in tqdm(enumerate(transcribed_data)):
+    hyphenator = create_hyphenator(lang_region)
+    for i in tqdm(enumerate(transcribed_data)):
+        pos = i[0]
         hyphenated_word.append(
-            hyphenation(data.word, lang_region)
+            hyphenation(transcribed_data[pos].word, hyphenator)
         )
     return hyphenated_word
 
