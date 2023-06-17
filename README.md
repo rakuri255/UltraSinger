@@ -112,9 +112,11 @@ _Not all options working now!_
 
     [transcription]
     # Default is whisper
-    --whisper   Multilingual model > tiny|base|small|medium|large-v1|large-v2  >> ((default) is large-v2
-                English-only model > tiny.en|base.en|small.en|medium.en
-    --vosk      Needs model
+    --whisper       Multilingual model > tiny|base|small|medium|large-v1|large-v2  >> ((default) is large-v2
+                    English-only model > tiny.en|base.en|small.en|medium.en
+    --align_model   Use other languages model for Whisper provided from huggingface.co 
+    
+    --vosk          Needs model
     
     [pitcher]
     # Default is crepe
@@ -163,10 +165,21 @@ Also keep in mind that while a larger model is more accurate, it also takes long
 
 #### Whisper
 
-For the first test run, use the `tiny`, to be accurate use the `large-v2` model
+For the first test run, use the `tiny`, to be accurate use the `large-v2` model.
 
 ```commandline
 -i XYZ --whisper large
+```
+
+##### Whisper languages
+
+Currently provided default language models are `en, fr, de, es, it, ja, zh, nl, uk, pt`. 
+If the language is not in this list, you need to find a phoneme-based ASR model from 
+[huggingface model hub](https://huggingface.co). It will download automatically.
+
+Example for romanian:
+```commandline
+-i XYZ --align_model "gigant/romanian-wav2vec2"
 ```
 
 #### Vosk
@@ -247,7 +260,7 @@ But you can force cpu usage with the extra options `--force_whisper_cpu` and `--
 
 With an GPU you can speed up the process and also the quality of the transcription and pitching is better.
 You need a cuda device for this to work.
-If you use MAC than sorry, there is no cuda device for MAC machinges.
+If you use MAC than sorry, there is no cuda device for MAC machines.
 
 #### Info
 

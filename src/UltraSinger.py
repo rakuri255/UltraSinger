@@ -400,7 +400,7 @@ def transcribe_audio() -> (str, list[TranscribedData]):
     if settings.transcriber == "whisper":
         device = "cpu" if settings.force_whisper_cpu else settings.device
         transcribed_data, language = transcribe_with_whisper(
-            settings.mono_audio_path, settings.whisper_model, device)
+            settings.mono_audio_path, settings.whisper_model, device, settings.whisper_align_model)
     else:  # vosk
         transcribed_data = transcribe_with_vosk(
             settings.mono_audio_path, settings.vosk_model_path
@@ -729,6 +729,8 @@ def init_settings(argv: list[str]) -> None:
         elif opt in ("--whisper"):
             settings.transcriber = "whisper"
             settings.whisper_model = arg
+        elif opt in ("--align_model"):
+            settings.whisper_align_model = arg
         elif opt in ("--vosk"):
             settings.transcriber = "vosk"
             settings.vosk_model_path = arg
@@ -765,6 +767,7 @@ def arg_options():
         "crepe=",
         "vosk=",
         "whisper=",
+        "align_model=",
         "plot=",
         "hyphenation=",
         "disable_separation=",
