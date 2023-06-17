@@ -42,7 +42,9 @@ jobs:
       run: pip3 install torch==2.0.1+cu117 torchvision==0.15.2+cu117 torchaudio==2.0.2+cu117 --index-url https://download.pytorch.org/whl/cu117
 
     - name: Build with pyinstaller for ${{matrix.os}}
-      run: pyinstaller -n 'UltraSinger-0.0.1-${{matrix.TARGET}}' ${{matrix.PYINSTALLER_ARGS}} src/UltraSinger.py
+      run: |
+        pip install pyinstaller
+        pyinstaller -n 'UltraSinger-0.0.1-${{matrix.TARGET}}' ${{matrix.PYINSTALLER_ARGS}} src/UltraSinger.py
 
     - uses: actions/upload-artifact@v3
       with:
