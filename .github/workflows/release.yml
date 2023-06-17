@@ -1,4 +1,4 @@
-name: Check Requirements
+name: Release
 
 on:
   push:
