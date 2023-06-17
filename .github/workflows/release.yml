@@ -46,7 +46,7 @@ jobs:
     - name: Build with pyinstaller for ${{matrix.os}}
       run: |
         pip install pyinstaller
-        pyinstaller -n 'UltraSinger-0.0.1-${{matrix.TARGET}}' ${{matrix.PYINSTALLER_ARGS}} src/UltraSinger.py --add-data "${{matrix.PYINSTALLER_PYTHON_GITHUB_LIB_DIR_PATH}}\\lib\\site-packages\\librosa\\util\\example_data\\registry.txt";"librosa\\util\\example_data"
+        pyinstaller -n 'UltraSinger-0.0.1-${{matrix.TARGET}}' ${{matrix.PYINSTALLER_ARGS}} src/UltraSinger.py --add-data "${{matrix.PYINSTALLER_PYTHON_GITHUB_LIB_DIR_PATH}}\\lib\\site-packages\\librosa\\util\\example_data\\registry.txt;librosa\\util\\example_data"
     - uses: actions/upload-artifact@v3
       with:
         name: artifacts
