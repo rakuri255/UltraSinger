@@ -21,6 +21,7 @@ jobs:
           - os: windows-latest
             TARGET: Windows
             PYINSTALLER_ARGS: "--onefile"
+            PYINSTALLER_PYTHON_GITHUB_LIB_DIR_PATH:  "c:/hostedtoolcache/windows/python/3.10.11/x64"
         python-version: [ "3.10" ]
 
     steps:
@@ -34,6 +35,7 @@ jobs:
 
     - name: Install dependencies
       run: |
+        python -m site
         python -m pip install --upgrade pip
         pip install -r requirements.txt
       
@@ -44,8 +46,7 @@ jobs:
     - name: Build with pyinstaller for ${{matrix.os}}
       run: |
         pip install pyinstaller
-        pyinstaller -n 'UltraSinger-0.0.1-${{matrix.TARGET}}' ${{matrix.PYINSTALLER_ARGS}} src/UltraSinger.py
-
+        pyinstaller -n 'UltraSinger-0.0.1-${{matrix.TARGET}}' ${{matrix.PYINSTALLER_ARGS}} src/UltraSinger.py --add-data ${{matrix.PYINSTALLER_PYTHON_GITHUB_LIB_DIR_PATH}}/lib/site-packages/librosa/util/example_data/registry.txt;librosa/util/example_data
     - uses: actions/upload-artifact@v3
       with:
         name: artifacts
