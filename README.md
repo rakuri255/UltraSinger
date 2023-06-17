@@ -260,7 +260,7 @@ But you can force cpu usage with the extra options `--force_whisper_cpu` and `--
 
 With an GPU you can speed up the process and also the quality of the transcription and pitching is better.
 You need a cuda device for this to work.
-If you use MAC than sorry, there is no cuda device for MAC machinges.
+If you use MAC than sorry, there is no cuda device for MAC machines.
 
 #### Info
 
