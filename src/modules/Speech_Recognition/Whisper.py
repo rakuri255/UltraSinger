@@ -1,6 +1,7 @@
 """Whisper Speech Recognition Module"""
 
 import whisperx
+import sys
 
 from src.modules.console_colors import (
     ULTRASINGER_HEAD,
@@ -10,12 +11,14 @@ from src.modules.console_colors import (
 from src.modules.Speech_Recognition.TranscribedData import TranscribedData
 
 
-def transcribe_with_whisper(audio_path: str, model: str, device="cpu") -> (list[TranscribedData], str):
+def transcribe_with_whisper(audio_path: str, model: str, device="cpu", model_name: str = None) -> (list[TranscribedData], str):
     """Transcribe with whisper"""
 
     print(
         f"{ULTRASINGER_HEAD} Loading {blue_highlighted('whisper')} with model {blue_highlighted(model)} and {red_highlighted(device)} as worker"
     )
+    if model_name is not None:
+        print(f"{ULTRASINGER_HEAD} using alignment model {blue_highlighted(model_name)}")
 
     batch_size = 16  # reduce if low on GPU mem
     compute_type = (
@@ -26,6 +29,7 @@ def transcribe_with_whisper(audio_path: str, model: str, device="cpu") -> (list[
     loaded_whisper_model = whisperx.load_model(
         model, device=device, compute_type=compute_type
     )
+
     audio = whisperx.load_audio(audio_path)
 
     print(f"{ULTRASINGER_HEAD} Transcribing {audio_path}")
@@ -34,9 +38,14 @@ def transcribe_with_whisper(audio_path: str, model: str, device="cpu") -> (list[
     language = result["language"]
 
     # load alignment model and metadata
-    model_a, metadata = whisperx.load_align_model(
-        language_code=language, device=device
-    )
+    try:
+        model_a, metadata = whisperx.load_align_model(language_code=language, device=device, model_name=model_name)
+    except ValueError as ve:
+        print(f"{red_highlighted(f'{ve}')}"
+              f"\n"
+              f"{ULTRASINGER_HEAD} {red_highlighted('Error:')} Unknown language. "
+              f"Try add it with --align_model [hugingface].")
+        sys.exit(0)
 
     # align whisper output
     result_aligned = whisperx.align(
