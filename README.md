@@ -1,7 +1,11 @@
 [![Discord](https://img.shields.io/discord/1048892118732656731?logo=discord)](https://discord.gg/7EqhhjFd)
 ![Status](https://img.shields.io/badge/status-development-yellow)
+![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/rakuri255/UltraSinger/main.yml)
 [![GitHub](https://img.shields.io/github/license/rakuri255/UltraSinger)](https://github.com/rakuri255/UltraSinger/blob/main/LICENSE)
 [![CodeFactor](https://www.codefactor.io/repository/github/rakuri255/ultrasinger/badge)](https://www.codefactor.io/repository/github/rakuri255/ultrasinger)
+
+[![Check Requirements](https://github.com/rakuri255/UltraSinger/actions/workflows/main.yml/badge.svg)](https://github.com/rakuri255/UltraSinger/actions/workflows/main.yml)
+[![Pytest](https://github.com/rakuri255/UltraSinger/actions/workflows/pytest.yml/badge.svg)](https://github.com/rakuri255/UltraSinger/actions/workflows/pytest.yml)
 
 # UltraSinger
 
@@ -46,13 +50,34 @@ This will help me alot to keep this project alive and improve it.
 
 For more information about Python environments look [here](https://code.visualstudio.com/docs/python/environments#_global-virtual-or-conda-environments).
 
-As copy:
+Installation As copy:
     
 ```commandline
 py -m venv .venv
 .venv\Scripts\activate
 pip install -r requirements.txt
 pip3 install torch==2.0.1+cu117 torchvision==0.15.2+cu117 torchaudio==2.0.2+cu117 --index-url https://download.pytorch.org/whl/cu117
+
+```
+
+Run UltraSinger:
+
+* Activate the environment with `.venv\Scripts\activate`. (You dont need this if you already activated it, or just installed with the step above)
+* Navigate to src folder `cd src`
+* Start UltraSinger `py UltraSinger.py`
+
+Start environment only once:
+
+```commandline
+.venv\Scripts\activate
+cd src
+
+```
+
+Start UltraSinger:
+
+```commandline
+py UltraSinger.py
 
 ```
 
@@ -87,19 +112,22 @@ _Not all options working now!_
 
     [transcription]
     # Default is whisper
-    --whisper   Multilingual model > tiny|base|small|medium|large-v1|large-v2  >> ((default) is large-v2
-                English-only model > tiny.en|base.en|small.en|medium.en
-    --vosk      Needs model
+    --whisper       Multilingual model > tiny|base|small|medium|large-v1|large-v2  >> ((default) is large-v2
+                    English-only model > tiny.en|base.en|small.en|medium.en
+    --align_model   Use other languages model for Whisper provided from huggingface.co 
+    
+    --vosk          Needs model
+    
+    [pitcher]
+    # Default is crepe
+    --crepe     tiny|small|medium|large|full >> ((default) is full)
     
     [extra]
     --hyphenation           True|False >> ((default) is True)
     --disable_separation    True|False >> ((default) is False)
     --disable_karaoke       True|False >> ((default) is False)
     --create_audio_chunks   True|False >> ((default) is False)
-
-    [pitcher]
-    # Default is crepe
-    --crepe     tiny|small|medium|large|full >> ((default) is full)
+    --plot                  True|False >> ((default) is False)
 ```
 
 For standard use, you only need to use [opt]. All other options are optional.
@@ -137,10 +165,21 @@ Also keep in mind that while a larger model is more accurate, it also takes long
 
 #### Whisper
 
-For the first test run, use the `tiny`, to be accurate use the `large-v2` model
+For the first test run, use the `tiny`, to be accurate use the `large-v2` model.
 
 ```commandline
 -i XYZ --whisper large
+```
+
+##### Whisper languages
+
+Currently provided default language models are `en, fr, de, es, it, ja, zh, nl, uk, pt`. 
+If the language is not in this list, you need to find a phoneme-based ASR model from 
+[huggingface model hub](https://huggingface.co). It will download automatically.
+
+Example for romanian:
+```commandline
+-i XYZ --align_model "gigant/romanian-wav2vec2"
 ```
 
 #### Vosk
@@ -221,7 +260,7 @@ But you can force cpu usage with the extra options `--force_whisper_cpu` and `--
 
 With an GPU you can speed up the process and also the quality of the transcription and pitching is better.
 You need a cuda device for this to work.
-If you use MAC than sorry, there is no cuda device for MAC machinges.
+If you use MAC than sorry, there is no cuda device for MAC machines.
 
 #### Info
 

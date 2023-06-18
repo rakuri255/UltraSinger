@@ -4,7 +4,7 @@ pretty_midi~=0.2.10
 pydub==0.25.1
 Levenshtein~=0.21.0
 scipy~=1.10.1
-vosk==0.3.45
+vosk==0.3.44
 tensorflow~=2.12.0
 #tensorflow-directml-plugin~=0.4.0.dev230202
 #cudatoolkit==11.8.0
@@ -21,5 +21,5 @@ Pillow~=9.5.0
 isort==5.12
 black==23.3
 pylint==2.17
-
+pytest~=7.3.1
 musicbrainzngs~=0.7.1
