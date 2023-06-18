@@ -259,6 +259,7 @@ def run() -> None:
     is_audio = ".txt" not in settings.input_file_path
     ultrastar_class = None
     real_bpm = None
+    (title, artist, year, genre) = (None, None, None, None)
 
     if not is_audio:  # Parse Ultrastar txt
         print(
@@ -279,6 +280,7 @@ def run() -> None:
             basename_without_ext,
             song_output,
             ultrastar_audio_input_path,
+            (title, artist, year, genre)
         ) = download_from_youtube()
     else:  # Audio File
         print(
@@ -288,6 +290,7 @@ def run() -> None:
             basename_without_ext,
             song_output,
             ultrastar_audio_input_path,
+            (title, artist, year, genre)
         ) = infos_from_audio_input_file()
 
     cache_path = os.path.join(song_output, "cache")
@@ -295,9 +298,6 @@ def run() -> None:
         cache_path, basename_without_ext + ".wav"
     )
     os_helper.create_folder(cache_path)
-
-    # Get additional data for song
-    get_music_infos(basename_without_ext)
 
     # Separate vocal from audio
     audio_separation_path = separate_vocal_from_audio(
@@ -357,6 +357,10 @@ def run() -> None:
             ultrastar_audio_input_path,
             ultrastar_note_numbers,
             language,
+            title,
+            artist,
+            year,
+            genre
         )
     else:
         ultrastar_file_output = create_ultrastar_txt_from_ultrastar_data(
@@ -507,6 +511,10 @@ def create_ultrastar_txt_from_automation(
     ultrastar_audio_input_path: str,
     ultrastar_note_numbers: list[int],
     language: str,
+    title: str,
+    artist: str,
+    year: str,
+    genre: []
 ):
     """Create Ultrastar txt from automation"""
     ultrastar_header = UltrastarTxtValue()
@@ -521,6 +529,20 @@ def create_ultrastar_txt_from_automation(
         if os_helper.check_file_exists(os.path.join(song_output, cover))
         else None
     )
+
+    # Additional data
+    if title is not None:
+        ultrastar_header.title = title
+    if artist is not None:
+        ultrastar_header.artist = artist
+    if year is not None:
+        ultrastar_header.year = year
+    if genre:
+        genre_str = ""
+        for g in genre:
+            genre_str += g + ", "
+        genre_str = genre_str[:-1]
+        ultrastar_header.genre = genre_str
 
     real_bpm = get_bpm_from_file(ultrastar_audio_input_path)
     ultrastar_file_output = os.path.join(
@@ -552,16 +574,37 @@ def create_ultrastar_txt_from_automation(
     return real_bpm, ultrastar_file_output
 
 
-def infos_from_audio_input_file() -> tuple[str, str, str]:
+def infos_from_audio_input_file() -> tuple[str, str, str, tuple[str, str, str, []]]:
     """Infos from audio input file"""
     basename = os.path.basename(settings.input_file_path)
     basename_without_ext = os.path.splitext(basename)[0]
+
+    artist, title = None, None
+    if " - " in basename_without_ext:
+        artist, title = basename_without_ext.split(" - ", 1)
+        search_string = f"{artist} - {title}"
+    else:
+        search_string = basename_without_ext
+
+    # Get additional data for song
+    (title_info, artist_info, year_info, genre_info) = get_music_infos(search_string)
+
+    if title_info is not None:
+        title = title_info
+        artist = artist_info
+
+    if artist is not None and title is not None:
+        basename_without_ext = f"{artist} - {title}"
+        extension = os.path.splitext(basename)[1]
+        basename = f"{basename_without_ext}{extension}"
+
     song_output = os.path.join(settings.output_file_path, basename_without_ext)
     song_output = get_unused_song_output_dir(song_output)
     os_helper.create_folder(song_output)
     os_helper.copy(settings.input_file_path, song_output)
+    os_helper.rename(os.path.join(song_output, os.path.basename(settings.input_file_path)), os.path.join(song_output, basename))
     ultrastar_audio_input_path = os.path.join(song_output, basename)
-    return basename_without_ext, song_output, ultrastar_audio_input_path
+    return basename_without_ext, song_output, ultrastar_audio_input_path, (title, artist, year_info, genre_info)
 
 
 FILENAME_REPLACEMENTS = (('?:"', ""), ("<", "("), (">", ")"), ("/\\|*", "-"))
@@ -577,10 +620,18 @@ def sanitize_filename(fname: str) -> str:
     return fname
 
 
-def download_from_youtube() -> tuple[str, str, str]:
+def download_from_youtube() -> tuple[str, str, str, tuple[str, str, str, []]]:
     """Download from YouTube"""
-    title = get_youtube_title(settings.input_file_path)
-    basename_without_ext = sanitize_filename(title)
+    (artist, title) = get_youtube_title(settings.input_file_path)
+
+    # Get additional data for song
+    (title_info, artist_info, year_info, genre_info) = get_music_infos(f"{artist} - {title}")
+
+    if title_info is not None:
+        title = title_info
+        artist = artist_info
+
+    basename_without_ext = sanitize_filename(f"{artist} - {title}")
     basename = basename_without_ext + ".mp3"
     song_output = os.path.join(settings.output_file_path, basename_without_ext)
     song_output = get_unused_song_output_dir(song_output)
@@ -595,7 +646,7 @@ def download_from_youtube() -> tuple[str, str, str]:
         settings.input_file_path, basename_without_ext, song_output
     )
     ultrastar_audio_input_path = os.path.join(song_output, basename)
-    return basename_without_ext, song_output, ultrastar_audio_input_path
+    return basename_without_ext, song_output, ultrastar_audio_input_path, (title, artist, year_info, genre_info)
 
 
 def parse_ultrastar_txt() -> tuple[str, float, str, str, UltrastarTxtValue]:

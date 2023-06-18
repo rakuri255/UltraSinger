@@ -9,7 +9,7 @@ from PIL import Image
 from src.modules.console_colors import ULTRASINGER_HEAD
 
 
-def get_youtube_title(url: str) -> str:
+def get_youtube_title(url: str) -> tuple[str, str]:
     """Get the title of the YouTube video"""
 
     ydl_opts = {}
@@ -18,7 +18,11 @@ def get_youtube_title(url: str) -> str:
             url, download=False  # We just want to extract the info
         )
 
-    return result["title"]
+    if "artist" in result:
+        return result["artist"], result["track"]
+    if " - " in result["title"]:
+        return result["title"].split(" - ")[0], result["title"].split(" - ")[1]
+    return result["channel"], result["title"]
 
 
 def download_youtube_audio(url: str, clear_filename: str, output_path: str):
