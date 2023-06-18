@@ -19,9 +19,14 @@ def move(original: str, target: str) -> None:
     shutil.move(original, target)
 
 
-def copy(original:str, target: str) -> None:
+def copy(original: str, target: str) -> None:
     """Copies a file from one location to another."""
     shutil.copy(original, target)
+
+
+def rename(original: str, target: str) -> None:
+    """Renames a file."""
+    os.rename(original, target)
 
 
 def current_executor_path() -> str:

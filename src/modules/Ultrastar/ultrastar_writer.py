@@ -69,6 +69,10 @@ def create_ultrastar_txt_from_automation(
         file.write(f"#{UltrastarTxtTag.BPM}:{round(ultrastar_bpm, 2)}\n")  # not the real BPM!
         file.write(f"#{UltrastarTxtTag.GAP}:{int(gap * 1000)}\n")
         file.write(f"#{UltrastarTxtTag.COMMENT}:{ultrastar_class.comment}\n")
+        if ultrastar_class.year is not None:
+            file.write(f"#{UltrastarTxtTag.YEAR}:{ultrastar_class.year}\n")
+        if ultrastar_class.genre:
+            file.write(f"#{UltrastarTxtTag.GENRE}:{ultrastar_class.genre}\n")
 
         # Write the singing part
         previous_end_beat = 0
