@@ -45,7 +45,7 @@ jobs:
 
     - name: Get site-packages path
       run: |
-          python -c "import site, os; print(os.path.join(site.getsitepackages()[0], 'librosa', 'util', 'example_data', 'registry.txt'))" > registry_path.txt
+          python -c "import site, os; print(os.path.join(site.getsitepackages()[0], 'lib', 'site-packages', 'librosa', 'util', 'example_data', 'registry.txt'))" > registry_path.txt
 
     - name: Build with pyinstaller for ${{matrix.os}}
       run: |
