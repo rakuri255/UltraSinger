@@ -7,7 +7,7 @@ import yt_dlp
 from PIL import Image
 
 from src.modules.console_colors import ULTRASINGER_HEAD
-
+from src.modules.Image.image_helper import crop_image_to_square
 
 def get_youtube_title(url: str) -> tuple[str, str]:
     """Get the title of the YouTube video"""
@@ -62,9 +62,9 @@ def download_and_convert_thumbnail(ydl_opts, url: str, clear_filename: str, outp
             response = ydl.urlopen(thumbnail_url)
             image_data = response.read()
             image = Image.open(io.BytesIO(image_data))
-            image.save(
-                os.path.join(output_path, clear_filename + " [CO].jpg"), "JPEG"
-            )
+            image_path = os.path.join(output_path, clear_filename + " [CO].jpg")
+            image.save(image_path, "JPEG")
+            crop_image_to_square(image_path)
 
 
 def download_youtube_video(url: str, clear_filename: str, output_path: str) -> None:
