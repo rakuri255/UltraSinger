@@ -59,7 +59,7 @@ class UltrastarTxtValue:
 
     artist = ""
     title = ""
-    year = ""
+    year = None
     genre = ""
     mp3 = ""
     video = None

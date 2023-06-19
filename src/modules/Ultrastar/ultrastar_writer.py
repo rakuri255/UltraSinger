@@ -93,12 +93,12 @@ def create_ultrastar_txt_from_automation(
             # 'n2'  duration at real beat
             # 'n3'  pitch where 0 == C4
             # 'w'   lyric
-            file.write(f"{UltrastarTxtNoteTypeTag.NORMAL} ")
-            file.write(str(start_beat) + " ")
-            file.write(str(duration) + " ")
-            file.write(str(note_numbers[i]) + " ")
-            file.write(data.word)
-            file.write("\n")
+            line = f"{UltrastarTxtNoteTypeTag.NORMAL} " \
+                   f"{str(start_beat)} " \
+                   f"{str(duration)} " \
+                   f"{str(note_numbers[i])} " \
+                   f"{data.word}\n"
+            file.write(line)
 
             # detect silence between words
             if i < len(transcribed_data) - 1:
@@ -112,13 +112,13 @@ def create_ultrastar_txt_from_automation(
                 # - 10
                 # '-' end of current sing part
                 # 'n1' show next at time in real beat
-                file.write(f"{UltrastarTxtTag.LINEBREAK} ")
                 show_next = (
                         second_to_beat(data.end - gap, bpm)
                         * multiplication
                 )
-                file.write(str(round(show_next)))
-                file.write("\n")
+                linebreak = f"{UltrastarTxtTag.LINEBREAK} " \
+                            f"{str(round(show_next))}\n"
+                file.write(linebreak)
         file.write(f"{UltrastarTxtTag.FILE_END}")
 
 
