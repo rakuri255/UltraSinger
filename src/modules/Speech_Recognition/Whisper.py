@@ -11,7 +11,8 @@ from src.modules.console_colors import (
 from src.modules.Speech_Recognition.TranscribedData import TranscribedData
 
 
-def transcribe_with_whisper(audio_path: str, model: str, device="cpu", model_name: str = None) -> (list[TranscribedData], str):
+def transcribe_with_whisper(audio_path: str, model: str, device="cpu", model_name: str = None) -> (
+list[TranscribedData], str):
     """Transcribe with whisper"""
 
     print(
@@ -25,7 +26,6 @@ def transcribe_with_whisper(audio_path: str, model: str, device="cpu", model_nam
         "float16" if device == "cuda" else "int8"
     )  # change to "int8" if low on GPU mem (may reduce accuracy)
 
-    # transcribe with original whisper
     loaded_whisper_model = whisperx.load_model(
         model, device=device, compute_type=compute_type
     )
@@ -57,8 +57,13 @@ def transcribe_with_whisper(audio_path: str, model: str, device="cpu", model_nam
         return_char_alignments=False,
     )
 
-    transcribed_data = []
+    transcribed_data = convert_to_transcribed_data(result_aligned)
 
+    return transcribed_data, language
+
+
+def convert_to_transcribed_data(result_aligned):
+    transcribed_data = []
     for segment in result_aligned["segments"]:
         for obj in segment["words"]:
             if len(obj) < 4:
@@ -67,7 +72,6 @@ def transcribe_with_whisper(audio_path: str, model: str, device="cpu", model_nam
                 )
                 continue
             vtd = TranscribedData(obj)  # create custom Word object
-            vtd.word = vtd.word + " "
+            vtd.word = vtd.word + " "  # add space to end of word
             transcribed_data.append(vtd)  # and add it to list
-
-    return transcribed_data, language
+    return transcribed_data

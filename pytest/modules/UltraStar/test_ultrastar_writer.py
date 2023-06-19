@@ -1,3 +1,5 @@
+"""Tests for the ultrastar_writer.py module."""
+
 import unittest
 from unittest.mock import patch, mock_open
 from src.modules.Ultrastar.ultrastar_writer import create_ultrastar_txt_from_automation
@@ -131,3 +133,6 @@ class TestCreateUltrastarTxt(unittest.TestCase):
                 default_ultrastar_class, bpm
             )
         return mock_file
+
+if __name__ == "__main__":
+    unittest.main()
