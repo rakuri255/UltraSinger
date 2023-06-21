@@ -4,14 +4,14 @@ from src.modules.Ultrastar.ultrastar_txt import UltrastarTxtValue
 
 def real_bpm_to_ultrastar_bpm(real_bpm: float) -> float:
     """Converts real BPM to UltraStar BPM"""
-    # The UltraStar BPM info is a fifth beat of the real BPM
+    # The UltraStar BPM info is a fourth beat of the real BPM
     ultrastar_bpm = real_bpm / 4
     return ultrastar_bpm
 
 
 def ultrastar_bpm_to_real_bpm(ultrastar_bpm: float) -> float:
     """Converts UltraStar BPM to real BPM"""
-    # The UltraStar BPM info is a fifth beat of the real BPM
+    # The UltraStar BPM info is a fourth beat of the real BPM
     bpm = ultrastar_bpm * 4
     return bpm
 

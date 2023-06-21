@@ -514,7 +514,7 @@ def create_ultrastar_txt_from_automation(
     title: str,
     artist: str,
     year: str,
-    genre: []
+    genre: str
 ):
     """Create Ultrastar txt from automation"""
     ultrastar_header = UltrastarTxtValue()
@@ -537,12 +537,8 @@ def create_ultrastar_txt_from_automation(
         ultrastar_header.artist = artist
     if year is not None:
         ultrastar_header.year = year
-    if genre:
-        genre_str = ""
-        for g in genre:
-            genre_str += g + ", "
-        genre_str = genre_str[:-1]
-        ultrastar_header.genre = genre_str
+    if genre is not None:
+        ultrastar_header.genre = genre
 
     real_bpm = get_bpm_from_file(ultrastar_audio_input_path)
     ultrastar_file_output = os.path.join(
@@ -574,7 +570,7 @@ def create_ultrastar_txt_from_automation(
     return real_bpm, ultrastar_file_output
 
 
-def infos_from_audio_input_file() -> tuple[str, str, str, tuple[str, str, str, []]]:
+def infos_from_audio_input_file() -> tuple[str, str, str, tuple[str, str, str, str]]:
     """Infos from audio input file"""
     basename = os.path.basename(settings.input_file_path)
     basename_without_ext = os.path.splitext(basename)[0]
@@ -620,7 +616,7 @@ def sanitize_filename(fname: str) -> str:
     return fname
 
 
-def download_from_youtube() -> tuple[str, str, str, tuple[str, str, str, []]]:
+def download_from_youtube() -> tuple[str, str, str, tuple[str, str, str, str]]:
     """Download from YouTube"""
     (artist, title) = get_youtube_title(settings.input_file_path)
 

@@ -20,8 +20,8 @@ def get_youtube_title(url: str) -> tuple[str, str]:
 
     if "artist" in result:
         return result["artist"], result["track"]
-    if " - " in result["title"]:
-        return result["title"].split(" - ")[0], result["title"].split(" - ")[1]
+    if "-" in result["title"]:
+        return result["title"].split("-")[0], result["title"].split("-")[1]
     return result["channel"], result["title"]
 
 
