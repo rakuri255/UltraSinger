@@ -2,7 +2,7 @@
 
 import unittest
 from unittest.mock import patch
-from modules.musicbrainz_client import get_music_infos
+from src.modules.musicbrainz_client import get_music_infos
 
 
 class TestGetMusicInfos(unittest.TestCase):

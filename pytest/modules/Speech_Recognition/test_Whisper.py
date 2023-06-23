@@ -1,8 +1,8 @@
 """Tests for whisper.py"""
 
 import unittest
-from modules.Speech_Recognition.TranscribedData import TranscribedData
-from modules.Speech_Recognition.Whisper import convert_to_transcribed_data
+from src.modules.Speech_Recognition.TranscribedData import TranscribedData
+from src.modules.Speech_Recognition.Whisper import convert_to_transcribed_data
 
 
 class ConvertToTranscribedDataTest(unittest.TestCase):
