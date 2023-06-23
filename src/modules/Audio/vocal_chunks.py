@@ -4,13 +4,13 @@ import os
 import re
 import wave
 
-from src.modules.console_colors import ULTRASINGER_HEAD
-from src.modules.os_helper import create_folder
-from src.modules.Ultrastar.ultrastar_converter import (
+from modules.console_colors import ULTRASINGER_HEAD
+from modules.os_helper import create_folder
+from modules.Ultrastar.ultrastar_converter import (
     get_end_time_from_ultrastar,
     get_start_time_from_ultrastar,
 )
-from src.modules.Ultrastar.ultrastar_txt import UltrastarTxtValue
+from modules.Ultrastar.ultrastar_txt import UltrastarTxtValue
 
 
 class AudioManipulation:

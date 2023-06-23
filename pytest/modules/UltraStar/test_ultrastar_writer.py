@@ -2,9 +2,9 @@
 
 import unittest
 from unittest.mock import patch, mock_open
-from src.modules.Ultrastar.ultrastar_writer import create_ultrastar_txt_from_automation
-from src.modules.Speech_Recognition.TranscribedData import TranscribedData
-from src.modules.Ultrastar.ultrastar_txt import UltrastarTxtValue, UltrastarTxtTag
+from modules.Ultrastar.ultrastar_writer import create_ultrastar_txt_from_automation
+from modules.Speech_Recognition.TranscribedData import TranscribedData
+from modules.Ultrastar.ultrastar_txt import UltrastarTxtValue, UltrastarTxtTag
 
 
 class TestCreateUltrastarTxt(unittest.TestCase):

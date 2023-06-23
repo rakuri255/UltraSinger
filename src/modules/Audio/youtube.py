@@ -6,8 +6,8 @@ import os
 import yt_dlp
 from PIL import Image
 
-from src.modules.console_colors import ULTRASINGER_HEAD
-from src.modules.Image.image_helper import crop_image_to_square
+from modules.console_colors import ULTRASINGER_HEAD
+from modules.Image.image_helper import crop_image_to_square
 
 def get_youtube_title(url: str) -> tuple[str, str]:
     """Get the title of the YouTube video"""

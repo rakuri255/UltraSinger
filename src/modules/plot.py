@@ -4,9 +4,9 @@ import os
 import librosa
 from matplotlib import pyplot as plt
 from matplotlib.patches import Rectangle
-from src.modules.Pitcher.pitched_data import PitchedData
-from src.modules.Speech_Recognition.TranscribedData import TranscribedData
-from src.modules.console_colors import ULTRASINGER_HEAD
+from modules.Pitcher.pitched_data import PitchedData
+from modules.Speech_Recognition.TranscribedData import TranscribedData
+from modules.console_colors import ULTRASINGER_HEAD
 
 
 def get_frequency_range(midi_note: str) -> float:

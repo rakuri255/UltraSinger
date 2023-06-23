@@ -2,7 +2,7 @@
 
 import ffmpeg
 
-from src.modules.console_colors import ULTRASINGER_HEAD, blue_highlighted
+from modules.console_colors import ULTRASINGER_HEAD, blue_highlighted
 
 
 def ffmpeg_reduce_noise(input_file_path: str, output_file: str) -> None:

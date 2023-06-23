@@ -1,7 +1,7 @@
 """Tests for hyphenation.py"""
 
 import unittest
-from src.modules.Speech_Recognition.hyphenation import hyphenation
+from modules.Speech_Recognition.hyphenation import hyphenation
 from hyphen import Hyphenator
 
 

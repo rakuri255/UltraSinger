@@ -2,7 +2,7 @@
 
 from pydub import AudioSegment
 
-from src.modules.console_colors import ULTRASINGER_HEAD
+from modules.console_colors import ULTRASINGER_HEAD
 
 
 def convert_audio_to_mono_wav(input_file: str, output_file: str) -> None:

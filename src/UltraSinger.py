@@ -10,49 +10,49 @@ import Levenshtein
 import librosa
 from tqdm import tqdm
 
-from src.modules import os_helper
-from src.modules.Audio.denoise import ffmpeg_reduce_noise
-from src.modules.Audio.separation import separate_audio
-from src.modules.Audio.vocal_chunks import (
+from modules import os_helper
+from modules.Audio.denoise import ffmpeg_reduce_noise
+from modules.Audio.separation import separate_audio
+from modules.Audio.vocal_chunks import (
     export_chunks_from_transcribed_data,
     export_chunks_from_ultrastar_data,
 )
-from src.modules.Audio.silence_processing import remove_silence_from_transcribtion_data
-from src.modules.csv_handler import export_transcribed_data_to_csv
-from src.modules.Audio.convert_audio import convert_audio_to_mono_wav, convert_wav_to_mp3
-from src.modules.Audio.youtube import (
+from modules.Audio.silence_processing import remove_silence_from_transcribtion_data
+from modules.csv_handler import export_transcribed_data_to_csv
+from modules.Audio.convert_audio import convert_audio_to_mono_wav, convert_wav_to_mp3
+from modules.Audio.youtube import (
     download_youtube_audio,
     download_youtube_thumbnail,
     download_youtube_video,
     get_youtube_title,
 )
-from src.modules.DeviceDetection.device_detection import get_available_device
-from src.modules.console_colors import (
+from modules.DeviceDetection.device_detection import get_available_device
+from modules.console_colors import (
     ULTRASINGER_HEAD,
     blue_highlighted,
     gold_highlighted,
     light_blue_highlighted,
     red_highlighted,
 )
-from src.modules.Midi import midi_creator
-from src.modules.Midi.midi_creator import (
+from modules.Midi import midi_creator
+from modules.Midi.midi_creator import (
     convert_frequencies_to_notes,
     create_midi_notes_from_pitched_data,
     most_frequent,
 )
-from src.modules.Pitcher.pitcher import (
+from modules.Pitcher.pitcher import (
     get_frequency_with_high_confidence,
     get_pitch_with_crepe_file,
 )
-from src.modules.Pitcher.pitched_data import PitchedData
-from src.modules.Speech_Recognition.hyphenation import hyphenation, language_check, create_hyphenator
-from src.modules.Speech_Recognition.Vosk import transcribe_with_vosk
-from src.modules.Speech_Recognition.Whisper import transcribe_with_whisper
-from src.modules.Ultrastar import ultrastar_score_calculator, ultrastar_writer, ultrastar_converter, ultrastar_parser
-from src.modules.Ultrastar.ultrastar_txt import UltrastarTxtValue
+from modules.Pitcher.pitched_data import PitchedData
+from modules.Speech_Recognition.hyphenation import hyphenation, language_check, create_hyphenator
+from modules.Speech_Recognition.Vosk import transcribe_with_vosk
+from modules.Speech_Recognition.Whisper import transcribe_with_whisper
+from modules.Ultrastar import ultrastar_score_calculator, ultrastar_writer, ultrastar_converter, ultrastar_parser
+from modules.Ultrastar.ultrastar_txt import UltrastarTxtValue
 from Settings import Settings
-from src.modules.Speech_Recognition.TranscribedData import TranscribedData
-from src.modules.plot import plot
+from modules.Speech_Recognition.TranscribedData import TranscribedData
+from modules.plot import plot
 from modules.musicbrainz_client import get_music_infos
 
 settings = Settings()

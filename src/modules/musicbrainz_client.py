@@ -1,6 +1,6 @@
 import musicbrainzngs
 import string
-from src.modules.console_colors import ULTRASINGER_HEAD, blue_highlighted, red_highlighted
+from modules.console_colors import ULTRASINGER_HEAD, blue_highlighted, red_highlighted
 
 
 def get_music_infos(search_string: str) -> tuple[str, str, str, str]:

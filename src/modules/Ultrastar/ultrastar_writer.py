@@ -4,15 +4,15 @@ import re
 
 import langcodes
 
-from src.modules.console_colors import ULTRASINGER_HEAD
-from src.modules.Ultrastar.ultrastar_converter import (
+from modules.console_colors import ULTRASINGER_HEAD
+from modules.Ultrastar.ultrastar_converter import (
     real_bpm_to_ultrastar_bpm,
     second_to_beat,
 )
-from src.modules.Ultrastar.ultrastar_txt import UltrastarTxtValue, UltrastarTxtTag, UltrastarTxtNoteTypeTag, \
+from modules.Ultrastar.ultrastar_txt import UltrastarTxtValue, UltrastarTxtTag, UltrastarTxtNoteTypeTag, \
     FILE_ENCODING
-from src.modules.Speech_Recognition.TranscribedData import TranscribedData
-from src.modules.Ultrastar.ultrastar_score_calculator import Score
+from modules.Speech_Recognition.TranscribedData import TranscribedData
+from modules.Ultrastar.ultrastar_score_calculator import Score
 
 
 def get_multiplier(real_bpm: float) -> int:
