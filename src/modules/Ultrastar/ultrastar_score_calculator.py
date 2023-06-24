@@ -107,7 +107,7 @@ def calculate_score(pitched_data: PitchedData, ultrastar_class: UltrastarTxtValu
         start_time = get_start_time_from_ultrastar(ultrastar_class, pos)
         end_time = get_end_time_from_ultrastar(ultrastar_class, pos)
         duration = end_time - start_time
-        step_size = 0.01  # todo: should be beat length ?
+        step_size = 0.09  # Todo: Whats is the step size of the game? Its not 1/bps -> one beat in seconds s = 60/bpm
         parts = int(duration / step_size)
         parts = 1 if parts == 0 else parts
 
@@ -122,6 +122,8 @@ def calculate_score(pitched_data: PitchedData, ultrastar_class: UltrastarTxtValu
         for part in range(parts):
             start = start_time + step_size * part
             end = start + step_size
+            if end_time < end or part == parts - 1:
+                end = end_time
             pitch_note = create_midi_note_from_pitched_data(
                 start, end, pitched_data
             )

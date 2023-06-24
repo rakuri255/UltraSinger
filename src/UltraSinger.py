@@ -145,7 +145,7 @@ def get_bpm_from_data(data, sampling_rate):
     return wav_tempo[0]
 
 
-def get_bpm_from_file(wav_file: str):
+def get_bpm_from_file(wav_file: str) -> float:
     """Get real bpm from audio file"""
     data, sampling_rate = librosa.load(wav_file, sr=None)
     return get_bpm_from_data(data, sampling_rate)
