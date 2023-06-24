@@ -379,7 +379,7 @@ def run() -> None:
 
     # Midi
     if settings.create_midi:
-        create_midi_file(is_audio, real_bpm, song_output, ultrastar_class)
+        create_midi_file(real_bpm, song_output, ultrastar_class, basename_without_ext)
 
     # Print Support
     print_support()
@@ -672,27 +672,22 @@ def parse_ultrastar_txt() -> tuple[str, float, str, str, UltrastarTxtValue]:
     )
 
 
-def create_midi_file(is_audio: bool, real_bpm: float, song_output: str, ultrastar_class: UltrastarTxtValue) -> None:
+def create_midi_file(real_bpm: float,
+                     song_output: str,
+                     ultrastar_class: UltrastarTxtValue,
+                     basename_without_ext: str) -> None:
     """Create midi file"""
     print(
         f"{ULTRASINGER_HEAD} Creating Midi with {blue_highlighted('pretty_midi')}"
     )
-    if is_audio:
-        voice_instrument = [
-            midi_creator.convert_ultrastar_to_midi_instrument(ultrastar_class)
-        ]
-        midi_output = os.path.join(song_output, ultrastar_class.title + ".mid")
-        midi_creator.instruments_to_midi(
-            voice_instrument, real_bpm, midi_output
-        )
-    else:
-        voice_instrument = [
-            midi_creator.convert_ultrastar_to_midi_instrument(ultrastar_class)
-        ]
-        midi_output = os.path.join(song_output, ultrastar_class.title + ".mid")
-        midi_creator.instruments_to_midi(
-            voice_instrument, real_bpm, midi_output
-        )
+
+    voice_instrument = [
+        midi_creator.convert_ultrastar_to_midi_instrument(ultrastar_class)
+    ]
+    midi_output = os.path.join(song_output, f"{basename_without_ext}.mid")
+    midi_creator.instruments_to_midi(
+        voice_instrument, real_bpm, midi_output
+    )
 
 
 def pitch_audio(is_audio: bool, transcribed_data: list[TranscribedData], ultrastar_class: UltrastarTxtValue) -> tuple[
