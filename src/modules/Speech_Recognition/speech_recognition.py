@@ -6,7 +6,7 @@ import speech_recognition as sr
 from pydub import AudioSegment
 from pydub.silence import split_on_silence
 
-from src.modules.console_colors import ULTRASINGER_HEAD
+from modules.console_colors import ULTRASINGER_HEAD
 
 # todo: Code from here: https://www.thepythoncode.com/article/using-speech-recognition-to-convert-speech-to-text-python
 

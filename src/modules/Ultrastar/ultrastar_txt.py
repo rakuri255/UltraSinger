@@ -59,6 +59,8 @@ class UltrastarTxtValue:
 
     artist = ""
     title = ""
+    year = None
+    genre = ""
     mp3 = ""
     video = None
     gap = ""

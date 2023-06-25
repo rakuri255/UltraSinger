@@ -2,8 +2,8 @@
 
 import csv
 
-from src.modules.console_colors import ULTRASINGER_HEAD
-from src.modules.Speech_Recognition.TranscribedData import TranscribedData
+from modules.console_colors import ULTRASINGER_HEAD
+from modules.Speech_Recognition.TranscribedData import TranscribedData
 
 
 def export_transcribed_data_to_csv(transcribed_data: list[TranscribedData], filename: str) -> None:

@@ -10,49 +10,49 @@ import Levenshtein
 import librosa
 from tqdm import tqdm
 
-from src.modules import os_helper
-from src.modules.Audio.denoise import ffmpeg_reduce_noise
-from src.modules.Audio.separation import separate_audio
-from src.modules.Audio.vocal_chunks import (
+from modules import os_helper
+from modules.Audio.denoise import ffmpeg_reduce_noise
+from modules.Audio.separation import separate_audio
+from modules.Audio.vocal_chunks import (
     export_chunks_from_transcribed_data,
     export_chunks_from_ultrastar_data,
 )
-from src.modules.Audio.silence_processing import remove_silence_from_transcribtion_data
-from src.modules.csv_handler import export_transcribed_data_to_csv
-from src.modules.Audio.convert_audio import convert_audio_to_mono_wav, convert_wav_to_mp3
-from src.modules.Audio.youtube import (
+from modules.Audio.silence_processing import remove_silence_from_transcribtion_data
+from modules.csv_handler import export_transcribed_data_to_csv
+from modules.Audio.convert_audio import convert_audio_to_mono_wav, convert_wav_to_mp3
+from modules.Audio.youtube import (
     download_youtube_audio,
     download_youtube_thumbnail,
     download_youtube_video,
     get_youtube_title,
 )
-from src.modules.DeviceDetection.device_detection import get_available_device
-from src.modules.console_colors import (
+from modules.DeviceDetection.device_detection import get_available_device
+from modules.console_colors import (
     ULTRASINGER_HEAD,
     blue_highlighted,
     gold_highlighted,
     light_blue_highlighted,
     red_highlighted,
 )
-from src.modules.Midi import midi_creator
-from src.modules.Midi.midi_creator import (
+from modules.Midi import midi_creator
+from modules.Midi.midi_creator import (
     convert_frequencies_to_notes,
     create_midi_notes_from_pitched_data,
     most_frequent,
 )
-from src.modules.Pitcher.pitcher import (
+from modules.Pitcher.pitcher import (
     get_frequency_with_high_confidence,
     get_pitch_with_crepe_file,
 )
-from src.modules.Pitcher.pitched_data import PitchedData
-from src.modules.Speech_Recognition.hyphenation import hyphenation, language_check
-from src.modules.Speech_Recognition.Vosk import transcribe_with_vosk
-from src.modules.Speech_Recognition.Whisper import transcribe_with_whisper
-from src.modules.Ultrastar import ultrastar_score_calculator, ultrastar_writer, ultrastar_converter, ultrastar_parser
-from src.modules.Ultrastar.ultrastar_txt import UltrastarTxtValue
+from modules.Pitcher.pitched_data import PitchedData
+from modules.Speech_Recognition.hyphenation import hyphenation, language_check, create_hyphenator
+from modules.Speech_Recognition.Whisper import transcribe_with_whisper
+from modules.Ultrastar import ultrastar_score_calculator, ultrastar_writer, ultrastar_converter, ultrastar_parser
+from modules.Ultrastar.ultrastar_txt import UltrastarTxtValue
 from Settings import Settings
-from src.modules.Speech_Recognition.TranscribedData import TranscribedData
-from src.modules.plot import plot
+from modules.Speech_Recognition.TranscribedData import TranscribedData
+from modules.plot import plot
+from modules.musicbrainz_client import get_music_infos
 
 settings = Settings()
 
@@ -144,7 +144,7 @@ def get_bpm_from_data(data, sampling_rate):
     return wav_tempo[0]
 
 
-def get_bpm_from_file(wav_file: str):
+def get_bpm_from_file(wav_file: str) -> float:
     """Get real bpm from audio file"""
     data, sampling_rate = librosa.load(wav_file, sr=None)
     return get_bpm_from_data(data, sampling_rate)
@@ -182,7 +182,8 @@ def print_help() -> None:
     [mode]
     ## INPUT is audio ##
     default  Creates all
-            
+    
+    # Single file creation selection is in progress, you currently getting all!
     (-u      Create ultrastar txt file) # In Progress
     (-m      Create midi file) # In Progress
     (-s      Create sheet file) # In Progress
@@ -190,22 +191,27 @@ def print_help() -> None:
     ## INPUT is ultrastar.txt ##
     default  Creates all
 
+    # Single selection is in progress, you currently getting all!
     (-r      repitch Ultrastar.txt (input has to be audio)) # In Progress
     (-p      Check pitch of Ultrastar.txt input) # In Progress
     (-m      Create midi file) # In Progress
 
     [transcription]
-    --whisper   (default) tiny|base|small|medium|large
-    --vosk      Needs model
+    # Default is whisper
+    --whisper       Multilingual model > tiny|base|small|medium|large-v1|large-v2  >> ((default) is large-v2
+                    English-only model > tiny.en|base.en|small.en|medium.en
+    --align_model   Use other languages model for Whisper provided from huggingface.co 
+        
+    [pitcher]
+    # Default is crepe
+    --crepe     tiny|small|medium|large|full >> ((default) is full)
     
     [extra]
-    (-k                     Keep audio chunks) # In Progress
-    --hyphenation           (default) True|False
-    --disable_separation    True|False
-    --disable_karaoke       True|False
-    
-    [pitcher]
-    --crepe  (default) tiny|small|medium|large|full
+    --hyphenation           True|False >> ((default) is True)
+    --disable_separation    True|False >> ((default) is False)
+    --disable_karaoke       True|False >> ((default) is False)
+    --create_audio_chunks   True|False >> ((default) is False)
+    --plot                  True|False >> ((default) is False)
     """
     print(help_string)
 
@@ -230,9 +236,11 @@ def hyphenate_each_word(language: str, transcribed_data: list[TranscribedData]) 
         return None
 
     sleep(0.1)
-    for i, data in tqdm(enumerate(transcribed_data)):
+    hyphenator = create_hyphenator(lang_region)
+    for i in tqdm(enumerate(transcribed_data)):
+        pos = i[0]
         hyphenated_word.append(
-            hyphenation(data.word, lang_region)
+            hyphenation(transcribed_data[pos].word, hyphenator)
         )
     return hyphenated_word
 
@@ -256,6 +264,7 @@ def run() -> None:
     is_audio = ".txt" not in settings.input_file_path
     ultrastar_class = None
     real_bpm = None
+    (title, artist, year, genre) = (None, None, None, None)
 
     if not is_audio:  # Parse Ultrastar txt
         print(
@@ -276,6 +285,7 @@ def run() -> None:
             basename_without_ext,
             song_output,
             ultrastar_audio_input_path,
+            (title, artist, year, genre)
         ) = download_from_youtube()
     else:  # Audio File
         print(
@@ -285,6 +295,7 @@ def run() -> None:
             basename_without_ext,
             song_output,
             ultrastar_audio_input_path,
+            (title, artist, year, genre)
         ) = infos_from_audio_input_file()
 
     cache_path = os.path.join(song_output, "cache")
@@ -351,6 +362,10 @@ def run() -> None:
             ultrastar_audio_input_path,
             ultrastar_note_numbers,
             language,
+            title,
+            artist,
+            year,
+            genre
         )
     else:
         ultrastar_file_output = create_ultrastar_txt_from_ultrastar_data(
@@ -369,7 +384,7 @@ def run() -> None:
 
     # Midi
     if settings.create_midi:
-        create_midi_file(is_audio, real_bpm, song_output, ultrastar_class)
+        create_midi_file(real_bpm, song_output, ultrastar_class, basename_without_ext)
 
     # Print Support
     print_support()
@@ -401,12 +416,8 @@ def transcribe_audio() -> (str, list[TranscribedData]):
         device = "cpu" if settings.force_whisper_cpu else settings.device
         transcribed_data, language = transcribe_with_whisper(
             settings.mono_audio_path, settings.whisper_model, device, settings.whisper_align_model)
-    else:  # vosk
-        transcribed_data = transcribe_with_vosk(
-            settings.mono_audio_path, settings.vosk_model_path
-        )
-        # todo: make language selectable
-        language = "en"
+    else:
+        raise NotImplementedError
     return language, transcribed_data
 
 
@@ -501,6 +512,10 @@ def create_ultrastar_txt_from_automation(
     ultrastar_audio_input_path: str,
     ultrastar_note_numbers: list[int],
     language: str,
+    title: str,
+    artist: str,
+    year: str,
+    genre: str
 ):
     """Create Ultrastar txt from automation"""
     ultrastar_header = UltrastarTxtValue()
@@ -515,6 +530,16 @@ def create_ultrastar_txt_from_automation(
         if os_helper.check_file_exists(os.path.join(song_output, cover))
         else None
     )
+
+    # Additional data
+    if title is not None:
+        ultrastar_header.title = title
+    if artist is not None:
+        ultrastar_header.artist = artist
+    if year is not None:
+        ultrastar_header.year = year
+    if genre is not None:
+        ultrastar_header.genre = genre
 
     real_bpm = get_bpm_from_file(ultrastar_audio_input_path)
     ultrastar_file_output = os.path.join(
@@ -546,16 +571,37 @@ def create_ultrastar_txt_from_automation(
     return real_bpm, ultrastar_file_output
 
 
-def infos_from_audio_input_file() -> tuple[str, str, str]:
+def infos_from_audio_input_file() -> tuple[str, str, str, tuple[str, str, str, str]]:
     """Infos from audio input file"""
     basename = os.path.basename(settings.input_file_path)
     basename_without_ext = os.path.splitext(basename)[0]
+
+    artist, title = None, None
+    if " - " in basename_without_ext:
+        artist, title = basename_without_ext.split(" - ", 1)
+        search_string = f"{artist} - {title}"
+    else:
+        search_string = basename_without_ext
+
+    # Get additional data for song
+    (title_info, artist_info, year_info, genre_info) = get_music_infos(search_string)
+
+    if title_info is not None:
+        title = title_info
+        artist = artist_info
+
+    if artist is not None and title is not None:
+        basename_without_ext = f"{artist} - {title}"
+        extension = os.path.splitext(basename)[1]
+        basename = f"{basename_without_ext}{extension}"
+
     song_output = os.path.join(settings.output_file_path, basename_without_ext)
     song_output = get_unused_song_output_dir(song_output)
     os_helper.create_folder(song_output)
     os_helper.copy(settings.input_file_path, song_output)
+    os_helper.rename(os.path.join(song_output, os.path.basename(settings.input_file_path)), os.path.join(song_output, basename))
     ultrastar_audio_input_path = os.path.join(song_output, basename)
-    return basename_without_ext, song_output, ultrastar_audio_input_path
+    return basename_without_ext, song_output, ultrastar_audio_input_path, (title, artist, year_info, genre_info)
 
 
 FILENAME_REPLACEMENTS = (('?:"', ""), ("<", "("), (">", ")"), ("/\\|*", "-"))
@@ -571,10 +617,18 @@ def sanitize_filename(fname: str) -> str:
     return fname
 
 
-def download_from_youtube() -> tuple[str, str, str]:
+def download_from_youtube() -> tuple[str, str, str, tuple[str, str, str, str]]:
     """Download from YouTube"""
-    title = get_youtube_title(settings.input_file_path)
-    basename_without_ext = sanitize_filename(title)
+    (artist, title) = get_youtube_title(settings.input_file_path)
+
+    # Get additional data for song
+    (title_info, artist_info, year_info, genre_info) = get_music_infos(f"{artist} - {title}")
+
+    if title_info is not None:
+        title = title_info
+        artist = artist_info
+
+    basename_without_ext = sanitize_filename(f"{artist} - {title}")
     basename = basename_without_ext + ".mp3"
     song_output = os.path.join(settings.output_file_path, basename_without_ext)
     song_output = get_unused_song_output_dir(song_output)
@@ -589,7 +643,7 @@ def download_from_youtube() -> tuple[str, str, str]:
         settings.input_file_path, basename_without_ext, song_output
     )
     ultrastar_audio_input_path = os.path.join(song_output, basename)
-    return basename_without_ext, song_output, ultrastar_audio_input_path
+    return basename_without_ext, song_output, ultrastar_audio_input_path, (title, artist, year_info, genre_info)
 
 
 def parse_ultrastar_txt() -> tuple[str, float, str, str, UltrastarTxtValue]:
@@ -619,27 +673,22 @@ def parse_ultrastar_txt() -> tuple[str, float, str, str, UltrastarTxtValue]:
     )
 
 
-def create_midi_file(is_audio: bool, real_bpm: float, song_output: str, ultrastar_class: UltrastarTxtValue) -> None:
+def create_midi_file(real_bpm: float,
+                     song_output: str,
+                     ultrastar_class: UltrastarTxtValue,
+                     basename_without_ext: str) -> None:
     """Create midi file"""
     print(
         f"{ULTRASINGER_HEAD} Creating Midi with {blue_highlighted('pretty_midi')}"
     )
-    if is_audio:
-        voice_instrument = [
-            midi_creator.convert_ultrastar_to_midi_instrument(ultrastar_class)
-        ]
-        midi_output = os.path.join(song_output, ultrastar_class.title + ".mid")
-        midi_creator.instruments_to_midi(
-            voice_instrument, real_bpm, midi_output
-        )
-    else:
-        voice_instrument = [
-            midi_creator.convert_ultrastar_to_midi_instrument(ultrastar_class)
-        ]
-        midi_output = os.path.join(song_output, ultrastar_class.title + ".mid")
-        midi_creator.instruments_to_midi(
-            voice_instrument, real_bpm, midi_output
-        )
+
+    voice_instrument = [
+        midi_creator.convert_ultrastar_to_midi_instrument(ultrastar_class)
+    ]
+    midi_output = os.path.join(song_output, f"{basename_without_ext}.mid")
+    midi_creator.instruments_to_midi(
+        voice_instrument, real_bpm, midi_output
+    )
 
 
 def pitch_audio(is_audio: bool, transcribed_data: list[TranscribedData], ultrastar_class: UltrastarTxtValue) -> tuple[
@@ -731,9 +780,6 @@ def init_settings(argv: list[str]) -> None:
             settings.whisper_model = arg
         elif opt in ("--align_model"):
             settings.whisper_align_model = arg
-        elif opt in ("--vosk"):
-            settings.transcriber = "vosk"
-            settings.vosk_model_path = arg
         elif opt in ("--crepe"):
             settings.crepe_model_capacity = arg
         elif opt in ("--plot"):
@@ -765,7 +811,6 @@ def arg_options():
         "ifile=",
         "ofile=",
         "crepe=",
-        "vosk=",
         "whisper=",
         "align_model=",
         "plot=",

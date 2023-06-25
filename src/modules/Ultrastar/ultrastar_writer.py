@@ -4,14 +4,15 @@ import re
 
 import langcodes
 
-from src.modules.console_colors import ULTRASINGER_HEAD
-from src.modules.Ultrastar.ultrastar_converter import (
+from modules.console_colors import ULTRASINGER_HEAD
+from modules.Ultrastar.ultrastar_converter import (
     real_bpm_to_ultrastar_bpm,
     second_to_beat,
 )
-from src.modules.Ultrastar.ultrastar_txt import UltrastarTxtValue, UltrastarTxtTag, UltrastarTxtNoteTypeTag, FILE_ENCODING
-from src.modules.Speech_Recognition.TranscribedData import TranscribedData
-from src.modules.Ultrastar.ultrastar_score_calculator import Score
+from modules.Ultrastar.ultrastar_txt import UltrastarTxtValue, UltrastarTxtTag, UltrastarTxtNoteTypeTag, \
+    FILE_ENCODING
+from modules.Speech_Recognition.TranscribedData import TranscribedData
+from modules.Ultrastar.ultrastar_score_calculator import Score
 
 
 def get_multiplier(real_bpm: float) -> int:
@@ -47,27 +48,29 @@ def create_ultrastar_txt_from_automation(
         f"{ULTRASINGER_HEAD} Creating {ultrastar_file_output} from transcription."
     )
 
-    real_bpm = real_bpm_to_ultrastar_bpm(bpm)
-    multiplication = get_multiplier(real_bpm)
-    ultrastar_bpm = real_bpm * get_multiplier(real_bpm)
+    ultrastar_bpm = real_bpm_to_ultrastar_bpm(bpm)
+    multiplication = get_multiplier(ultrastar_bpm)
+    ultrastar_bpm = ultrastar_bpm * get_multiplier(ultrastar_bpm)
 
     with open(ultrastar_file_output, "w", encoding=FILE_ENCODING) as file:
         gap = transcribed_data[0].start
 
         file.write(f"#{UltrastarTxtTag.ARTIST}:{ultrastar_class.artist}\n")
         file.write(f"#{UltrastarTxtTag.TITLE}:{ultrastar_class.title}\n")
-        file.write(f"#{UltrastarTxtTag.CREATOR}:{ultrastar_class.creator}\n")
-        file.write(f"#{UltrastarTxtTag.FIXER}:{ultrastar_class.fixer}\n")
+        if ultrastar_class.year is not None:
+            file.write(f"#{UltrastarTxtTag.YEAR}:{ultrastar_class.year}\n")
         if ultrastar_class.language is not None:
-            file.write(
-                f"#{UltrastarTxtTag.LANGUAGE}:{get_language_name(ultrastar_class.language)}\n"
-            )
+            file.write(f"#{UltrastarTxtTag.LANGUAGE}:{get_language_name(ultrastar_class.language)}\n")
+        if ultrastar_class.genre:
+            file.write(f"#{UltrastarTxtTag.GENRE}:{ultrastar_class.genre}\n")
         if ultrastar_class.cover is not None:
             file.write(f"#{UltrastarTxtTag.COVER}:{ultrastar_class.cover}\n")
         file.write(f"#{UltrastarTxtTag.MP3}:{ultrastar_class.mp3}\n")
         file.write(f"#{UltrastarTxtTag.VIDEO}:{ultrastar_class.video}\n")
         file.write(f"#{UltrastarTxtTag.BPM}:{round(ultrastar_bpm, 2)}\n")  # not the real BPM!
         file.write(f"#{UltrastarTxtTag.GAP}:{int(gap * 1000)}\n")
+        file.write(f"#{UltrastarTxtTag.CREATOR}:{ultrastar_class.creator}\n")
+        file.write(f"#{UltrastarTxtTag.FIXER}:{ultrastar_class.fixer}\n")
         file.write(f"#{UltrastarTxtTag.COMMENT}:{ultrastar_class.comment}\n")
 
         # Write the singing part
@@ -90,12 +93,12 @@ def create_ultrastar_txt_from_automation(
             # 'n2'  duration at real beat
             # 'n3'  pitch where 0 == C4
             # 'w'   lyric
-            file.write(f"{UltrastarTxtNoteTypeTag.NORMAL} ")
-            file.write(str(start_beat) + " ")
-            file.write(str(duration) + " ")
-            file.write(str(note_numbers[i]) + " ")
-            file.write(data.word)
-            file.write("\n")
+            line = f"{UltrastarTxtNoteTypeTag.NORMAL} " \
+                   f"{str(start_beat)} " \
+                   f"{str(duration)} " \
+                   f"{str(note_numbers[i])} " \
+                   f"{data.word}\n"
+            file.write(line)
 
             # detect silence between words
             if i < len(transcribed_data) - 1:
@@ -109,13 +112,13 @@ def create_ultrastar_txt_from_automation(
                 # - 10
                 # '-' end of current sing part
                 # 'n1' show next at time in real beat
-                file.write(f"{UltrastarTxtTag.LINEBREAK} ")
                 show_next = (
                         second_to_beat(data.end - gap, bpm)
                         * multiplication
                 )
-                file.write(str(round(show_next)))
-                file.write("\n")
+                linebreak = f"{UltrastarTxtTag.LINEBREAK} " \
+                            f"{str(round(show_next))}\n"
+                file.write(linebreak)
         file.write(f"{UltrastarTxtTag.FILE_END}")
 
 

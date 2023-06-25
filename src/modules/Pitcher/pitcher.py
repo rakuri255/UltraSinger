@@ -3,12 +3,12 @@
 import crepe
 from scipy.io import wavfile
 
-from src.modules.console_colors import (
+from modules.console_colors import (
     ULTRASINGER_HEAD,
     blue_highlighted,
     red_highlighted,
 )
-from src.modules.Pitcher.pitched_data import PitchedData
+from modules.Pitcher.pitched_data import PitchedData
 
 
 def get_pitch_with_crepe_file(filename: str, step_size: int, model_capacity: str) -> PitchedData:
