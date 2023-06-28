@@ -49,7 +49,7 @@ jobs:
     - name: Build with pyinstaller for ${{matrix.os}}
       run: |
         pip install pyinstaller
-        pyinstaller -n 'UltraSinger-0.0.1-${{matrix.TARGET}}' ${{matrix.PYINSTALLER_ARGS}} --path=src UltraSinger.py --add-data "$(cat registry_path.txt);librosa/util/example_data"
+        pyinstaller -n 'UltraSinger-0.0.1-${{matrix.TARGET}}' ${{matrix.PYINSTALLER_ARGS}} --path=src src/UltraSinger.py --add-data "$(cat registry_path.txt);librosa/util/example_data"
     - uses: actions/upload-artifact@v3
       with:
         name: artifacts
