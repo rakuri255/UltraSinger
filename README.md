@@ -35,12 +35,12 @@ This will help me alot to keep this project alive and improve it.
 
 ### With Console (Windows)
 
-* Install Python 3.10 (older and newer versions has some breaking changes). [Download](https://www.python.org/downloads/)
+* Install Python 3.10 **(older and newer versions has some breaking changes)**. [Download](https://www.python.org/downloads/)
 * Also install ffmpeg separately with PATH. [Download](https://www.ffmpeg.org/download.html)
 * Open a console (CMD) and navigate to the project folder.
-* Type `py -m venv .venv` and press enter. If this does not work, try instead of `py` `python` or `python3`.
-  * This will always take the newest Python version. If you have multiple versions installed, you can use `py -0p` to see all installed versions.
-  * Build with correct version use `py -3.10 -m venv .venv`.
+* Type `py -3.10 -m venv .venv` and press enter. If this does not work, try instead of `py` `python` or `python3`.
+  * If you have multiple versions installed, you can use `py -0p` to see all installed versions.
+  * Build with the newest version use `py -m venv .venv`. But currently it only works with 3.10.
 * Wait until the console is done with creating the environment. This can take a while.
 * Type `.venv\Scripts\activate` and press enter.
 * You should see now a `(.venv)` in front of your console line.
@@ -53,7 +53,7 @@ For more information about Python environments look [here](https://code.visualst
 Installation As copy:
     
 ```commandline
-py -m venv .venv
+py -3.10 -m venv .venv
 .venv\Scripts\activate
 pip install -r requirements.txt
 pip3 install torch==2.0.1+cu117 torchvision==0.15.2+cu117 torchaudio==2.0.2+cu117 --index-url https://download.pytorch.org/whl/cu117
@@ -168,7 +168,7 @@ Also keep in mind that while a larger model is more accurate, it also takes long
 For the first test run, use the `tiny`, to be accurate use the `large-v2` model.
 
 ```commandline
--i XYZ --whisper large
+-i XYZ --whisper large-v2
 ```
 
 ##### Whisper languages
@@ -239,7 +239,9 @@ this MIDI and sheet are created. And you also want to have accurate files
 With an GPU you can speed up the process and also the quality of the transcription and pitching is better.
 
 You need a cuda device for this to work.
-For best use you need to install the cuda driver for your gpu see [here](https://developer.nvidia.com/cuda-downloads).
+If you use an MAC-System than sorry, there is no cuda device for MAC machines.
+
+It is recommended to install the cuda driver for your gpu see [here](https://developer.nvidia.com/cuda-downloads).
 Install torch with cuda separately in your `venv`. See this [link](https://pytorch.org/get-started/locally/).
 
 Command for `pip`:
@@ -248,19 +250,6 @@ pip3 install torch~=2.0.1+cu117 torchvision~=0.15.2+cu117 torchaudio~=2.0.2+cu11
 ```
 
 When you want to use `conda` instead you need a different installation command. See this [link](https://pytorch.org/get-started/locally/).
-
-#### Info
-
-If somthing crash because of low VRAM than use a smaller model.
-Whisper needs more than 8GB VRAM in the `large` model!
-
-But you can force cpu usage with the extra options `--force_whisper_cpu` and `--force_separation_cpu`.
-
-### Use GPU
-
-With an GPU you can speed up the process and also the quality of the transcription and pitching is better.
-You need a cuda device for this to work.
-If you use MAC than sorry, there is no cuda device for MAC machines.
 
 #### Info
 
