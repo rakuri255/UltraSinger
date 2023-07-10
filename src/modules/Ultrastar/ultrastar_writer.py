@@ -52,6 +52,8 @@ def create_ultrastar_txt_from_automation(
     multiplication = get_multiplier(ultrastar_bpm)
     ultrastar_bpm = ultrastar_bpm * get_multiplier(ultrastar_bpm)
 
+    last_silence = 0
+
     with open(ultrastar_file_output, "w", encoding=FILE_ENCODING) as file:
         gap = transcribed_data[0].start
 
@@ -99,6 +101,7 @@ def create_ultrastar_txt_from_automation(
                    f"{str(note_numbers[i])} " \
                    f"{data.word}\n"
             file.write(line)
+            last_silence += 1
 
             # detect silence between words
             if i < len(transcribed_data) - 1:
@@ -108,7 +111,7 @@ def create_ultrastar_txt_from_automation(
             else:
                 silence = 0
 
-            if silence > 0.3 and i != len(transcribed_data) - 1:
+            if (silence > 0.3 or last_silence > 15) and i != len(transcribed_data) - 1:
                 # - 10
                 # '-' end of current sing part
                 # 'n1' show next at time in real beat
@@ -119,6 +122,7 @@ def create_ultrastar_txt_from_automation(
                 linebreak = f"{UltrastarTxtTag.LINEBREAK} " \
                             f"{str(round(show_next))}\n"
                 file.write(linebreak)
+                last_silence = 0
         file.write(f"{UltrastarTxtTag.FILE_END}")
 
 
