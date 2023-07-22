@@ -241,8 +241,9 @@ With an GPU you can speed up the process and also the quality of the transcripti
 You need a cuda device for this to work.
 If you use an MAC-System than sorry, there is no cuda device for MAC machines.
 
-It is recommended to install the cuda driver for your gpu see [here](https://developer.nvidia.com/cuda-downloads).
-Install torch with cuda separately in your `venv`. See this [link](https://pytorch.org/get-started/locally/).
+It is recommended, but optional, to install the cuda driver for your gpu see [driver](https://developer.nvidia.com/cuda-downloads).
+Install torch with cuda separately in your `venv`. See [tourch+cuda](https://pytorch.org/get-started/locally/).
+Also check you GPU cuda support. See [cuda support](https://gist.github.com/standaloneSA/99788f30466516dbcc00338b36ad5acf)
 
 Command for `pip`:
 ```
