@@ -9,7 +9,7 @@ tensorflow~=2.12.0
 #tensorflow-directml-plugin~=0.4.0.dev230202
 #cudatoolkit==11.8.0
 matplotlib~=3.7.1
-yt_dlp~=2023.3.4
+yt_dlp~=2023.7.6
 numpy~=1.23.5
 git+https://github.com/m-bain/whisperx.git
 PyHyphen~=4.0.3
