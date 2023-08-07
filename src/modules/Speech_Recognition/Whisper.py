@@ -66,12 +66,17 @@ def convert_to_transcribed_data(result_aligned):
     transcribed_data = []
     for segment in result_aligned["segments"]:
         for obj in segment["words"]:
-            if len(obj) < 4:
-                print(
-                    f"{red_highlighted('Error: Skipping Word {}, because of missing timings'.format(obj['word']))}"
-                )
-                continue
             vtd = TranscribedData(obj)  # create custom Word object
             vtd.word = vtd.word + " "  # add space to end of word
+            if len(obj) < 4:
+                previous = transcribed_data[-1]
+                if not previous:
+                    previous.end = 0
+                    previous.end = ""
+                vtd.start = previous.end + 0.1
+                vtd.end = previous.end + 0.2
+                msg = f'Error: There is no timestamp for word:  {obj["word"]}. ' \
+                      f'Fixing it by placing it after the previous word: {previous.word}. At start: {vtd.start} end: {vtd.end}. Fix it manually!'
+                print(f"{red_highlighted(msg)}")
             transcribed_data.append(vtd)  # and add it to list
     return transcribed_data
