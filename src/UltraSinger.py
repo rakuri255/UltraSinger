@@ -4,7 +4,6 @@ import copy
 import getopt
 import os
 import sys
-from time import sleep
 
 import Levenshtein
 import librosa
@@ -230,7 +229,6 @@ def hyphenate_each_word(language: str, transcribed_data: list[TranscribedData]) 
         )
         return None
 
-    sleep(0.1)
     hyphenator = create_hyphenator(lang_region)
     for i in tqdm(enumerate(transcribed_data)):
         pos = i[0]
@@ -309,9 +307,12 @@ def run() -> None:
 
     # Audio transcription
     transcribed_data = None
-    language = None
+    language = settings.language
     if is_audio:
-        language, transcribed_data = transcribe_audio()
+        language_from_transcription, transcribed_data = transcribe_audio()
+        if language is None:
+            language = language_from_transcription
+
         remove_unecessary_punctuations(transcribed_data)
         transcribed_data = remove_silence_from_transcribtion_data(
             settings.mono_audio_path, transcribed_data
@@ -410,13 +411,13 @@ def transcribe_audio() -> (str, list[TranscribedData]):
     if settings.transcriber == "whisper":
         device = "cpu" if settings.force_whisper_cpu else settings.device
         transcribed_data, language = transcribe_with_whisper(
-            settings.mono_audio_path, settings.whisper_model, device, settings.whisper_align_model)
+            settings.mono_audio_path, settings.whisper_model, device, settings.whisper_align_model, settings.whisper_batch_size, settings.whisper_compute_type, settings.language)
     else:  # vosk
         transcribed_data = transcribe_with_vosk(
             settings.mono_audio_path, settings.vosk_model_path
         )
-        # todo: make language selectable
-        language = "en"
+        if settings.language is None:
+            language = "en"
     return language, transcribed_data
 
 
@@ -779,6 +780,12 @@ def init_settings(argv: list[str]) -> None:
             settings.whisper_model = arg
         elif opt in ("--align_model"):
             settings.whisper_align_model = arg
+        elif opt in ("--batch_size"):
+            settings.whisper_batch_size = int(arg)
+        elif opt in ("--compute_type"):
+            settings.whisper_compute_type = arg
+        elif opt in ("--language"):
+            settings.language = arg
         elif opt in ("--vosk"):
             settings.transcriber = "vosk"
             settings.vosk_model_path = arg
@@ -816,6 +823,9 @@ def arg_options():
         "vosk=",
         "whisper=",
         "align_model=",
+        "batch_size=",
+        "compute_type=",
+        "language=",
         "plot=",
         "hyphenation=",
         "disable_separation=",

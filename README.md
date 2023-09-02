@@ -114,8 +114,10 @@ _Not all options working now!_
     # Default is whisper
     --whisper       Multilingual model > tiny|base|small|medium|large-v1|large-v2  >> ((default) is large-v2
                     English-only model > tiny.en|base.en|small.en|medium.en
-    --align_model   Use other languages model for Whisper provided from huggingface.co 
-    
+    --align_model   Use other languages model for Whisper provided from huggingface.co
+    --language      Override the language detected by whisper, does not affect transcription but steps after transcription
+    --batch_size    Reduce if low on GPU mem >> ((default) is 16)
+    --compute_type  Change to "int8" if low on GPU mem (may reduce accuracy) >> ((default) is "float16" for cuda devices, "int8" for cpu)
     --vosk          Needs model
     
     [pitcher]

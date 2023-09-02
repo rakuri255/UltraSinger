@@ -88,6 +88,11 @@ def hyphenation(word: str, hyphenator: Hyphenator) -> list[str] | None:
     """Hyphenate word"""
 
     cleaned_string, removed_indices, removed_symbols = clean_word(word)
+
+    # Hyphenation of word longer than 100 characters throws exception
+    if len(cleaned_string) > 100:
+        return None
+
     syllabus = hyphenator.syllables(cleaned_string)
 
     length = len(syllabus)

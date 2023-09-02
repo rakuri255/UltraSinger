@@ -11,7 +11,7 @@ from modules.console_colors import (
 from modules.Speech_Recognition.TranscribedData import TranscribedData
 
 
-def transcribe_with_whisper(audio_path: str, model: str, device="cpu", model_name: str = None) -> (
+def transcribe_with_whisper(audio_path: str, model: str, device="cpu", model_name: str = None, batch_size: int = 16, compute_type: str = None, language: str = None) -> (
 list[TranscribedData], str):
     """Transcribe with whisper"""
 
@@ -21,10 +21,10 @@ list[TranscribedData], str):
     if model_name is not None:
         print(f"{ULTRASINGER_HEAD} using alignment model {blue_highlighted(model_name)}")
 
-    batch_size = 16  # reduce if low on GPU mem
-    compute_type = (
-        "float16" if device == "cuda" else "int8"
-    )  # change to "int8" if low on GPU mem (may reduce accuracy)
+    if compute_type is None:
+        compute_type = (
+            "float16" if device == "cuda" else "int8"
+        )
 
     loaded_whisper_model = whisperx.load_model(
         model, device=device, compute_type=compute_type
@@ -35,7 +35,9 @@ list[TranscribedData], str):
     print(f"{ULTRASINGER_HEAD} Transcribing {audio_path}")
 
     result = loaded_whisper_model.transcribe(audio, batch_size=batch_size)
-    language = result["language"]
+
+    if language is None:
+        language = result["language"]
 
     # load alignment model and metadata
     try:
