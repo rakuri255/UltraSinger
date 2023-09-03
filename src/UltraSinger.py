@@ -792,7 +792,9 @@ def init_settings(argv: list[str]) -> None:
         elif opt in ("--crepe"):
             settings.crepe_model_capacity = arg
         elif opt in ("--plot"):
-            settings.create_plot = arg
+            settings.create_plot = arg in ["True", "true"]
+        elif opt in ("--midi"):
+            settings.create_midi = arg in ["True", "true"]
         elif opt in ("--hyphenation"):
             settings.hyphenation = arg
         elif opt in ("--disable_separation"):
@@ -827,6 +829,7 @@ def arg_options():
         "compute_type=",
         "language=",
         "plot=",
+        "midi=",
         "hyphenation=",
         "disable_separation=",
         "disable_karaoke=",
