@@ -1,3 +1,5 @@
+.env
+.vscode/
 # virtual environment
 venv
 .venv
@@ -7,4 +9,3 @@ venv
 
 # default output folder
 output
-.vscode/
