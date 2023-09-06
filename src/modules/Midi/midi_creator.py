@@ -81,28 +81,47 @@ def find_nearest_index(array: list[float], value: float) -> int:
     return idx
 
 
-def create_midi_notes_from_pitched_data(start_times: list[float], end_times: list[float], pitched_data: PitchedData) -> list[str]:
+def create_midi_notes_from_pitched_data(start_times: list[float], end_times: list[float], words: list[str], pitched_data: PitchedData) -> tuple[list[str], list[float], list[float], list[str]]:
     """Create midi notes from pitched data"""
     print(f"{ULTRASINGER_HEAD} Creating midi notes from pitched data")
 
     midi_notes = []
+    new_start_times = []
+    new_end_times = []
+    new_words = []
 
-    for i in enumerate(start_times):
-        pos = i[0]
-        start_time = start_times[pos]
-        end_time = end_times[pos]
+    for index in enumerate(start_times):
+        start_time = start_times[index]
+        end_time = end_times[index]
+        word = str(words[index])
 
-        note = create_midi_note_from_pitched_data(
+        notes, segment_start_times, segment_end_times = create_midi_note_from_pitched_data(
             start_time, end_time, pitched_data
         )
 
-        midi_notes.append(note)
+        midi_notes.extend(notes)
+        new_start_times.extend(segment_start_times)
+        new_end_times.extend(segment_end_times)
+
+        segment_words = []
+        segment_size = len(notes)
+        if segment_size > 1:
+            segment_words.extend(np.repeat(["~"], segment_size - 1))
+
+            ends_with_space = word.endswith(" ")
+            if ends_with_space:
+                word = word[:-1]
+                segment_words[-1] = segment_words[-1] + " "
+            
+        segment_words.insert(0, word)
+
+        new_words.extend(segment_words)
         # todo: Progress?
         # print(filename + " f: " + str(mean))
-    return midi_notes
+    return midi_notes, new_start_times, new_end_times, new_words
 
 
-def create_midi_note_from_pitched_data(start_time: float, end_time: float, pitched_data: PitchedData) -> str:
+def create_midi_note_from_pitched_data(start_time: float, end_time: float, pitched_data: PitchedData) -> tuple[list[str], list[float], list[float]]:
     """Create midi note from pitched data"""
 
     start = find_nearest_index(pitched_data.times, start_time)
@@ -121,4 +140,4 @@ def create_midi_note_from_pitched_data(start_time: float, end_time: float, pitch
 
     note = most_frequent(notes)[0][0]
 
-    return note
+    return [note], [start_time], [end_time]

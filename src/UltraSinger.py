@@ -133,75 +133,6 @@ def add_hyphen_to_data(transcribed_data: list[TranscribedData], hyphen_words: li
     return new_data
 
 
-def split_syllables_into_segments(transcribed_data: list[TranscribedData]) -> list[TranscribedData]:
-    """Split every syllable into sub-segments"""
-    segment_size = 0.05
-    segment_size_decimal_points = len(str(segment_size).split(".")[1])
-    new_data = []
-
-    for i, data in enumerate(transcribed_data):
-
-        duration = data.end - data.start
-        if duration <= segment_size:
-            new_data.append(data)
-            continue
-        
-        has_space = str(data.word).endswith(" ")
-        first_segment = copy.deepcopy(data)
-        filler_words_start = data.start + segment_size
-        remainder = data.end - (filler_words_start)
-        first_segment.end = filler_words_start
-        if has_space:
-            first_segment.word = first_segment.word[:-1]
-
-        new_data.append(first_segment)
-
-        full_segments, partial_segment = divmod(remainder, segment_size)
-
-        if full_segments >= 1:
-            for i in range(int(full_segments)):
-                segment = TranscribedData()
-                segment.word = "~"
-                segment.start = filler_words_start + round(i * segment_size, segment_size_decimal_points)
-                segment.end = segment.start + segment_size
-                new_data.append(segment)
-        
-        if partial_segment >= 0.01:
-            segment = TranscribedData()
-            segment.word = "~"
-            segment.start = filler_words_start + round(full_segments * segment_size, segment_size_decimal_points)
-            segment.end = segment.start + partial_segment
-            new_data.append(segment)
-        
-        if has_space:
-            new_data[-1].word += " "
-    return new_data
-
-
-def merge_syllable_segments(
-        transcribed_data: list[TranscribedData],
-        midi_notes: list[str],
-        us_notes = list[int]
-) -> tuple[list[TranscribedData], list[str], list[int]]:
-    """Merge sub-segments of a syllable where the pitch is the same"""
-    max_gap = 0.05
-    new_data = []
-    new_midi_notes = []
-    new_us_notes = []
-
-    previous_data = None
-
-    for i, data in enumerate(transcribed_data):
-        if str(data.word).startswith("~") and previous_data is not None and data.start - previous_data.end <= max_gap and midi_notes[i] == midi_notes[i-1]:
-            new_data[-1].end = data.end
-        else:
-            new_data.append(data)
-            new_midi_notes.append(midi_notes[i])
-            new_us_notes.append(us_notes[i])
-        previous_data = data
-    return new_data, new_midi_notes, new_us_notes
-
-
 def get_bpm_from_data(data, sampling_rate):
     """Get real bpm from audio data"""
     onset_env = librosa.onset.onset_strength(y=data, sr=sampling_rate)
@@ -398,8 +329,6 @@ def run() -> None:
         # lyric = 'input/faber_lyric.txt'
         # --corrected_words = correct_words(vosk_speech, lyric)
 
-    transcribed_data = split_syllables_into_segments(transcribed_data)
-
     # Create audio chunks
     if settings.create_audio_chunks:
         create_audio_chunks(
@@ -411,11 +340,9 @@ def run() -> None:
         )
 
     # Pitch the audio
-    midi_notes, pitched_data, ultrastar_note_numbers = pitch_audio(
+    midi_notes, pitched_data, ultrastar_note_numbers, transcribed_data = pitch_audio(
         is_audio, transcribed_data, ultrastar_class
     )
-
-    transcribed_data, midi_notes, ultrastar_note_numbers = merge_syllable_segments(transcribed_data, midi_notes, ultrastar_note_numbers)
 
     # Create plot
     if settings.create_plot:
@@ -765,7 +692,7 @@ def create_midi_file(real_bpm: float,
 
 
 def pitch_audio(is_audio: bool, transcribed_data: list[TranscribedData], ultrastar_class: UltrastarTxtValue) -> tuple[
-    list[str], PitchedData, list[int]]:
+    list[str], PitchedData, list[int], list[TranscribedData]]:
     """Pitch audio"""
     # todo: chunk pitching as option?
     # midi_notes = pitch_each_chunk_with_crepe(chunk_folder_name)
@@ -777,19 +704,26 @@ def pitch_audio(is_audio: bool, transcribed_data: list[TranscribedData], ultrast
     if is_audio:
         start_times = []
         end_times = []
+        words = []
         for i, data in enumerate(transcribed_data):
             start_times.append(data.start)
             end_times.append(data.end)
-        midi_notes = create_midi_notes_from_pitched_data(
-            start_times, end_times, pitched_data
+            words.append(data.word)
+        midi_notes, new_start_times, new_end_times, new_words = create_midi_notes_from_pitched_data(
+            start_times, end_times, words, pitched_data
         )
 
     else:
-        midi_notes = create_midi_notes_from_pitched_data(
-            ultrastar_class.startTimes, ultrastar_class.endTimes, pitched_data
+        midi_notes, new_start_times, new_end_times, new_words = create_midi_notes_from_pitched_data(
+            ultrastar_class.startTimes, ultrastar_class.endTimes, ultrastar_class.words, pitched_data
         )
     ultrastar_note_numbers = convert_midi_notes_to_ultrastar_notes(midi_notes)
-    return midi_notes, pitched_data, ultrastar_note_numbers
+
+    new_transcribed_data = []
+    for index in enumerate(midi_notes):
+        new_transcribed_data.append(TranscribedData({"word": new_words[index], "start": new_start_times[index], "end": new_end_times[index], "is_hyphen": None, "confidence": 1}))
+
+    return midi_notes, pitched_data, ultrastar_note_numbers, new_transcribed_data
 
 
 def create_audio_chunks(
