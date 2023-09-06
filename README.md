@@ -112,17 +112,19 @@ _Not all options working now!_
 
     [transcription]
     # Default is whisper
-    --whisper       Multilingual model > tiny|base|small|medium|large-v1|large-v2  >> ((default) is large-v2
-                    English-only model > tiny.en|base.en|small.en|medium.en
-    --align_model   Use other languages model for Whisper provided from huggingface.co
-    --language      Override the language detected by whisper, does not affect transcription but steps after transcription
-    --batch_size    Reduce if low on GPU mem >> ((default) is 16)
-    --compute_type  Change to "int8" if low on GPU mem (may reduce accuracy) >> ((default) is "float16" for cuda devices, "int8" for cpu)
-    --vosk          Needs model
+    --whisper               Multilingual model > tiny|base|small|medium|large-v1|large-v2  >> ((default) is large-v2
+                            English-only model > tiny.en|base.en|small.en|medium.en
+    --whisper_align_model   Use other languages model for Whisper provided from huggingface.co
+    --language              Override the language detected by whisper, does not affect transcription but steps after transcription
+    --whisper_batch_size    Reduce if low on GPU mem >> ((default) is 16)
+    --whisper_compute_type  Change to "int8" if low on GPU mem (may reduce accuracy) >> ((default) is "float16" for cuda devices, "int8" for cpu)
+    --vosk                  Needs model
     
     [pitcher]
     # Default is crepe
-    --crepe     tiny|small|medium|large|full >> ((default) is full)
+    --crepe            tiny|full >> ((default) is full)
+    --crepe_step_size  unit is miliseconds >> ((default) is 10)
+    --crepe_batch_size Reduce if low on GPU mem >> ((default) is 2048)
     
     [extra]
     --hyphenation           True|False >> ((default) is True)
@@ -130,6 +132,9 @@ _Not all options working now!_
     --disable_karaoke       True|False >> ((default) is False)
     --create_audio_chunks   True|False >> ((default) is False)
     --plot                  True|False >> ((default) is False)
+    --force_whisper_cpu     True|False >> ((default) is False)
+    --force_separation_cpu  True|False >> ((default) is False)
+    --force_crepe_cpu       True|False >> ((default) is False)
 ```
 
 For standard use, you only need to use [opt]. All other options are optional.
@@ -207,7 +212,7 @@ starts at the place or is heard.
 
 ### Pitcher
 
-Pitching is done with the `crepe` model. 
+Pitching is done with the `crepe` model.
 Also consider that a bigger model is more accurate, but also takes longer to pitch.
 For just testing you should use `tiny`.
 If you want solid accurate, then use the `full` model.
@@ -256,7 +261,7 @@ When you want to use `conda` instead you need a different installation command. 
 
 #### Info
 
-If somthing crash because of low VRAM than use a smaller model.
+If something crashes because of low VRAM than use a smaller model.
 Whisper needs more than 8GB VRAM in the `large` model!
 
-But you can force cpu usage with the extra options `--force_whisper_cpu` and `--force_separation_cpu`.
+But you can force cpu usage with the extra options `--force_whisper_cpu`, `--force_separation_cpu` and `--force_crepe_cpu`.

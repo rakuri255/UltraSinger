@@ -16,7 +16,7 @@ from modules.Audio.vocal_chunks import (
     export_chunks_from_transcribed_data,
     export_chunks_from_ultrastar_data,
 )
-from modules.Audio.silence_processing import remove_silence_from_transcribtion_data
+from modules.Audio.silence_processing import remove_silence_from_transcription_data
 from modules.csv_handler import export_transcribed_data_to_csv
 from modules.Audio.convert_audio import convert_audio_to_mono_wav, convert_wav_to_mp3
 from modules.Audio.youtube import (
@@ -82,6 +82,7 @@ def pitch_each_chunk_with_crepe(directory: str) -> list[str]:
         f"{ULTRASINGER_HEAD} Pitching each chunk with {blue_highlighted('crepe')}"
     )
 
+    device = "cpu" if settings.force_crepe_cpu else settings.device
     midi_notes = []
     for filename in sorted(
         [f for f in os.listdir(directory) if f.endswith(".wav")],
@@ -90,7 +91,11 @@ def pitch_each_chunk_with_crepe(directory: str) -> list[str]:
         filepath = os.path.join(directory, filename)
         # todo: stepsize = duration? then when shorter than "it" it should take the duration. Otherwise there a more notes
         pitched_data = get_pitch_with_crepe_file(
-            filepath, settings.crepe_step_size, settings.crepe_model_capacity
+            filepath,
+            settings.crepe_model_capacity,
+            device,
+            settings.crepe_batch_size,
+            settings.crepe_step_size,
         )
         conf_f = get_frequency_with_high_confidence(
             pitched_data.frequencies, pitched_data.confidence
@@ -309,12 +314,12 @@ def run() -> None:
     transcribed_data = None
     language = settings.language
     if is_audio:
-        language_from_transcription, transcribed_data = transcribe_audio()
+        detected_language, transcribed_data = transcribe_audio()
         if language is None:
-            language = language_from_transcription
+            language = detected_language
 
         remove_unecessary_punctuations(transcribed_data)
-        transcribed_data = remove_silence_from_transcribtion_data(
+        transcribed_data = remove_silence_from_transcription_data(
             settings.mono_audio_path, transcribed_data
         )
 
@@ -410,15 +415,14 @@ def transcribe_audio() -> (str, list[TranscribedData]):
     """Transcribe audio with AI"""
     if settings.transcriber == "whisper":
         device = "cpu" if settings.force_whisper_cpu else settings.device
-        transcribed_data, language = transcribe_with_whisper(
+        transcribed_data, detected_language = transcribe_with_whisper(
             settings.mono_audio_path, settings.whisper_model, device, settings.whisper_align_model, settings.whisper_batch_size, settings.whisper_compute_type, settings.language)
     else:  # vosk
         transcribed_data = transcribe_with_vosk(
             settings.mono_audio_path, settings.vosk_model_path
         )
-        if settings.language is None:
-            language = "en"
-    return language, transcribed_data
+        detected_language = "en"
+    return detected_language, transcribed_data
 
 
 def separate_vocal_from_audio(
@@ -428,16 +432,19 @@ def separate_vocal_from_audio(
     audio_separation_path = os.path.join(
         cache_path, "separated", "htdemucs", basename_without_ext
     )
-    device = "cpu" if settings.force_separation_cpu else settings.device
+    
     if settings.use_separated_vocal or settings.create_karaoke:
+        device = "cpu" if settings.force_separation_cpu else settings.device
         separate_audio(ultrastar_audio_input_path, cache_path, device)
+
+    
     if settings.use_separated_vocal:
-        vocals_path = os.path.join(audio_separation_path, "vocals.wav")
-        convert_audio_to_mono_wav(vocals_path, settings.mono_audio_path)
+        input_path = os.path.join(audio_separation_path, "vocals.wav")
     else:
-        convert_audio_to_mono_wav(
-            ultrastar_audio_input_path, settings.mono_audio_path
-        )
+        input_path = ultrastar_audio_input_path
+    
+    
+    convert_audio_to_mono_wav(input_path, settings.mono_audio_path)
     return audio_separation_path
 
 
@@ -696,10 +703,13 @@ def pitch_audio(is_audio: bool, transcribed_data: list[TranscribedData], ultrast
     """Pitch audio"""
     # todo: chunk pitching as option?
     # midi_notes = pitch_each_chunk_with_crepe(chunk_folder_name)
+    device = "cpu" if settings.force_crepe_cpu else settings.device
     pitched_data = get_pitch_with_crepe_file(
         settings.mono_audio_path,
-        settings.crepe_step_size,
         settings.crepe_model_capacity,
+        device,
+        settings.crepe_batch_size,
+        settings.crepe_step_size,
     )
     if is_audio:
         start_times = []
@@ -778,11 +788,11 @@ def init_settings(argv: list[str]) -> None:
         elif opt in ("--whisper"):
             settings.transcriber = "whisper"
             settings.whisper_model = arg
-        elif opt in ("--align_model"):
+        elif opt in ("--whisper_align_model"):
             settings.whisper_align_model = arg
-        elif opt in ("--batch_size"):
+        elif opt in ("--whisper_batch_size"):
             settings.whisper_batch_size = int(arg)
-        elif opt in ("--compute_type"):
+        elif opt in ("--whisper_compute_type"):
             settings.whisper_compute_type = arg
         elif opt in ("--language"):
             settings.language = arg
@@ -791,6 +801,10 @@ def init_settings(argv: list[str]) -> None:
             settings.vosk_model_path = arg
         elif opt in ("--crepe"):
             settings.crepe_model_capacity = arg
+        elif opt in ("--crepe_step_size"):
+            settings.crepe_step_size = int(arg)
+        elif opt in ("--crepe_batch_size"):
+            settings.crepe_batch_size = int(arg)
         elif opt in ("--plot"):
             settings.create_plot = arg in ["True", "true"]
         elif opt in ("--midi"):
@@ -822,11 +836,13 @@ def arg_options():
         "ifile=",
         "ofile=",
         "crepe=",
+        "crepe_step_size=",
+        "crepe_batch_size=",
         "vosk=",
         "whisper=",
-        "align_model=",
-        "batch_size=",
-        "compute_type=",
+        "whisper_align_model=",
+        "whisper_batch_size=",
+        "whisper_compute_type=",
         "language=",
         "plot=",
         "midi=",
@@ -835,7 +851,8 @@ def arg_options():
         "disable_karaoke=",
         "create_audio_chunks=",
         "force_whisper_cpu=",
-        "force_separation_cpu="
+        "force_separation_cpu=",
+        "force_crepe_cpu=",
     ]
     return long, short
 

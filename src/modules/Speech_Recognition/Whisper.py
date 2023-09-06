@@ -1,18 +1,22 @@
 """Whisper Speech Recognition Module"""
 
-import whisperx
 import sys
 
-from modules.console_colors import (
-    ULTRASINGER_HEAD,
-    blue_highlighted,
-    red_highlighted,
-)
+import whisperx
+
+from modules.console_colors import ULTRASINGER_HEAD, blue_highlighted, red_highlighted
 from modules.Speech_Recognition.TranscribedData import TranscribedData
 
 
-def transcribe_with_whisper(audio_path: str, model: str, device="cpu", model_name: str = None, batch_size: int = 16, compute_type: str = None, language: str = None) -> (
-list[TranscribedData], str):
+def transcribe_with_whisper(
+    audio_path: str,
+    model: str,
+    device="cpu",
+    model_name: str = None,
+    batch_size: int = 16,
+    compute_type: str = None,
+    language: str = None,
+) -> (list[TranscribedData], str):
     """Transcribe with whisper"""
 
     print(
@@ -22,22 +26,21 @@ list[TranscribedData], str):
         print(f"{ULTRASINGER_HEAD} using alignment model {blue_highlighted(model_name)}")
 
     if compute_type is None:
-        compute_type = (
-            "float16" if device == "cuda" else "int8"
-        )
+        compute_type = "float16" if device == "cuda" else "int8"
 
     loaded_whisper_model = whisperx.load_model(
-        model, device=device, compute_type=compute_type
+        model, language=language, device=device, compute_type=compute_type
     )
 
     audio = whisperx.load_audio(audio_path)
 
     print(f"{ULTRASINGER_HEAD} Transcribing {audio_path}")
 
-    result = loaded_whisper_model.transcribe(audio, batch_size=batch_size)
+    result = loaded_whisper_model.transcribe(audio, batch_size=batch_size, language=language)
 
+    detected_language = result["language"]
     if language is None:
-        language = result["language"]
+        language = detected_language
 
     # load alignment model and metadata
     try:
@@ -61,7 +64,7 @@ list[TranscribedData], str):
 
     transcribed_data = convert_to_transcribed_data(result_aligned)
 
-    return transcribed_data, language
+    return transcribed_data, detected_language
 
 
 def convert_to_transcribed_data(result_aligned):
