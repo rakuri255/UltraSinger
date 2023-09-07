@@ -81,47 +81,45 @@ def find_nearest_index(array: list[float], value: float) -> int:
     return idx
 
 
-def create_midi_notes_from_pitched_data(start_times: list[float], end_times: list[float], words: list[str], pitched_data: PitchedData) -> tuple[list[str], list[float], list[float], list[str]]:
+@dataclass
+class Segment:
+  note: str
+  start: float
+  end: float
+  word: str
+
+
+def create_midi_notes_from_pitched_data(start_times: list[float], end_times: list[float], words: list[str], pitched_data: PitchedData) -> list[Segment]:
     """Create midi notes from pitched data"""
     print(f"{ULTRASINGER_HEAD} Creating midi notes from pitched data")
 
-    midi_notes = []
-    new_start_times = []
-    new_end_times = []
-    new_words = []
+    new_segments = []
 
     for index in enumerate(start_times):
         start_time = start_times[index]
         end_time = end_times[index]
         word = str(words[index])
 
-        notes, segment_start_times, segment_end_times = create_midi_note_from_pitched_data(
-            start_time, end_time, pitched_data
-        )
+        segments = create_midi_note_from_pitched_data(start_time, end_time, pitched_data)
 
-        midi_notes.extend(notes)
-        new_start_times.extend(segment_start_times)
-        new_end_times.extend(segment_end_times)
+        segment_count = len(segments)
+        if segment_count > 1:
+            for index, segment in enumerate(segments[1:]):
+                segment.word = "~"
 
-        segment_words = []
-        segment_size = len(notes)
-        if segment_size > 1:
-            segment_words.extend(np.repeat(["~"], segment_size - 1))
-
-            ends_with_space = word.endswith(" ")
-            if ends_with_space:
+            if word.endswith(" "):
                 word = word[:-1]
-                segment_words[-1] = segment_words[-1] + " "
+                segments[-1].word += " "
             
-        segment_words.insert(0, word)
+        segments[0].word = word
+        new_segments.extend(segments)
 
-        new_words.extend(segment_words)
         # todo: Progress?
         # print(filename + " f: " + str(mean))
-    return midi_notes, new_start_times, new_end_times, new_words
+    return new_segments
 
 
-def create_midi_note_from_pitched_data(start_time: float, end_time: float, pitched_data: PitchedData) -> tuple[list[str], list[float], list[float]]:
+def create_midi_note_from_pitched_data(start_time: float, end_time: float, pitched_data: PitchedData) -> list[Segment]:
     """Create midi note from pitched data"""
 
     start = find_nearest_index(pitched_data.times, start_time)
@@ -140,4 +138,4 @@ def create_midi_note_from_pitched_data(start_time: float, end_time: float, pitch
 
     note = most_frequent(notes)[0][0]
 
-    return [note], [start_time], [end_time]
+    return [Segment(note, start_time, end_time)]
