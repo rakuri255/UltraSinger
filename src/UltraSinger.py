@@ -437,7 +437,6 @@ def separate_vocal_from_audio(
         device = "cpu" if settings.force_separation_cpu else settings.device
         separate_audio(ultrastar_audio_input_path, cache_path, device)
 
-    
     if settings.use_separated_vocal:
         input_path = os.path.join(audio_separation_path, "vocals.wav")
     else:

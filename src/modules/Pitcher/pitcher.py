@@ -1,5 +1,7 @@
 """Pitcher module"""
 
+import sys
+
 import torchcrepe
 from torch.cuda import OutOfMemoryError
 
@@ -48,15 +50,9 @@ def get_pitch_with_crepe(
         f"{ULTRASINGER_HEAD} Pitching using {blue_highlighted('crepe')} with model {blue_highlighted(model)} and {red_highlighted(device)} as worker"
     )
 
-    hop_length = None
-    if step_size:
-        step_size_seconds = round(step_size / 1000, TIMES_DECIMAL_PLACES)
-        steps_per_second = 1 / step_size_seconds
-        hop_length = sample_rate // steps_per_second
-    else:
-        step_size_seconds = round(step_size / 1000, TIMES_DECIMAL_PLACES)
-        steps_per_second = 1 / step_size_seconds
-        hop_length = sample_rate // steps_per_second
+    step_size_seconds = round(step_size / 1000, TIMES_DECIMAL_PLACES)
+    steps_per_second = 1 / step_size_seconds
+    hop_length = sample_rate // steps_per_second
 
     # Provide a sensible frequency range for your domain (upper limit is 2006 Hz)
     # TODO: determine appropriate range for vocals
@@ -78,10 +74,11 @@ def get_pitch_with_crepe(
         frequencies = frequencies.detach().cpu().numpy().squeeze(0)
         confidence = confidence.detach().cpu().numpy().squeeze(0)
     except OutOfMemoryError as oom_exception:
+        print(oom_exception)
         print(
             f"{ULTRASINGER_HEAD} {blue_highlighted('crepe')} ran out of GPU memory; reduce --crepe_batch_size or force cpu with --force_crepe_cpu"
         )
-        raise oom_exception
+        sys.exit(1)
 
     times = [
         round(i * step_size_seconds, TIMES_DECIMAL_PLACES)
