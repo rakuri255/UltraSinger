@@ -820,6 +820,8 @@ def init_settings(argv: list[str]) -> None:
             settings.force_whisper_cpu = arg
         elif opt in ("--force_separation_cpu"):
             settings.force_separation_cpu = arg
+        elif opt in ("--force_crepe_cpu"):
+            settings.force_crepe_cpu = arg
     if settings.output_file_path == "":
         if settings.input_file_path.startswith("https:"):
             dirname = os.getcwd()
