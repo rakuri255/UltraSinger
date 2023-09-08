@@ -24,12 +24,15 @@ def plot(pitched_data: PitchedData,
          ) -> None:
     """Plot transcribed data"""
 
-    print(f"{ULTRASINGER_HEAD} Creating plot")
-
     # determine time between to datapoints if there is no gap (this is the step size crepe ran with)
     step_size = pitched_data.times[1]
-
     conf_t, conf_f, conf_c = get_confidence(pitched_data, 0.4)
+
+    if len(conf_f) < 2:
+        print(f"{ULTRASINGER_HEAD} Plot can't be created; too few datapoints")
+        return
+
+    print(f"{ULTRASINGER_HEAD} Creating plot")
     conf_t_with_gaps, conf_f_with_gaps = create_gaps(step_size, conf_t, conf_f)
     lower, upper = determine_bounds(conf_f_with_gaps)
 

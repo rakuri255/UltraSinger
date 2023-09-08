@@ -54,9 +54,7 @@ def get_pitch_with_crepe(
     steps_per_second = 1 / step_size_seconds
     hop_length = sample_rate // steps_per_second
 
-    # Provide a sensible frequency range for your domain (upper limit is 2006 Hz)
-    # TODO: determine appropriate range for vocals
-    fmin = 50
+    fmin = 0
     fmax = 2006
 
     try:
