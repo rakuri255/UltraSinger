@@ -28,9 +28,9 @@ class Settings:
 
     # Pitch
     crepe_model_capacity = "full"  # tiny|small|medium|large|full
-    crepe_step_size = 10
+    crepe_step_size = 10 # in miliseconds
 
     # Device
-    device = 'cpu'  # cpu|cuda
-    force_whisper_cpu = False
-    force_separation_cpu = False
+    pytorch_device = 'cpu'  # cpu|cuda
+    tensorflow_device = 'cpu'  # cpu|cuda
+    force_cpu = False

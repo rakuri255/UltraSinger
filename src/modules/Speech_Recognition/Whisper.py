@@ -1,18 +1,23 @@
 """Whisper Speech Recognition Module"""
 
-import whisperx
 import sys
 
-from modules.console_colors import (
-    ULTRASINGER_HEAD,
-    blue_highlighted,
-    red_highlighted,
-)
+import whisperx
+from torch.cuda import OutOfMemoryError
+
+from modules.console_colors import ULTRASINGER_HEAD, blue_highlighted, red_highlighted
 from modules.Speech_Recognition.TranscribedData import TranscribedData
 
 
-def transcribe_with_whisper(audio_path: str, model: str, device="cpu", model_name: str = None, batch_size: int = 16, compute_type: str = None, language: str = None) -> (
-list[TranscribedData], str):
+def transcribe_with_whisper(
+    audio_path: str,
+    model: str,
+    device="cpu",
+    model_name: str = None,
+    batch_size: int = 16,
+    compute_type: str = None,
+    language: str = None,
+) -> (list[TranscribedData], str):
     """Transcribe with whisper"""
 
     print(
@@ -22,32 +27,56 @@ list[TranscribedData], str):
         print(f"{ULTRASINGER_HEAD} using alignment model {blue_highlighted(model_name)}")
 
     if compute_type is None:
-        compute_type = (
-            "float16" if device == "cuda" else "int8"
-        )
+        compute_type = "float16" if device == "cuda" else "int8"
 
-    loaded_whisper_model = whisperx.load_model(
-        model, device=device, compute_type=compute_type
-    )
+    try:
+        loaded_whisper_model = whisperx.load_model(
+            model, language=language, device=device, compute_type=compute_type
+        )
+    except ValueError as value_error:
+        if (
+            "Requested float16 compute type, but the target device or backend do not support efficient float16 computation."
+            in str(value_error.args[0])
+        ):
+            print(value_error)
+            print(
+                f"{ULTRASINGER_HEAD} Your GPU does not support efficient float16 computation; run UltraSinger with '--whisper_compute_type int8'"
+            )
+            sys.exit(1)
+
+        raise value_error
+    except OutOfMemoryError as oom_exception:
+        print(oom_exception)
+        print(
+            f"{ULTRASINGER_HEAD} {blue_highlighted('whisper')} ran out of GPU memory; reduce --whisper_batch_size or force usage of cpu with --force_cpu"
+        )
+        sys.exit(1)
 
     audio = whisperx.load_audio(audio_path)
 
     print(f"{ULTRASINGER_HEAD} Transcribing {audio_path}")
 
-    result = loaded_whisper_model.transcribe(audio, batch_size=batch_size)
+    result = loaded_whisper_model.transcribe(
+        audio, batch_size=batch_size, language=language
+    )
 
+    detected_language = result["language"]
     if language is None:
-        language = result["language"]
+        language = detected_language
 
     # load alignment model and metadata
     try:
-        model_a, metadata = whisperx.load_align_model(language_code=language, device=device, model_name=model_name)
+        model_a, metadata = whisperx.load_align_model(
+            language_code=language, device=device, model_name=model_name
+        )
     except ValueError as ve:
-        print(f"{red_highlighted(f'{ve}')}"
-              f"\n"
-              f"{ULTRASINGER_HEAD} {red_highlighted('Error:')} Unknown language. "
-              f"Try add it with --align_model [hugingface].")
-        sys.exit(0)
+        print(
+            f"{red_highlighted(f'{ve}')}"
+            f"\n"
+            f"{ULTRASINGER_HEAD} {red_highlighted('Error:')} Unknown language. "
+            f"Try add it with --align_model [hugingface]."
+        )
+        sys.exit(1)
 
     # align whisper output
     result_aligned = whisperx.align(
@@ -61,7 +90,7 @@ list[TranscribedData], str):
 
     transcribed_data = convert_to_transcribed_data(result_aligned)
 
-    return transcribed_data, language
+    return transcribed_data, detected_language
 
 
 def convert_to_transcribed_data(result_aligned):

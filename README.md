@@ -112,17 +112,18 @@ _Not all options working now!_
 
     [transcription]
     # Default is whisper
-    --whisper       Multilingual model > tiny|base|small|medium|large-v1|large-v2  >> ((default) is large-v2
-                    English-only model > tiny.en|base.en|small.en|medium.en
-    --align_model   Use other languages model for Whisper provided from huggingface.co
-    --language      Override the language detected by whisper, does not affect transcription but steps after transcription
-    --batch_size    Reduce if low on GPU mem >> ((default) is 16)
-    --compute_type  Change to "int8" if low on GPU mem (may reduce accuracy) >> ((default) is "float16" for cuda devices, "int8" for cpu)
-    --vosk          Needs model
+    --whisper               Multilingual model > tiny|base|small|medium|large-v1|large-v2  >> ((default) is large-v2
+                            English-only model > tiny.en|base.en|small.en|medium.en
+    --whisper_align_model   Use other languages model for Whisper provided from huggingface.co
+    --language              Override the language detected by whisper, does not affect transcription but steps after transcription
+    --whisper_batch_size    Reduce if low on GPU mem >> ((default) is 16)
+    --whisper_compute_type  Change to "int8" if low on GPU mem (may reduce accuracy) >> ((default) is "float16" for cuda devices, "int8" for cpu)
+    --vosk                  Needs model
     
     [pitcher]
     # Default is crepe
-    --crepe     tiny|small|medium|large|full >> ((default) is full)
+    --crepe            tiny|full >> ((default) is full)
+    --crepe_step_size  unit is miliseconds >> ((default) is 10)
     
     [extra]
     --hyphenation           True|False >> ((default) is True)
@@ -130,6 +131,7 @@ _Not all options working now!_
     --disable_karaoke       True|False >> ((default) is False)
     --create_audio_chunks   True|False >> ((default) is False)
     --plot                  True|False >> ((default) is False)
+    --force_cpu             True|False >> ((default) is False)
 ```
 
 For standard use, you only need to use [opt]. All other options are optional.
@@ -207,7 +209,7 @@ starts at the place or is heard.
 
 ### Pitcher
 
-Pitching is done with the `crepe` model. 
+Pitching is done with the `crepe` model.
 Also consider that a bigger model is more accurate, but also takes longer to pitch.
 For just testing you should use `tiny`.
 If you want solid accurate, then use the `full` model.
@@ -254,9 +256,23 @@ pip3 install torch==2.0.1+cu117 torchvision==0.15.2+cu117 torchaudio==2.0.2+cu11
 
 When you want to use `conda` instead you need a different installation command. See this [link](https://pytorch.org/get-started/locally/).
 
+#### Considerations for Windows users
+
+The pitch tracker used by UltraSinger (crepe), uses TensorFlow as it's backend.
+TensorFlow dropped GPU support for Windows for versions >2.10 as you can see in this [release note](https://github.com/tensorflow/tensorflow/releases/tag/v2.11.1) and their [installation instructions](https://www.tensorflow.org/install/pip#windows-native).
+
+For now UltraSinger runs the latest version available that still supports GPUs on windows.
+
+For running later versions of TensorFlow on windows while still taking advantage of GPU support the suggested solution is:
+
+* [install WSL2](https://learn.microsoft.com/en-us/windows/wsl/install)
+* within the Ubuntu WSL2 installation
+  * run `sudo apt update && sudo apt install nvidia-cuda-toolkit`
+  * follow the setup instructions for UltraSinger at the top of this document
+
 #### Info
 
-If somthing crash because of low VRAM than use a smaller model.
+If something crashes because of low VRAM than use a smaller model.
 Whisper needs more than 8GB VRAM in the `large` model!
 
-But you can force cpu usage with the extra options `--force_whisper_cpu` and `--force_separation_cpu`.
+You can also force cpu usage with the extra option `--force_cpu`.
