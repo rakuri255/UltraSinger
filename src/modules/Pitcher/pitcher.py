@@ -3,49 +3,50 @@
 import crepe
 from scipy.io import wavfile
 
-from modules.console_colors import (
-    ULTRASINGER_HEAD,
-    blue_highlighted,
-    red_highlighted,
-)
+from modules.console_colors import ULTRASINGER_HEAD, blue_highlighted, red_highlighted
 from modules.Pitcher.pitched_data import PitchedData
 
 
-def get_pitch_with_crepe_file(filename: str, step_size: int, model_capacity: str) -> PitchedData:
+def get_pitch_with_crepe_file(
+    filename: str, model_capacity: str, step_size: int = 10, device: str = "cpu"
+) -> PitchedData:
     """Pitch with crepe"""
+
     print(
-        f"{ULTRASINGER_HEAD} Pitching with {blue_highlighted('crepe')} and model {blue_highlighted(model_capacity)} and {red_highlighted('cpu')} as worker"
+        f"{ULTRASINGER_HEAD} Pitching with {blue_highlighted('crepe')} and model {blue_highlighted(model_capacity)} and {red_highlighted(device)} as worker"
     )
-    # Todo: add GPU support by using torchcrepe
     sample_rate, audio = wavfile.read(filename)
 
-    pitched_data = PitchedData()
-    (
-        pitched_data.times,
-        pitched_data.frequencies,
-        pitched_data.confidence,
-        activation,
-    ) = crepe.predict(
-        audio, sample_rate, model_capacity, step_size=step_size, viterbi=True
-    )
-    return pitched_data
+    return get_pitch_with_crepe(audio, sample_rate, model_capacity, step_size)
 
 
-def get_pitch_with_crepe(audio, sample_rate: int, step_size: int, model_capacity: str) -> PitchedData:
+def get_pitch_with_crepe(
+    audio, sample_rate: int, model_capacity: str, step_size: int = 10
+) -> PitchedData:
     """Pitch with crepe"""
-    pitched_data = PitchedData()
-    (
-        pitched_data.times,
-        pitched_data.frequencies,
-        pitched_data.confidence,
-        activation,
-    ) = crepe.predict(
+    times, frequencies, confidence, activation = crepe.predict(
         audio, sample_rate, model_capacity, step_size=step_size, viterbi=True
     )
-    return pitched_data
+    return PitchedData(times, frequencies, confidence)
 
 
-def get_frequency_with_high_confidence(frequencies: list[float], confidences: list[float], threshold=0.4) -> list[float]:
+def get_pitched_data_with_high_confidence(
+    pitched_data: PitchedData, threshold=0.4
+) -> PitchedData:
+    """Get frequency with high confidence"""
+    new_pitched_data = PitchedData([], [], [])
+    for i, conf in enumerate(pitched_data.confidence):
+        if conf > threshold:
+            new_pitched_data.times.append(pitched_data.times[i])
+            new_pitched_data.frequencies.append(pitched_data.frequencies[i])
+            new_pitched_data.confidence.append(pitched_data.confidence[i])
+
+    return new_pitched_data
+
+
+def get_frequencies_with_high_confidence(
+    frequencies: list[float], confidences: list[float], threshold=0.4
+) -> list[float]:
     """Get frequency with high confidence"""
     conf_f = []
     for i, conf in enumerate(confidences):

@@ -19,7 +19,6 @@ def separate_audio(input_file_path: str, output_file: str, device="cpu") -> None
     # Model selection?
     # -n mdx_q
     # -n htdemucs_ft
-    device = "cpu" if device != "cuda" else "cuda"
     subprocess.run(
         ["demucs", "-d", device, "--two-stems=vocals", input_file_path]
     )

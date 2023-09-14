@@ -1,9 +1,15 @@
+.env
+.vscode/
 # virtual environment
 venv
 .venv
 
 # python
 **__pycache__
+
+# test data
+test_input
+test_output
 
 # default output folder
 output

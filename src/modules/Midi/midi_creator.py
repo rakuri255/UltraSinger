@@ -7,7 +7,7 @@ import librosa
 import numpy as np
 import pretty_midi
 
-from modules.Pitcher.pitcher import get_frequency_with_high_confidence
+from modules.Pitcher.pitcher import get_frequencies_with_high_confidence
 from modules.Ultrastar.ultrastar_converter import (
     get_end_time_from_ultrastar,
     get_start_time_from_ultrastar,
@@ -115,7 +115,7 @@ def create_midi_note_from_pitched_data(start_time: float, end_time: float, pitch
         freqs = pitched_data.frequencies[start:end]
         confs = pitched_data.confidence[start:end]
 
-    conf_f = get_frequency_with_high_confidence(freqs, confs)
+    conf_f = get_frequencies_with_high_confidence(freqs, confs)
 
     notes = convert_frequencies_to_notes(conf_f)
 
