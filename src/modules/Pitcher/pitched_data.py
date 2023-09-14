@@ -9,3 +9,4 @@ class PitchedData:
     times: list[float]
     frequencies: list[float]
     confidence: list[float]
+    perceived_loudness_db: list[float]

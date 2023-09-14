@@ -55,7 +55,8 @@ from modules.plot import plot
 from modules.musicbrainz_client import get_music_infos
 
 settings = Settings()
-
+SYLLABLE_SEGMENT_SIZE = 0.1
+SYLLABLE_SEGMENT_MAX_GAP_FOR_MERGE = 0.1
 
 def convert_midi_notes_to_ultrastar_notes(midi_notes: list[str]) -> list[int]:
     """Convert midi notes to ultrastar notes"""
@@ -255,6 +256,73 @@ def print_support() -> None:
     )
 
 
+def split_syllables_into_segments(transcribed_data: list[TranscribedData]) -> list[TranscribedData]:
+    """Split every syllable into sub-segments"""
+    segment_size_decimal_points = len(str(SYLLABLE_SEGMENT_SIZE).split(".")[1])
+    new_data = []
+
+    for i, data in enumerate(transcribed_data):
+
+        duration = data.end - data.start
+        if duration <= SYLLABLE_SEGMENT_SIZE:
+            new_data.append(data)
+            continue
+        
+        has_space = str(data.word).endswith(" ")
+        first_segment = copy.deepcopy(data)
+        filler_words_start = data.start + SYLLABLE_SEGMENT_SIZE
+        remainder = data.end - (filler_words_start)
+        first_segment.end = filler_words_start
+        if has_space:
+            first_segment.word = first_segment.word[:-1]
+
+        new_data.append(first_segment)
+
+        full_segments, partial_segment = divmod(remainder, SYLLABLE_SEGMENT_SIZE)
+
+        if full_segments >= 1:
+            for i in range(int(full_segments)):
+                segment = TranscribedData()
+                segment.word = "~"
+                segment.start = filler_words_start + round(i * SYLLABLE_SEGMENT_SIZE, segment_size_decimal_points)
+                segment.end = segment.start + SYLLABLE_SEGMENT_SIZE
+                new_data.append(segment)
+        
+        if partial_segment >= 0.01:
+            segment = TranscribedData()
+            segment.word = "~"
+            segment.start = filler_words_start + round(full_segments * SYLLABLE_SEGMENT_SIZE, segment_size_decimal_points)
+            segment.end = segment.start + partial_segment
+            new_data.append(segment)
+        
+        if has_space:
+            new_data[-1].word += " "
+    return new_data
+
+
+def merge_syllable_segments(
+        transcribed_data: list[TranscribedData],
+        midi_notes: list[str],
+        us_notes = list[int]
+) -> tuple[list[TranscribedData], list[str], list[int]]:
+    """Merge sub-segments of a syllable where the pitch is the same"""
+    new_data = []
+    new_midi_notes = []
+    new_us_notes = []
+
+    previous_data = None
+
+    for i, data in enumerate(transcribed_data):
+        if str(data.word).startswith("~") and previous_data is not None and midi_notes[i] == midi_notes[i-1] and data.start - previous_data.end <= SYLLABLE_SEGMENT_MAX_GAP_FOR_MERGE:
+            new_data[-1].end = data.end
+        else:
+            new_data.append(data)
+            new_midi_notes.append(midi_notes[i])
+            new_us_notes.append(us_notes[i])
+        previous_data = data
+    return new_data, new_midi_notes, new_us_notes
+
+
 def run() -> None:
     """The processing function of this program"""
     is_audio = ".txt" not in settings.input_file_path
@@ -330,6 +398,8 @@ def run() -> None:
         # lyric = 'input/faber_lyric.txt'
         # --corrected_words = correct_words(vosk_speech, lyric)
 
+    transcribed_data = split_syllables_into_segments(transcribed_data)
+
     # Create audio chunks
     if settings.create_audio_chunks:
         create_audio_chunks(
@@ -344,6 +414,8 @@ def run() -> None:
     midi_notes, pitched_data, ultrastar_note_numbers = pitch_audio(
         is_audio, transcribed_data, ultrastar_class
     )
+
+    transcribed_data, midi_notes, ultrastar_note_numbers = merge_syllable_segments(transcribed_data, midi_notes, ultrastar_note_numbers)
 
     # Create plot
     if settings.create_plot:
@@ -706,7 +778,7 @@ def pitch_audio(is_audio: bool, transcribed_data: list[TranscribedData], ultrast
         settings.mono_audio_path,
         settings.crepe_model_capacity,
         settings.crepe_step_size,
-        settings.tensorflow_device,
+        settings.tensorflow_device
     )
     if is_audio:
         start_times = []

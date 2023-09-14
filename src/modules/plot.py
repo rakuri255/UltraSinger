@@ -187,7 +187,7 @@ def create_gaps(pitched_data: PitchedData, step_size: float) -> PitchedData:
     This way the graph is only continuous where it should be.
 
     """
-    pitched_data_with_gaps = PitchedData([], [], [])
+    pitched_data_with_gaps = PitchedData([], [], [], [])
 
     previous_time = 0
     for i, time in enumerate(pitched_data.times):

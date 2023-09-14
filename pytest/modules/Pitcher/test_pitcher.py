@@ -8,7 +8,7 @@ from src.modules.plot import plot
 
 
 class PitcherTest(unittest.TestCase):
-    @pytest.mark.skip(reason="Skipping this FUNCTION level test, can be used for manual tests")
+    # @pytest.mark.skip(reason="Skipping this FUNCTION level test, can be used for manual tests")
     def test_get_pitch_with_crepe_file(self):
         # Arrange
         test_dir = os.path.dirname(os.path.abspath(__file__))

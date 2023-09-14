@@ -1,10 +1,13 @@
 """Pitcher module"""
 
 import crepe
-from scipy.io import wavfile
+import librosa
 
 from modules.console_colors import ULTRASINGER_HEAD, blue_highlighted, red_highlighted
+from modules.Pitcher.core import CREPE_MODEL_SAMPLE_RATE
+from modules.Pitcher.loudness import set_confidence_to_zero_in_silent_regions
 from modules.Pitcher.pitched_data import PitchedData
+import modules.timer as timer
 
 
 def get_pitch_with_crepe_file(
@@ -15,26 +18,37 @@ def get_pitch_with_crepe_file(
     print(
         f"{ULTRASINGER_HEAD} Pitching with {blue_highlighted('crepe')} and model {blue_highlighted(model_capacity)} and {red_highlighted(device)} as worker"
     )
-    sample_rate, audio = wavfile.read(filename)
+    timer.log('Load file for pitch detection start')
+    audio, sample_rate = librosa.load(filename)
+    timer.log('Load file for pitch detection end')
 
     return get_pitch_with_crepe(audio, sample_rate, model_capacity, step_size)
 
 
-def get_pitch_with_crepe(
-    audio, sample_rate: int, model_capacity: str, step_size: int = 10
-) -> PitchedData:
+def get_pitch_with_crepe(audio, sample_rate: int, model_capacity: str, step_size: int = 10) -> PitchedData:
     """Pitch with crepe"""
-    times, frequencies, confidence, activation = crepe.predict(
-        audio, sample_rate, model_capacity, step_size=step_size, viterbi=True
-    )
-    return PitchedData(times, frequencies, confidence)
+
+    if sample_rate != CREPE_MODEL_SAMPLE_RATE:
+        from resampy import resample
+        audio = resample(audio, sample_rate, CREPE_MODEL_SAMPLE_RATE)
+        sample_rate = CREPE_MODEL_SAMPLE_RATE
+
+    timer.log('Crepe pitch detection start')
+    times, frequencies, confidence, activation = crepe.predict(audio, sample_rate, model_capacity, step_size=step_size, viterbi=True)
+    timer.log('Crepe pitch detection end')
+
+    timer.log('Computing loudness start')
+    confidence, perceived_loudness = set_confidence_to_zero_in_silent_regions(confidence, audio, step_size=step_size)
+    timer.log('Computing loudness end')
+
+    return PitchedData(times, frequencies, confidence, perceived_loudness)
 
 
 def get_pitched_data_with_high_confidence(
     pitched_data: PitchedData, threshold=0.4
 ) -> PitchedData:
     """Get frequency with high confidence"""
-    new_pitched_data = PitchedData([], [], [])
+    new_pitched_data = PitchedData([], [], [], [])
     for i, conf in enumerate(pitched_data.confidence):
         if conf > threshold:
             new_pitched_data.times.append(pitched_data.times[i])

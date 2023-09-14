@@ -4,15 +4,17 @@
 class TranscribedData:
     """Transcribed data from json file"""
 
-    def __init__(self, transcribed_json):
-        # Vosk = conf, Whisper = confidence
-        self.conf = transcribed_json.get(
-            "conf", transcribed_json.get("confidence", None)
-        )
-        # Vosk = word, Whisper = text
-        self.word = transcribed_json.get(
-            "word", transcribed_json.get("text", None)
-        )
-        self.end = transcribed_json.get("end", None)
-        self.start = transcribed_json.get("start", None)
-        self.is_hyphen = None
+    def __init__(self, transcribed_json = None):
+
+        if transcribed_json:
+            # Vosk = conf, Whisper = confidence
+            self.conf = transcribed_json.get(
+                "conf", transcribed_json.get("confidence", None)
+            )
+            # Vosk = word, Whisper = text
+            self.word = transcribed_json.get(
+                "word", transcribed_json.get("text", None)
+            )
+            self.end = transcribed_json.get("end", None)
+            self.start = transcribed_json.get("start", None)
+            self.is_hyphen = None
