@@ -7,6 +7,10 @@
 [![Check Requirements](https://github.com/rakuri255/UltraSinger/actions/workflows/main.yml/badge.svg)](https://github.com/rakuri255/UltraSinger/actions/workflows/main.yml)
 [![Pytest](https://github.com/rakuri255/UltraSinger/actions/workflows/pytest.yml/badge.svg)](https://github.com/rakuri255/UltraSinger/actions/workflows/pytest.yml)
 
+<p align="center" dir="auto">
+<img src="https://repository-images.githubusercontent.com/594208922/4befe3da-a448-4cbc-b6ef-93899119071b" style="height: 300px;width: auto;" alt="UltraSinger Logo">
+</p>
+
 # UltraSinger
 
 > ⚠️ _This project is still under development!_
@@ -21,7 +25,7 @@ Please mention UltraSinger in your UltraStar.txt file if you use it. It helps ot
 And it helps you that this tool gets improved and maintained.
 You should only use it on Creative Commons licensed songs.
 
-## Support
+## ❤️ Support
 There are many ways to support this project. Starring ⭐️ the repo is just one 🙏
 
 You can also support this work on Patreon or Buy Me A Coffee.
@@ -30,8 +34,34 @@ This will help me alot to keep this project alive and improve it.
 
 <a href="https://www.buymeacoffee.com/rakuri255" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" style="height: 60px !important;width: 217px !important;" ></a>
 <a href="https://patreon.com/Rakuri"><img src="https://raw.githubusercontent.com/rakuri255/UltraSinger/main/assets/patreon.png" alt="Become a Patron" style="height: 60px !important;width: 217px !important;"/> </a>
+<a href="https://github.com/sponsors/rakuri255"><img src="https://github.blog/wp-content/uploads/2019/05/mona-heart-featured.png" alt="GitHub Sponsor" style="height: 60px !important;width: auto;"/> </a>
+<a href="https://github.com/sponsors/rakuri255"><img src="https://camo.githubusercontent.com/dec0683928f7db306904f8ea2e7c0d81ca83800fe09fcd5ac792c962eaee02dc/68747470733a2f2f6769746875622e6769746875626173736574732e636f6d2f696d616765732f6d6f64756c65732f736974652f73706f6e736f72732f6c6f676f2d6d6f6e612e737667" alt="GitHub Sponsor" style="height: 60px !important;width: auto;"/> </a>
 
-## How to use this source code
+## Table of Contents
+
+- [UltraSinger](#ultrasinger)
+  - [❤️ Support](#️-support)
+  - [Table of Contents](#table-of-contents)
+  - [💻 How to use this source code](#-how-to-use-this-source-code)
+    - [With Console (Windows)](#with-console-windows)
+  - [📖 How to use the App](#-how-to-use-the-app)
+    - [🎶 Input](#-input)
+      - [Audio (full automatic)](#audio-full-automatic)
+        - [Local file](#local-file)
+        - [Youtube](#youtube)
+      - [UltraStar (re-pitch)](#ultrastar-re-pitch)
+    - [🗣 Transcriber](#-transcriber)
+      - [Whisper](#whisper)
+        - [Whisper languages](#whisper-languages)
+      - [Vosk](#vosk)
+      - [✍️ Hyphenation](#️-hyphenation)
+    - [👂 Pitcher](#-pitcher)
+    - [👄 Separation](#-separation)
+    - [🏆 Ultrastar Score Calculation](#-ultrastar-score-calculation)
+    - [📟 Use GPU](#-use-gpu)
+      - [Info](#info)
+
+## 💻 How to use this source code
 
 ### With Console (Windows)
 
@@ -81,7 +111,7 @@ py UltraSinger.py
 
 ```
 
-## How to use the App
+## 📖 How to use the App
 
 _Not all options working now!_
 ```commandline
@@ -136,7 +166,7 @@ _Not all options working now!_
 
 For standard use, you only need to use [opt]. All other options are optional.
 
-### Input
+### 🎶 Input
 
 #### Audio (full automatic)
 
@@ -160,7 +190,7 @@ This re-pitch the audio and creates a new txt file.
 -i "input/ultrastar.txt"
 ```
 
-### Transcriber
+### 🗣 Transcriber
 
 For transcription, `whisper` is used by default. It is more accurate than the other even with the `large` model.
 And it finds the language automatically.
@@ -179,7 +209,7 @@ For the first test run, use the `tiny`, to be accurate use the `large-v2` model.
 
 Currently provided default language models are `en, fr, de, es, it, ja, zh, nl, uk, pt`. 
 If the language is not in this list, you need to find a phoneme-based ASR model from 
-[huggingface model hub](https://huggingface.co). It will download automatically.
+[🤗 huggingface model hub](https://huggingface.co). It will download automatically.
 
 Example for romanian:
 ```commandline
@@ -196,7 +226,7 @@ For the first test run, use the `small model`, to be accurate use the `gigaspeec
 -i XYZ -v "models\vosk-model-en-us-0.42-gigaspeech"
 ```
 
-#### Hyphenation
+#### ✍️ Hyphenation
 
 Is on by default. Can also be deactivated if hyphenation does not produce 
 anything useful. Note that the word is simply split, 
@@ -207,7 +237,7 @@ starts at the place or is heard.
 -i XYZ --hyphenation True
 ```
 
-### Pitcher
+### 👂 Pitcher
 
 Pitching is done with the `crepe` model.
 Also consider that a bigger model is more accurate, but also takes longer to pitch.
@@ -218,7 +248,7 @@ If you want solid accurate, then use the `full` model.
 -i XYZ --crepe full
 ```
 
-### Separation
+### 👄 Separation
 
 The vocals are separated from the audio before they are passed to the models. If problems occur with this, 
 you have the option to disable this function and the original audio file is used instead.
@@ -227,7 +257,7 @@ you have the option to disable this function and the original audio file is used
 -i XYZ --disable_separation True
 ```
 
-### Ultrastar Score Calculation
+### 🏆 Ultrastar Score Calculation
 
 The score what the singer in the audio would receive will be measured. 
 You get 2 scores, simple and accurate. You wonder where the difference is? 
@@ -238,7 +268,7 @@ singable by humans, but you could still reach the 10k points in the game. The ac
 this MIDI and sheet are created. And you also want to have accurate files
 
 
-### Use GPU
+### 📟 Use GPU
 
 With an GPU you can speed up the process and also the quality of the transcription and pitching is better.
 
