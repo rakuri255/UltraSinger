@@ -53,12 +53,12 @@ This will help me alot to keep this project alive and improve it.
     - [🗣 Transcriber](#-transcriber)
       - [Whisper](#whisper)
         - [Whisper languages](#whisper-languages)
-      - [Vosk](#vosk)
       - [✍️ Hyphenation](#️-hyphenation)
     - [👂 Pitcher](#-pitcher)
     - [👄 Separation](#-separation)
     - [🏆 Ultrastar Score Calculation](#-ultrastar-score-calculation)
     - [📟 Use GPU](#-use-gpu)
+      - [Considerations for Windows users](#considerations-for-windows-users)
       - [Info](#info)
 
 ## 💻 How to use this source code
