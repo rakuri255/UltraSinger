@@ -118,7 +118,6 @@ _Not all options working now!_
     --language              Override the language detected by whisper, does not affect transcription but steps after transcription
     --whisper_batch_size    Reduce if low on GPU mem >> ((default) is 16)
     --whisper_compute_type  Change to "int8" if low on GPU mem (may reduce accuracy) >> ((default) is "float16" for cuda devices, "int8" for cpu)
-    --vosk                  Needs model
     
     [pitcher]
     # Default is crepe
@@ -162,10 +161,7 @@ This re-pitch the audio and creates a new txt file.
 
 ### Transcriber
 
-For transcription, `whisper` is used by default. It is more accurate than the other even with the `large` model.
-And it finds the language automatically.
-But anyway, it depends! Try the other one if `Whisper` does not suit you.
-Also keep in mind that while a larger model is more accurate, it also takes longer to transcribe.
+Keep in mind that while a larger model is more accurate, it also takes longer to transcribe.
 
 #### Whisper
 
@@ -184,16 +180,6 @@ If the language is not in this list, you need to find a phoneme-based ASR model 
 Example for romanian:
 ```commandline
 -i XYZ --align_model "gigant/romanian-wav2vec2"
-```
-
-#### Vosk
-
-If you want to use `Vosk` than you need the model. It is not included. You can download it here [Link](https://alphacephei.com/vosk/models).
-Make sure you take the right language. 
-For the first test run, use the `small model`, to be accurate use the `gigaspeech` model
-
-```commandline
--i XYZ -v "models\vosk-model-en-us-0.42-gigaspeech"
 ```
 
 #### Hyphenation
