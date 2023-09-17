@@ -7,6 +7,7 @@
 [![Check Requirements](https://github.com/rakuri255/UltraSinger/actions/workflows/main.yml/badge.svg)](https://github.com/rakuri255/UltraSinger/actions/workflows/main.yml)
 [![Pytest](https://github.com/rakuri255/UltraSinger/actions/workflows/pytest.yml/badge.svg)](https://github.com/rakuri255/UltraSinger/actions/workflows/pytest.yml)
 
+
 <p align="center" dir="auto">
 <img src="https://repository-images.githubusercontent.com/594208922/4befe3da-a448-4cbc-b6ef-93899119071b" style="height: 300px;width: auto;" alt="UltraSinger Logo">
 </p>
@@ -34,8 +35,7 @@ This will help me alot to keep this project alive and improve it.
 
 <a href="https://www.buymeacoffee.com/rakuri255" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" style="height: 60px !important;width: 217px !important;" ></a>
 <a href="https://patreon.com/Rakuri"><img src="https://raw.githubusercontent.com/rakuri255/UltraSinger/main/assets/patreon.png" alt="Become a Patron" style="height: 60px !important;width: 217px !important;"/> </a>
-<a href="https://github.com/sponsors/rakuri255"><img src="https://github.blog/wp-content/uploads/2019/05/mona-heart-featured.png" alt="GitHub Sponsor" style="height: 60px !important;width: auto;"/> </a>
-<a href="https://github.com/sponsors/rakuri255"><img src="https://camo.githubusercontent.com/dec0683928f7db306904f8ea2e7c0d81ca83800fe09fcd5ac792c962eaee02dc/68747470733a2f2f6769746875622e6769746875626173736574732e636f6d2f696d616765732f6d6f64756c65732f736974652f73706f6e736f72732f6c6f676f2d6d6f6e612e737667" alt="GitHub Sponsor" style="height: 60px !important;width: auto;"/> </a>
+<a href="https://github.com/sponsors/rakuri255"><img src="https://raw.githubusercontent.com/rakuri255/UltraSinger/main/assets/mona-heart-featured.webp" alt="GitHub Sponsor" style="height: 60px !important;width: auto;"/> </a>
 
 ## Table of Contents
 
