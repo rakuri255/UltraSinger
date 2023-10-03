@@ -158,6 +158,7 @@ _Not all options working now!_
     --hyphenation           True|False >> ((default) is True)
     --disable_separation    True|False >> ((default) is False)
     --disable_karaoke       True|False >> ((default) is False)
+    --ignore_audio          True|False >> ((default) is False)
     --create_audio_chunks   True|False >> ((default) is False)
     --plot                  True|False >> ((default) is False)
     --force_cpu             True|False >> ((default) is False)

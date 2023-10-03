@@ -14,9 +14,11 @@ class UltrastarTxtTag(str, Enum):
     BPM = 'BPM'
     LANGUAGE = 'LANGUAGE'
     COVER = 'COVER'  # Path to cover. Should end with `*[CO].jpg`
+    BACKGROUND = 'BACKGROUND'  # Path to background. Is shown when there is no video. Should end with `*[BG].jpg`
     CREATOR = 'CREATOR'
     COMMENT = 'COMMENT'
     VIDEO = 'VIDEO'
+    VIDEOGAP = 'VIDEOGAP'
     FILE_END = 'E'
     LINEBREAK = '-'
 
@@ -24,8 +26,6 @@ class UltrastarTxtTag(str, Enum):
     FIXER = 'FIXER'
 
     # Unused
-    BACKGROUND = 'BACKGROUND'  # Path to background. Is shown when there is no video. Should end with `*[BG].jpg`
-    VIDEOGAP = 'VIDEOGAP'
     GENRE = 'GENRE'
     EDITION = 'EDITION'
     YEAR = 'YEAR'
@@ -63,10 +63,12 @@ class UltrastarTxtValue:
     genre = ""
     mp3 = ""
     video = None
+    videoGap = None
     gap = ""
     bpm = ""
     language = None
     cover = None
+    background = None
     creator = "UltraSinger [GitHub]"
     comment = "UltraSinger [GitHub]"
     startBeat = []

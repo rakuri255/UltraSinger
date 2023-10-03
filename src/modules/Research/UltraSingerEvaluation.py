@@ -1,0 +1,109 @@
+import copy
+import os
+import sys
+from datetime import datetime
+from pathlib import Path
+from typing import List
+
+import UltraSinger
+from Settings import Settings
+from modules.DeviceDetection.device_detection import check_gpu_support
+from modules.Research.TestSong import TestSong
+from modules.Ultrastar import ultrastar_parser
+from modules.console_colors import ULTRASINGER_HEAD, red_highlighted
+
+test_input_folder = os.path.normpath(
+    os.path.abspath(__file__ + "../../../../../test_input")
+)
+test_output_folder = os.path.normpath(
+    os.path.abspath(__file__ + "../../../../../test_output")
+)
+test_run_folder = os.path.join(
+    test_output_folder, datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+)
+
+
+def main() -> None:
+    """Main function"""
+    test_input_folder_path = Path(test_input_folder)
+    test_input_folder_path.mkdir(parents=True, exist_ok=True)
+
+    test_output_folder_path = Path(test_output_folder)
+    test_output_folder_path.mkdir(parents=True, exist_ok=True)
+
+    test_run_folder_path = Path(test_run_folder)
+    test_run_folder_path.mkdir(parents=True)
+
+    base_settings = initialize_settings()
+    base_settings.output_file_path = test_run_folder
+
+    base_settings.test_songs_input_folder = os.path.normpath(
+        base_settings.test_songs_input_folder
+    )
+    if not os.path.isdir(base_settings.test_songs_input_folder):
+        print(
+            f"{ULTRASINGER_HEAD} {red_highlighted('Error!')} No test songs input folder configured (refer to "
+            f"evaluation section in readme)."
+        )
+        exit(1)
+
+    test_songs: List[TestSong] = []
+    for dir_entry in os.listdir(base_settings.test_songs_input_folder):
+        dir_entry_path = os.path.join(base_settings.test_songs_input_folder, dir_entry)
+        if os.path.isdir(dir_entry_path):
+            for sub_dir_entry in os.listdir(dir_entry_path):
+                if sub_dir_entry.endswith(".txt") and sub_dir_entry != "license.txt":
+                    txt_file = os.path.join(
+                        base_settings.test_songs_input_folder, dir_entry, sub_dir_entry
+                    )
+                    ultrastar_class = ultrastar_parser.parse_ultrastar_txt(txt_file)
+
+                    if ultrastar_class.mp3:
+                        test_song = TestSong(
+                            txt_file, ultrastar_class.mp3, ultrastar_class
+                        )
+                        test_songs.append(test_song)
+                        break
+                    else:
+                        print(
+                            f"{ULTRASINGER_HEAD} {red_highlighted('Warning.')} {base_settings.test_songs_input_folder} contains an UltraStar text file but has no audio referenced in it. Skipping."
+                        )
+
+    if len(test_songs) == 0:
+        print(
+            f"{ULTRASINGER_HEAD} {red_highlighted('Error!')} No test songs found in {base_settings.test_songs_input_folder}."
+        )
+        exit(1)
+
+    print(f"{ULTRASINGER_HEAD} Running evaluation for {len(test_songs)} songs")
+
+    for index, test_song in enumerate(test_songs):
+        print(f"{ULTRASINGER_HEAD} ========================")
+        print(
+            f"{ULTRASINGER_HEAD} {index+1}/{len(test_songs)}: {os.path.basename(test_song.txt)}"
+        )
+
+        test_song_settings = copy.deepcopy(base_settings)
+        test_song_settings.input_file_path = test_song.txt
+        UltraSinger.settings = test_song_settings
+        UltraSinger.run()
+
+
+def initialize_settings():
+    s = Settings()
+    user_config_file = os.path.normpath(
+        os.path.join(test_input_folder, "config/local.py")
+    )
+    if os.path.isfile(user_config_file):
+        sys.path.append(os.path.join(user_config_file, ".."))
+        import local
+
+        s = local.user_settings
+
+    if not s.force_cpu:
+        s.tensorflow_device, s.pytorch_device = check_gpu_support()
+    return s
+
+
+if __name__ == "__main__":
+    main()

@@ -5,7 +5,13 @@ from modules.Ultrastar.ultrastar_converter import (
     get_end_time_from_ultrastar,
     get_start_time_from_ultrastar,
 )
-from modules.Ultrastar.ultrastar_txt import UltrastarTxtValue, UltrastarTxtTag, UltrastarTxtNoteTypeTag, FILE_ENCODING
+from modules.Ultrastar.ultrastar_txt import (
+    UltrastarTxtValue,
+    UltrastarTxtTag,
+    UltrastarTxtNoteTypeTag,
+    FILE_ENCODING,
+)
+
 
 def parse_ultrastar_txt(input_file: str) -> UltrastarTxtValue:
     """Parse ultrastar txt file to UltrastarTxt class"""
@@ -31,12 +37,23 @@ def parse_ultrastar_txt(input_file: str) -> UltrastarTxtValue:
                 ultrastar_class.gap = line.split(":")[1].replace("\n", "")
             elif line.startswith(f"#{UltrastarTxtTag.BPM}"):
                 ultrastar_class.bpm = line.split(":")[1].replace("\n", "")
-        elif line.startswith((
+            elif line.startswith(f"#{UltrastarTxtTag.VIDEO}"):
+                ultrastar_class.video = line.split(":")[1].replace("\n", "")
+            elif line.startswith(f"#{UltrastarTxtTag.VIDEOGAP}"):
+                ultrastar_class.videoGap = line.split(":")[1].replace("\n", "")
+            elif line.startswith(f"#{UltrastarTxtTag.COVER}"):
+                ultrastar_class.cover = line.split(":")[1].replace("\n", "")
+            elif line.startswith(f"#{UltrastarTxtTag.BACKGROUND}"):
+                ultrastar_class.background = line.split(":")[1].replace("\n", "")
+        elif line.startswith(
+            (
                 f"{UltrastarTxtNoteTypeTag.FREESTYLE} ",
                 f"{UltrastarTxtNoteTypeTag.NORMAL} ",
                 f"{UltrastarTxtNoteTypeTag.GOLDEN} ",
                 f"{UltrastarTxtNoteTypeTag.RAP} ",
-                f"{UltrastarTxtNoteTypeTag.RAP_GOLDEN} ")):
+                f"{UltrastarTxtNoteTypeTag.RAP_GOLDEN} ",
+            )
+        ):
             parts = line.split()
             # [0] F : * R G
             # [1] start beat

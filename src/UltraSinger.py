@@ -330,15 +330,13 @@ def merge_syllable_segments(
 
 def run() -> None:
     """The processing function of this program"""
-    is_audio = ".txt" not in settings.input_file_path
+    settings.input_file_is_ultrastar_txt = settings.input_file_path.endswith(".txt")
+
     ultrastar_class = None
     real_bpm = None
     (title, artist, year, genre) = (None, None, None, None)
 
-    if not is_audio:  # Parse Ultrastar txt
-        print(
-            f"{ULTRASINGER_HEAD} {gold_highlighted('re-pitch mode')}"
-        )
+    if settings.input_file_is_ultrastar_txt:  # Parse Ultrastar txt
         (
             basename_without_ext,
             real_bpm,
@@ -346,6 +344,13 @@ def run() -> None:
             ultrastar_audio_input_path,
             ultrastar_class,
         ) = parse_ultrastar_txt()
+
+        if not ultrastar_class.mp3:
+            print(
+                f"{ULTRASINGER_HEAD} {red_highlighted('Error!')} The provided text file does not have a reference to "
+                f"an audio file."
+            )
+            exit(1)
     elif settings.input_file_path.startswith("https:"):  # Youtube
         print(
             f"{ULTRASINGER_HEAD} {gold_highlighted('full automatic mode')}"
@@ -384,7 +389,7 @@ def run() -> None:
     # Audio transcription
     transcribed_data = None
     language = settings.language
-    if is_audio:
+    if not settings.ignore_audio:
         detected_language, transcribed_data = transcribe_audio()
         if language is None:
             language = detected_language
@@ -409,7 +414,6 @@ def run() -> None:
     if settings.create_audio_chunks:
         create_audio_chunks(
             cache_path,
-            is_audio,
             transcribed_data,
             ultrastar_audio_input_path,
             ultrastar_class,
@@ -417,7 +421,7 @@ def run() -> None:
 
     # Pitch the audio
     midi_notes, pitched_data, ultrastar_note_numbers = pitch_audio(
-        is_audio, transcribed_data, ultrastar_class
+        transcribed_data, ultrastar_class
     )
 
     transcribed_data, midi_notes, ultrastar_note_numbers = merge_syllable_segments(transcribed_data, midi_notes, ultrastar_note_numbers)
@@ -427,7 +431,7 @@ def run() -> None:
         plot(pitched_data, song_output, transcribed_data, midi_notes)
 
     # Write Ultrastar txt
-    if is_audio:
+    if not settings.ignore_audio:
         real_bpm, ultrastar_file_output = create_ultrastar_txt_from_automation(
             audio_separation_path,
             basename_without_ext,
@@ -448,7 +452,7 @@ def run() -> None:
 
     # Calc Points
     ultrastar_class, simple_score, accurate_score = calculate_score_points(
-        is_audio, pitched_data, ultrastar_class, ultrastar_file_output
+        pitched_data, ultrastar_class, ultrastar_file_output
     )
 
     # Add calculated score to Ultrastar txt
@@ -506,7 +510,7 @@ def separate_vocal_from_audio(
 ) -> str:
     """Separate vocal from audio"""
     audio_separation_path = os.path.join(
-        cache_path, "separated", "htdemucs", basename_without_ext
+        cache_path, "separated", "htdemucs", os.path.splitext(os.path.basename(ultrastar_audio_input_path))[0]
     )
 
     if settings.use_separated_vocal or settings.create_karaoke:
@@ -522,10 +526,10 @@ def separate_vocal_from_audio(
 
 
 def calculate_score_points(
-    is_audio: bool, pitched_data: PitchedData, ultrastar_class: UltrastarTxtValue, ultrastar_file_output: str
+    pitched_data: PitchedData, ultrastar_class: UltrastarTxtValue, ultrastar_file_output: str
 ):
     """Calculate score points"""
-    if is_audio:
+    if not settings.ignore_audio:
         ultrastar_class = ultrastar_parser.parse_ultrastar_txt(
             ultrastar_file_output
         )
@@ -735,12 +739,13 @@ def parse_ultrastar_txt() -> tuple[str, float, str, str, UltrastarTxtValue]:
         float(ultrastar_class.bpm.replace(",", "."))
     )
     ultrastar_mp3_name = ultrastar_class.mp3
-    basename_without_ext = os.path.splitext(ultrastar_mp3_name)[0]
+
+    basename_without_ext = f"{ultrastar_class.artist} - {ultrastar_class.title}"
     dirname = os.path.dirname(settings.input_file_path)
     ultrastar_audio_input_path = os.path.join(dirname, ultrastar_mp3_name)
     song_output = os.path.join(
         settings.output_file_path,
-        ultrastar_class.artist + " - " + ultrastar_class.title,
+        basename_without_ext,
     )
     song_output = get_unused_song_output_dir(song_output)
     os_helper.create_folder(song_output)
@@ -771,7 +776,7 @@ def create_midi_file(real_bpm: float,
     )
 
 
-def pitch_audio(is_audio: bool, transcribed_data: list[TranscribedData], ultrastar_class: UltrastarTxtValue) -> tuple[
+def pitch_audio(transcribed_data: list[TranscribedData], ultrastar_class: UltrastarTxtValue) -> tuple[
     list[str], PitchedData, list[int]]:
     """Pitch audio"""
     # todo: chunk pitching as option?
@@ -782,7 +787,7 @@ def pitch_audio(is_audio: bool, transcribed_data: list[TranscribedData], ultrast
         settings.crepe_step_size,
         settings.tensorflow_device
     )
-    if is_audio:
+    if not settings.ignore_audio:
         start_times = []
         end_times = []
         for i, data in enumerate(transcribed_data):
@@ -802,7 +807,6 @@ def pitch_audio(is_audio: bool, transcribed_data: list[TranscribedData], ultrast
 
 def create_audio_chunks(
     cache_path: str,
-    is_audio: bool,
     transcribed_data: list[TranscribedData],
     ultrastar_audio_input_path: str,
     ultrastar_class: UltrastarTxtValue
@@ -812,7 +816,7 @@ def create_audio_chunks(
         cache_path, settings.audio_chunk_folder_name
     )
     os_helper.create_folder(audio_chunks_path)
-    if is_audio:  # and csv
+    if not settings.ignore_audio:  # and csv
         csv_filename = os.path.join(audio_chunks_path, "_chunks.csv")
         export_chunks_from_transcribed_data(
             settings.mono_audio_path, transcribed_data, audio_chunks_path
@@ -883,6 +887,8 @@ def init_settings(argv: list[str]) -> None:
             settings.create_karaoke = not arg
         elif opt in ("--create_audio_chunks"):
             settings.create_audio_chunks = arg
+        elif opt in ("--ignore_audio"):
+            settings.ignore_audio = arg in ["True", "true"]
         elif opt in ("--force_cpu"):
             settings.force_cpu = arg
             if settings.force_cpu:
@@ -917,6 +923,7 @@ def arg_options():
         "disable_separation=",
         "disable_karaoke=",
         "create_audio_chunks=",
+        "ignore_audio=",
         "force_cpu=",
     ]
     return long, short

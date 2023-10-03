@@ -5,6 +5,8 @@ class Settings:
     hyphenation = True
     use_separated_vocal = True
     create_karaoke = True
+    ignore_audio = False
+    input_file_is_ultrastar_txt = False
 
     input_file_path = ""
     output_file_path = ""
@@ -31,3 +33,6 @@ class Settings:
     pytorch_device = 'cpu'  # cpu|cuda
     tensorflow_device = 'cpu'  # cpu|cuda
     force_cpu = False
+
+    # UltraSinger Evaluation Configuration
+    test_songs_input_folder = None
