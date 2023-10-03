@@ -45,7 +45,6 @@ from modules.Pitcher.pitcher import (
 )
 from modules.Pitcher.pitched_data import PitchedData
 from modules.Speech_Recognition.hyphenation import hyphenation, language_check, create_hyphenator
-from modules.Speech_Recognition.Vosk import transcribe_with_vosk
 from modules.Speech_Recognition.Whisper import transcribe_with_whisper
 from modules.Ultrastar import ultrastar_score_calculator, ultrastar_writer, ultrastar_converter, ultrastar_parser
 from modules.Ultrastar.ultrastar_txt import UltrastarTxtValue
@@ -186,7 +185,8 @@ def print_help() -> None:
     [mode]
     ## INPUT is audio ##
     default  Creates all
-            
+    
+    # Single file creation selection is in progress, you currently getting all!
     (-u      Create ultrastar txt file) # In Progress
     (-m      Create midi file) # In Progress
     (-s      Create sheet file) # In Progress
@@ -194,22 +194,27 @@ def print_help() -> None:
     ## INPUT is ultrastar.txt ##
     default  Creates all
 
+    # Single selection is in progress, you currently getting all!
     (-r      repitch Ultrastar.txt (input has to be audio)) # In Progress
     (-p      Check pitch of Ultrastar.txt input) # In Progress
     (-m      Create midi file) # In Progress
 
     [transcription]
-    --whisper   (default) tiny|base|small|medium|large
-    --vosk      Needs model
+    # Default is whisper
+    --whisper       Multilingual model > tiny|base|small|medium|large-v1|large-v2  >> ((default) is large-v2
+                    English-only model > tiny.en|base.en|small.en|medium.en
+    --align_model   Use other languages model for Whisper provided from huggingface.co 
+        
+    [pitcher]
+    # Default is crepe
+    --crepe     tiny|small|medium|large|full >> ((default) is full)
     
     [extra]
-    (-k                     Keep audio chunks) # In Progress
-    --hyphenation           (default) True|False
-    --disable_separation    True|False
-    --disable_karaoke       True|False
-    
-    [pitcher]
-    --crepe  (default) tiny|small|medium|large|full
+    --hyphenation           True|False >> ((default) is True)
+    --disable_separation    True|False >> ((default) is False)
+    --disable_karaoke       True|False >> ((default) is False)
+    --create_audio_chunks   True|False >> ((default) is False)
+    --plot                  True|False >> ((default) is False)
     """
     print(help_string)
 
@@ -491,11 +496,8 @@ def transcribe_audio() -> (str, list[TranscribedData]):
             settings.whisper_compute_type,
             settings.language,
         )
-    else:  # vosk
-        transcribed_data = transcribe_with_vosk(
-            settings.mono_audio_path, settings.vosk_model_path
-        )
-        detected_language = "en"
+    else:
+        raise NotImplementedError
     return detected_language, transcribed_data
 
 
@@ -865,9 +867,6 @@ def init_settings(argv: list[str]) -> None:
             settings.whisper_compute_type = arg
         elif opt in ("--language"):
             settings.language = arg
-        elif opt in ("--vosk"):
-            settings.transcriber = "vosk"
-            settings.vosk_model_path = arg
         elif opt in ("--crepe"):
             settings.crepe_model_capacity = arg
         elif opt in ("--crepe_step_size"):
@@ -907,7 +906,6 @@ def arg_options():
         "ofile=",
         "crepe=",
         "crepe_step_size=",
-        "vosk=",
         "whisper=",
         "whisper_align_model=",
         "whisper_batch_size=",
