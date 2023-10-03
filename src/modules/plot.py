@@ -12,6 +12,7 @@ from modules.console_colors import ULTRASINGER_HEAD
 from modules.Pitcher.pitched_data import PitchedData
 from modules.Pitcher.pitcher import get_pitched_data_with_high_confidence
 from modules.Speech_Recognition.TranscribedData import TranscribedData
+from numpy.lib import stride_tricks
 
 
 @dataclass
@@ -225,7 +226,7 @@ def draw_words(transcribed_data, midi_notes):
 
             xy_start_pos = (
                 data.start,
-                numpy.log10([note_frequency - half_frequency_range])[0],
+                1,
             )
             width = data.end - data.start
             rect = Rectangle(
@@ -246,3 +247,26 @@ def snake(s):
             "([A-Z][a-z]+)", r" \1", sub("([A-Z]+)", r" \1", s.replace("-", " "))
         ).split()
     ).lower()
+
+
+def plot_volume(pitched_data: PitchedData,
+            audio_seperation_path: str,
+            output_path: str,
+            title: str = None,
+            transcribed_data: list[TranscribedData] = None,
+            midi_notes: list[str] = None,
+    ) -> None:
+        """Plot volume of data"""
+
+        audio, sr = librosa.load(audio_seperation_path, sr=None)
+        powerSpectrum, frequenciesFound, time, imageAxis = plt.specgram(audio, Fs=sr)
+
+        dpi = 200
+        plt.savefig(
+            os.path.join(
+                output_path, f"plot{'' if title is None else '_' + snake(title)}.svg"
+            ),
+            dpi=dpi,
+        )
+        plt.clf()
+        plt.cla()

@@ -50,7 +50,7 @@ from modules.Ultrastar import ultrastar_score_calculator, ultrastar_writer, ultr
 from modules.Ultrastar.ultrastar_txt import UltrastarTxtValue
 from Settings import Settings
 from modules.Speech_Recognition.TranscribedData import TranscribedData
-from modules.plot import plot
+from modules.plot import plot, plot_volume
 from modules.musicbrainz_client import get_music_infos
 
 settings = Settings()
@@ -352,6 +352,8 @@ def run() -> None:
 
     # Create plot
     if settings.create_plot:
+        vocals_path = os.path.join(audio_separation_path, "vocals.wav")
+        plot_volume(pitched_data, vocals_path, song_output, "Volume", transcribed_data, midi_notes)
         plot(pitched_data, song_output, transcribed_data, midi_notes)
 
     # Write Ultrastar txt
