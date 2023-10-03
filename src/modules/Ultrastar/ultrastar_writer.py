@@ -55,6 +55,7 @@ def create_ultrastar_txt_from_automation(
     with open(ultrastar_file_output, "w", encoding=FILE_ENCODING) as file:
         gap = transcribed_data[0].start
 
+        file.write(f"#{UltrastarTxtTag.VERSION}:{ultrastar_class.version}\n"),
         file.write(f"#{UltrastarTxtTag.ARTIST}:{ultrastar_class.artist}\n")
         file.write(f"#{UltrastarTxtTag.TITLE}:{ultrastar_class.title}\n")
         if ultrastar_class.year is not None:
@@ -70,7 +71,6 @@ def create_ultrastar_txt_from_automation(
         file.write(f"#{UltrastarTxtTag.BPM}:{round(ultrastar_bpm, 2)}\n")  # not the real BPM!
         file.write(f"#{UltrastarTxtTag.GAP}:{int(gap * 1000)}\n")
         file.write(f"#{UltrastarTxtTag.CREATOR}:{ultrastar_class.creator}\n")
-        file.write(f"#{UltrastarTxtTag.FIXER}:{ultrastar_class.fixer}\n")
         file.write(f"#{UltrastarTxtTag.COMMENT}:{ultrastar_class.comment}\n")
 
         # Write the singing part
