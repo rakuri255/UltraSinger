@@ -1,4 +1,6 @@
 class Settings:
+    APP_VERSION = "0.0.1-2023-10-03"
+
     create_midi = True
     create_plot = False
     create_audio_chunks = False

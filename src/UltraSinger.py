@@ -381,7 +381,7 @@ def run() -> None:
         is_audio, pitched_data, ultrastar_class, ultrastar_file_output
     )
 
-    # Add calculated score to Ultrastar txt
+    # Add calculated score to Ultrastar txt #Todo: Missing Karaoke
     ultrastar_writer.add_score_to_ultrastar_txt(
         ultrastar_file_output, simple_score
     )
@@ -540,6 +540,8 @@ def create_ultrastar_txt_from_automation(
         if os_helper.check_file_exists(os.path.join(song_output, cover))
         else None
     )
+    ultrastar_header.creator = f"{ultrastar_header.creator} {Settings.APP_VERSION}"
+    ultrastar_header.comment = f"{ultrastar_header.comment} {Settings.APP_VERSION}"
 
     # Additional data
     if title is not None:

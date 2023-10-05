@@ -82,6 +82,7 @@ class TestCreateUltrastarTxt(unittest.TestCase):
     @staticmethod
     def default_values(default_ultrastar_class):
         expected_calls = [
+            f"#{UltrastarTxtTag.VERSION}:{default_ultrastar_class.version}\n",
             f"#{UltrastarTxtTag.ARTIST}:{default_ultrastar_class.artist}\n",
             f"#{UltrastarTxtTag.TITLE}:{default_ultrastar_class.title}\n",
             f"#{UltrastarTxtTag.MP3}:{default_ultrastar_class.mp3}\n",
@@ -89,7 +90,6 @@ class TestCreateUltrastarTxt(unittest.TestCase):
             f"#{UltrastarTxtTag.BPM}:390.0\n",
             f"#{UltrastarTxtTag.GAP}:500\n",
             f"#{UltrastarTxtTag.CREATOR}:{default_ultrastar_class.creator}\n",
-            f"#{UltrastarTxtTag.FIXER}:{default_ultrastar_class.fixer}\n", # todo: fixer is special
             f"#{UltrastarTxtTag.COMMENT}:{default_ultrastar_class.comment}\n",
             ": 0 52 1 UltraSinger \n",
             "- 52\n",
@@ -103,6 +103,7 @@ class TestCreateUltrastarTxt(unittest.TestCase):
     @staticmethod
     def full_values(default_ultrastar_class):
         expected_calls = [
+            f"#{UltrastarTxtTag.VERSION}:{default_ultrastar_class.version}\n",
             f"#{UltrastarTxtTag.ARTIST}:{default_ultrastar_class.artist}\n",
             f"#{UltrastarTxtTag.TITLE}:{default_ultrastar_class.title}\n",
             f"#{UltrastarTxtTag.YEAR}:{default_ultrastar_class.year}\n",
@@ -114,7 +115,6 @@ class TestCreateUltrastarTxt(unittest.TestCase):
             f"#{UltrastarTxtTag.BPM}:390.0\n",
             f"#{UltrastarTxtTag.GAP}:500\n",
             f"#{UltrastarTxtTag.CREATOR}:{default_ultrastar_class.creator}\n",
-            f"#{UltrastarTxtTag.FIXER}:{default_ultrastar_class.fixer}\n",
             f"#{UltrastarTxtTag.COMMENT}:{default_ultrastar_class.comment}\n",
             ": 0 52 1 UltraSinger \n",
             "- 52\n",
