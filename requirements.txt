@@ -17,7 +17,7 @@ scipy~=1.11.2
 tensorflow<2.11
 tqdm~=4.65.2
 whisperx~=3.1.1
-yt_dlp~=2023.7.6
+yt_dlp~=2023.9.24
 
 isort~=5.12
 black~=23.3
