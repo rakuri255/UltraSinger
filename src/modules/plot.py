@@ -13,7 +13,6 @@ from modules.Pitcher.pitched_data import PitchedData
 from modules.Pitcher.pitcher import get_pitched_data_with_high_confidence
 from modules.Speech_Recognition.TranscribedData import TranscribedData
 
-
 @dataclass
 class PlottedNote:
     """Plotted note"""
@@ -225,7 +224,7 @@ def draw_words(transcribed_data, midi_notes):
 
             xy_start_pos = (
                 data.start,
-                numpy.log10([note_frequency - half_frequency_range])[0],
+                1,
             )
             width = data.end - data.start
             rect = Rectangle(
@@ -246,3 +245,47 @@ def snake(s):
             "([A-Z][a-z]+)", r" \1", sub("([A-Z]+)", r" \1", s.replace("-", " "))
         ).split()
     ).lower()
+
+
+def plot_spectrogram(audio_seperation_path: str,
+                     output_path: str,
+                     title: str = "Spectrogram",
+
+                     ) -> None:
+        """Plot spectrogram of data"""
+
+        print(
+            f"{ULTRASINGER_HEAD} Creating plot{': ' + title}"
+        )
+
+        audio, sr = librosa.load(audio_seperation_path, sr=None)
+        powerSpectrum, frequenciesFound, time, imageAxis = plt.specgram(audio, Fs=sr)
+        plt.colorbar()
+
+        if title is not None:
+            plt.title(label=title)
+
+        plt.xlabel("Time (s)")
+        plt.ylabel("Frequency (Hz)")
+
+        ymin = 0
+        ymax = max(frequenciesFound) + 0.05
+        plt.ylim(ymin, ymax)
+        xmin = 0
+        xmax = max(time)
+        plt.xlim(xmin, xmax)
+
+        plt.figure(1).set_figwidth(max(6.4, xmax))
+        plt.figure(1).set_figheight(4)
+
+        plt.figure(1).tight_layout(h_pad=1.4)
+
+        dpi = 200
+        plt.savefig(
+            os.path.join(
+                output_path, f"plot{'_' + snake(title)}.svg"
+            ),
+            dpi=dpi,
+        )
+        plt.clf()
+        plt.cla()
