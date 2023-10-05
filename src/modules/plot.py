@@ -12,8 +12,6 @@ from modules.console_colors import ULTRASINGER_HEAD
 from modules.Pitcher.pitched_data import PitchedData
 from modules.Pitcher.pitcher import get_pitched_data_with_high_confidence
 from modules.Speech_Recognition.TranscribedData import TranscribedData
-from numpy.lib import stride_tricks
-
 
 @dataclass
 class PlottedNote:
@@ -249,22 +247,43 @@ def snake(s):
     ).lower()
 
 
-def plot_volume(pitched_data: PitchedData,
-            audio_seperation_path: str,
-            output_path: str,
-            title: str = None,
-            transcribed_data: list[TranscribedData] = None,
-            midi_notes: list[str] = None,
-    ) -> None:
-        """Plot volume of data"""
+def plot_spectrogram(audio_seperation_path: str,
+                     output_path: str,
+                     title: str = "Spectrogram",
+
+                     ) -> None:
+        """Plot spectrogram of data"""
+
+        print(
+            f"{ULTRASINGER_HEAD} Creating plot{': ' + title}"
+        )
 
         audio, sr = librosa.load(audio_seperation_path, sr=None)
         powerSpectrum, frequenciesFound, time, imageAxis = plt.specgram(audio, Fs=sr)
+        plt.colorbar()
+
+        if title is not None:
+            plt.title(label=title)
+
+        plt.xlabel("Time (s)")
+        plt.ylabel("Frequency (Hz)")
+
+        ymin = 0
+        ymax = max(frequenciesFound) + 0.05
+        plt.ylim(ymin, ymax)
+        xmin = 0
+        xmax = max(time)
+        plt.xlim(xmin, xmax)
+
+        plt.figure(1).set_figwidth(max(6.4, xmax))
+        plt.figure(1).set_figheight(4)
+
+        plt.figure(1).tight_layout(h_pad=1.4)
 
         dpi = 200
         plt.savefig(
             os.path.join(
-                output_path, f"plot{'' if title is None else '_' + snake(title)}.svg"
+                output_path, f"plot{'_' + snake(title)}.svg"
             ),
             dpi=dpi,
         )
