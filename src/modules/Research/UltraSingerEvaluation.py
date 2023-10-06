@@ -25,14 +25,9 @@ test_run_folder = os.path.join(
 
 def main() -> None:
     """Main function"""
-    test_input_folder_path = Path(test_input_folder)
-    test_input_folder_path.mkdir(parents=True, exist_ok=True)
-
-    test_output_folder_path = Path(test_output_folder)
-    test_output_folder_path.mkdir(parents=True, exist_ok=True)
-
-    test_run_folder_path = Path(test_run_folder)
-    test_run_folder_path.mkdir(parents=True)
+    Path(test_input_folder).mkdir(parents=True, exist_ok=True)
+    Path(test_output_folder).mkdir(parents=True, exist_ok=True)
+    Path(test_run_folder).mkdir(parents=True)
 
     base_settings = initialize_settings()
     base_settings.output_file_path = test_run_folder
@@ -49,19 +44,15 @@ def main() -> None:
 
     test_songs: List[TestSong] = []
     for dir_entry in os.listdir(base_settings.test_songs_input_folder):
-        dir_entry_path = os.path.join(base_settings.test_songs_input_folder, dir_entry)
-        if os.path.isdir(dir_entry_path):
-            for sub_dir_entry in os.listdir(dir_entry_path):
-                if sub_dir_entry.endswith(".txt") and sub_dir_entry != "license.txt":
-                    txt_file = os.path.join(
-                        base_settings.test_songs_input_folder, dir_entry, sub_dir_entry
-                    )
+        song_folder = os.path.join(base_settings.test_songs_input_folder, dir_entry)
+        if os.path.isdir(song_folder):
+            for song_folder_item in os.listdir(song_folder):
+                if song_folder_item.endswith(".txt") and song_folder_item != "license.txt":
+                    txt_file = os.path.join(song_folder, song_folder_item)
                     ultrastar_class = ultrastar_parser.parse_ultrastar_txt(txt_file)
 
                     if ultrastar_class.mp3:
-                        test_song = TestSong(
-                            txt_file, ultrastar_class.mp3, ultrastar_class
-                        )
+                        test_song = TestSong(txt_file, song_folder, ultrastar_class.mp3, ultrastar_class)
                         test_songs.append(test_song)
                         break
                     else:
@@ -83,8 +74,12 @@ def main() -> None:
             f"{ULTRASINGER_HEAD} {index+1}/{len(test_songs)}: {os.path.basename(test_song.txt)}"
         )
 
+        # prepare cache directory
+        song_cache_path = os.path.join(test_song.folder, "cache")
+        Path(song_cache_path).mkdir(parents=True, exist_ok=True)
         test_song_settings = copy.deepcopy(base_settings)
         test_song_settings.input_file_path = test_song.txt
+        test_song_settings.cache_override_path = song_cache_path
         UltraSinger.settings = test_song_settings
         UltraSinger.run()
 

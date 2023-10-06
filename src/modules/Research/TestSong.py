@@ -8,5 +8,6 @@ class TestSong:
     """Test song"""
 
     txt: str
+    folder: str
     audio: float
     ultrastar_class: UltrastarTxtValue

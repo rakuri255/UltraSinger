@@ -5,8 +5,9 @@ import sys
 import whisperx
 from torch.cuda import OutOfMemoryError
 
+from modules.Speech_Recognition.TranscriptionResult import TranscriptionResult
 from modules.console_colors import ULTRASINGER_HEAD, blue_highlighted, red_highlighted
-from modules.Speech_Recognition.TranscribedData import TranscribedData
+from modules.Speech_Recognition.TranscribedData import TranscribedData, from_whisper
 
 
 def transcribe_with_whisper(
@@ -17,7 +18,7 @@ def transcribe_with_whisper(
     batch_size: int = 16,
     compute_type: str = None,
     language: str = None,
-) -> (list[TranscribedData], str):
+) -> TranscriptionResult:
     """Transcribe with whisper"""
 
     print(
@@ -90,20 +91,19 @@ def transcribe_with_whisper(
 
     transcribed_data = convert_to_transcribed_data(result_aligned)
 
-    return transcribed_data, detected_language
+    return TranscriptionResult(transcribed_data, detected_language)
 
 
 def convert_to_transcribed_data(result_aligned):
     transcribed_data = []
     for segment in result_aligned["segments"]:
         for obj in segment["words"]:
-            vtd = TranscribedData(obj)  # create custom Word object
+            vtd = from_whisper(obj)  # create custom Word object
             vtd.word = vtd.word + " "  # add space to end of word
             if len(obj) < 4:
                 previous = transcribed_data[-1]
                 if not previous:
                     previous.end = 0
-                    previous.end = ""
                 vtd.start = previous.end + 0.1
                 vtd.end = previous.end + 0.2
                 msg = f'Error: There is no timestamp for word:  {obj["word"]}. ' \

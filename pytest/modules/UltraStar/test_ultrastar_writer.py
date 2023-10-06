@@ -42,20 +42,20 @@ class TestCreateUltrastarTxt(unittest.TestCase):
     def arrange(self):
         # Arrange
         transcribed_data = [
-            TranscribedData({
-                "conf": 0.95,
+            TranscribedData.from_dict({
+                "confidence": 0.95,
                 "word": "UltraSinger ",
                 "end": 2.5,
                 "start": 0.5
             }),
-            TranscribedData({
-                "conf": 0.9,
+            TranscribedData.from_dict({
+                "confidence": 0.9,
                 "word": "is ",
                 "end": 4.5,
                 "start": 3.0
             }),
-            TranscribedData({
-                "conf": 0.85,
+            TranscribedData.from_dict({
+                "confidence": 0.85,
                 "word": "cool! ",
                 "end": 7.5,
                 "start": 5.5
@@ -85,7 +85,14 @@ class TestCreateUltrastarTxt(unittest.TestCase):
             f"#{UltrastarTxtTag.ARTIST}:{default_ultrastar_class.artist}\n",
             f"#{UltrastarTxtTag.TITLE}:{default_ultrastar_class.title}\n",
             f"#{UltrastarTxtTag.MP3}:{default_ultrastar_class.mp3}\n",
-            f"#{UltrastarTxtTag.VIDEO}:{default_ultrastar_class.video}\n", # todo: video is optional
+        ]
+
+        if default_ultrastar_class.video is not None:
+            expected_calls += [
+                f"#{UltrastarTxtTag.VIDEO}:{default_ultrastar_class.video}\n",
+            ]
+
+        expected_calls += [
             f"#{UltrastarTxtTag.BPM}:390.0\n",
             f"#{UltrastarTxtTag.GAP}:500\n",
             f"#{UltrastarTxtTag.CREATOR}:{default_ultrastar_class.creator}\n",
@@ -96,7 +103,7 @@ class TestCreateUltrastarTxt(unittest.TestCase):
             ": 65 39 2 is \n",
             "- 104\n",
             ": 130 52 3 cool! \n",
-            "E"
+            "E",
         ]
         return expected_calls
 

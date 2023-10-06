@@ -41,6 +41,9 @@ def get_pitch_with_crepe(audio, sample_rate: int, model_capacity: str, step_size
     confidence, perceived_loudness = set_confidence_to_zero_in_silent_regions(confidence, audio, step_size=step_size)
     timer.log('Computing loudness end')
 
+    # convert to native float for serialization
+    confidence = [float(x) for x in confidence]
+
     return PitchedData(times, frequencies, confidence, perceived_loudness)
 
 
