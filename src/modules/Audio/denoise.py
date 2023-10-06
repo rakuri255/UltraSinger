@@ -25,7 +25,7 @@ def ffmpeg_reduce_noise(input_file_path: str, output_file: str) -> None:
     try:
         (
             ffmpeg.input(input_file_path)
-            .output(output_file, af="afftdn=nr=70:nf=-50:tn=1")
+            .output(output_file, af="afftdn=nr=70:nf=-80:tn=1")
             .overwrite_output()
             .run(capture_stdout=True, capture_stderr=True)
         )
