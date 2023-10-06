@@ -1,9 +1,9 @@
 import copy
 import os
-import sys
 from datetime import datetime
 from pathlib import Path
 from typing import List
+import importlib.util
 
 import UltraSinger
 from Settings import Settings
@@ -13,10 +13,10 @@ from modules.Ultrastar import ultrastar_parser
 from modules.console_colors import ULTRASINGER_HEAD, red_highlighted
 
 test_input_folder = os.path.normpath(
-    os.path.abspath(__file__ + "../../../../../test_input")
+    os.path.abspath(__file__ + "/../../test_input")
 )
 test_output_folder = os.path.normpath(
-    os.path.abspath(__file__ + "../../../../../test_output")
+    os.path.abspath(__file__ + "/../../test_output")
 )
 test_run_folder = os.path.join(
     test_output_folder, datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
@@ -90,10 +90,15 @@ def initialize_settings():
         os.path.join(test_input_folder, "config/local.py")
     )
     if os.path.isfile(user_config_file):
-        sys.path.append(os.path.join(user_config_file, ".."))
-        import local
+        print(f"{ULTRASINGER_HEAD} Using custom settings found under {user_config_file}")
 
-        s = local.user_settings
+        spec = importlib.util.spec_from_file_location("custom_settings", user_config_file)
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+
+        s = module.user_settings
+    else:
+        print(f"{ULTRASINGER_HEAD} No custom settings found under {user_config_file}")
 
     if not s.force_cpu:
         s.tensorflow_device, s.pytorch_device = check_gpu_support()
