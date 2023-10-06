@@ -7,7 +7,12 @@ import sys
 
 import Levenshtein
 import librosa
+
 from tqdm import tqdm
+from voicefixer import VoiceFixer, Vocoder
+import soundfile as sf
+from pydub import AudioSegment, silence
+import numpy as np
 
 from modules import os_helper, timer
 from modules.Audio.denoise import ffmpeg_reduce_noise
@@ -352,8 +357,7 @@ def run() -> None:
 
     # Create plot
     if settings.create_plot:
-        vocals_path = os.path.join(audio_separation_path, "vocals.wav")
-        plot_spectrogram(vocals_path, song_output)
+        plot_spectrogram(settings.mono_audio_path, song_output)
         plot(pitched_data, song_output, transcribed_data, midi_notes)
 
     # Write Ultrastar txt
@@ -755,14 +759,43 @@ def create_audio_chunks(
             ultrastar_audio_input_path, ultrastar_class, audio_chunks_path
         )
 
+def get_silence_sections(audio_path: str,
+                         min_silence_len=50,
+                         silence_thresh=-50) -> list[tuple[float, float]]:
+
+    y = AudioSegment.from_wav(audio_path)
+    s = silence.detect_silence(y, min_silence_len=min_silence_len, silence_thresh=silence_thresh)
+    s = [((start / 1000), (stop / 1000)) for start, stop in s]  # convert to sec
+    return s
 
 def denoise_vocal_audio(basename_without_ext: str, cache_path: str) -> None:
     """Denoise vocal audio"""
     denoised_path = os.path.join(
         cache_path, basename_without_ext + "_denoised.wav"
     )
+
     ffmpeg_reduce_noise(settings.mono_audio_path, denoised_path)
+
+    a = get_silence_sections(denoised_path)
+
+    y, sr = librosa.load(denoised_path, sr=None)
+
+    for i in a:
+        # Define the time range to mute
+
+        start_time = i[0]  # Start time in seconds
+        end_time = i[1]  # End time in seconds
+
+        # Convert time to sample indices
+        start_sample = int(start_time * sr)
+        end_sample = int(end_time * sr)
+
+        y[start_sample:end_sample] = 0
+
+    sf.write(denoised_path, y, sr)
+
     settings.mono_audio_path = denoised_path
+
 
 
 def main(argv: list[str]) -> None:
