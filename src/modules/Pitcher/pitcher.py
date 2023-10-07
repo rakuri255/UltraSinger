@@ -11,7 +11,7 @@ import modules.timer as timer
 
 
 def get_pitch_with_crepe_file(
-    filename: str, model_capacity: str, step_size: int = 10, device: str = "cpu"
+    filename: str, model_capacity: str, step_size: int = 10, device: str = "cpu", filter_silence_threshold: int = -60
 ) -> PitchedData:
     """Pitch with crepe"""
 
@@ -22,10 +22,10 @@ def get_pitch_with_crepe_file(
     audio, sample_rate = librosa.load(filename)
     timer.log('Load file for pitch detection end')
 
-    return get_pitch_with_crepe(audio, sample_rate, model_capacity, step_size)
+    return get_pitch_with_crepe(audio, sample_rate, model_capacity, step_size, filter_silence_threshold)
 
 
-def get_pitch_with_crepe(audio, sample_rate: int, model_capacity: str, step_size: int = 10) -> PitchedData:
+def get_pitch_with_crepe(audio, sample_rate: int, model_capacity: str, step_size: int = 10, filter_silence_threshold: int = -60) -> PitchedData:
     """Pitch with crepe"""
 
     if sample_rate != CREPE_MODEL_SAMPLE_RATE:
@@ -38,7 +38,7 @@ def get_pitch_with_crepe(audio, sample_rate: int, model_capacity: str, step_size
     timer.log('Crepe pitch detection end')
 
     timer.log('Computing loudness start')
-    confidence, perceived_loudness = set_confidence_to_zero_in_silent_regions(confidence, audio, step_size=step_size)
+    confidence, perceived_loudness = set_confidence_to_zero_in_silent_regions(confidence, audio, threshold=filter_silence_threshold, step_size=step_size)
     timer.log('Computing loudness end')
 
     # convert to native float for serialization

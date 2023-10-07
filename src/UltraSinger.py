@@ -2,7 +2,6 @@
 
 import copy
 import getopt
-import json
 import os
 import sys
 
@@ -18,7 +17,6 @@ from modules.Audio.vocal_chunks import (
     export_chunks_from_ultrastar_data,
 )
 from modules.Audio.silence_processing import remove_silence_from_transcription_data
-from modules.Pitcher.PitchingResult import PitchingResult
 from modules.Speech_Recognition.TranscriptionResult import TranscriptionResult
 from modules.csv_handler import export_transcribed_data_to_csv
 from modules.Audio.convert_audio import convert_audio_to_mono_wav, convert_wav_to_mp3
@@ -392,6 +390,7 @@ def run() -> None:
     )
     settings.mono_audio_path = os.path.join(cache_path, basename_without_ext + ".wav")
 
+    os_helper.create_folder(cache_path)
     # Separate vocal from audio
     audio_separation_path = separate_vocal_from_audio(basename_without_ext, cache_path, ultrastar_audio_input_path)
 
@@ -533,11 +532,11 @@ def separate_vocal_from_audio(
     basename_without_ext: str, cache_path: str, ultrastar_audio_input_path: str
 ) -> str:
     """Separate vocal from audio"""
-    demcus_output_folder = os.path.splitext(
+    demucs_output_folder = os.path.splitext(
         os.path.basename(ultrastar_audio_input_path)
     )[0]
     audio_separation_path = os.path.join(
-        cache_path, "separated", "htdemucs", demcus_output_folder
+        cache_path, "separated", "htdemucs", demucs_output_folder
     )
 
     vocals_path = os.path.join(audio_separation_path, "vocals.wav")
@@ -810,9 +809,10 @@ def pitch_audio(
     # todo: chunk pitching as option?
     # midi_notes = pitch_each_chunk_with_crepe(chunk_folder_name)
 
-    pitching_config = f"crepe_{settings.ignore_audio}_{settings.crepe_model_capacity}_{settings.crepe_step_size}_{settings.tensorflow_device}"
-    pitching_path = os.path.join(cache_path, f"{pitching_config}.json")
-    cache_available = check_file_exists(pitching_path)
+    pitching_config = f"crepe_{settings.ignore_audio}_{settings.crepe_model_capacity}_{settings.crepe_step_size}_{settings.tensorflow_device}_{settings.pitch_loudness_threshold}"
+    pitched_data_path = os.path.join(cache_path, f"{pitching_config}.json")
+    cache_available = check_file_exists(pitched_data_path)
+    pitched_data = None
 
     if settings.skip_cache_transcription or not cache_available:
         pitched_data = get_pitch_with_crepe_file(
@@ -820,35 +820,35 @@ def pitch_audio(
             settings.crepe_model_capacity,
             settings.crepe_step_size,
             settings.tensorflow_device,
+            settings.pitch_loudness_threshold
         )
-        if not settings.ignore_audio:
-            start_times = []
-            end_times = []
-            for i, data in enumerate(transcribed_data):
-                start_times.append(data.start)
-                end_times.append(data.end)
-            midi_notes = create_midi_notes_from_pitched_data(
-                start_times, end_times, pitched_data
-            )
 
-        else:
-            midi_notes = create_midi_notes_from_pitched_data(
-                ultrastar_class.startTimes, ultrastar_class.endTimes, pitched_data
-            )
-        ultrastar_note_numbers = convert_midi_notes_to_ultrastar_notes(midi_notes)
-
-        pitching_result = PitchingResult(midi_notes, pitched_data, ultrastar_note_numbers)
-
-        pitching_result_json = pitching_result.to_json()
-        with open(pitching_path, "w", encoding=FILE_ENCODING) as file:
-            file.write(pitching_result_json)
+        pitched_data_json = pitched_data.to_json()
+        with open(pitched_data_path, "w", encoding=FILE_ENCODING) as file:
+            file.write(pitched_data_json)
     else:
         print(f"{ULTRASINGER_HEAD} {green_highlighted('cache')} reusing cached pitch data")
-        with open(pitching_path) as file:
+        with open(pitched_data_path) as file:
             json = file.read()
-            pitching_result = PitchingResult.from_json(json)
+            pitched_data = PitchedData.from_json(json)
 
-    return pitching_result.midi_notes, pitching_result.pitched_data, pitching_result.ultrastar_note_numbers
+    if not settings.ignore_audio:
+        start_times = []
+        end_times = []
+        for i, data in enumerate(transcribed_data):
+            start_times.append(data.start)
+            end_times.append(data.end)
+        midi_notes = create_midi_notes_from_pitched_data(
+            start_times, end_times, pitched_data
+        )
+    else:
+        midi_notes = create_midi_notes_from_pitched_data(
+            ultrastar_class.startTimes, ultrastar_class.endTimes, pitched_data
+        )
+
+    ultrastar_note_numbers = convert_midi_notes_to_ultrastar_notes(midi_notes)
+
+    return midi_notes, pitched_data, ultrastar_note_numbers
 
 
 def create_audio_chunks(

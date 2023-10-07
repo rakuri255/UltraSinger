@@ -28,6 +28,7 @@ class Settings:
     # Pitch
     crepe_model_capacity = "full"  # tiny|small|medium|large|full
     crepe_step_size = 10 # in miliseconds
+    pitch_loudness_threshold = -60
 
     # Device
     pytorch_device = 'cpu'  # cpu|cuda
