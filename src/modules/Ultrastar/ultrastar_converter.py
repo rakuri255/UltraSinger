@@ -117,7 +117,7 @@ def map_to_datapoints(
     return data
 
 
-def compare_pitches(input_ultrastar_class, output_ultrastar_class) -> tuple[float, float, float, float, float, float]:
+def compare_pitches(input_ultrastar_class, output_ultrastar_class) -> tuple[float, float, dict[int, float], dict[int, float], float, float]:
     step_size = 10
 
     input_datapoints = map_to_datapoints(input_ultrastar_class, step_size)
@@ -135,7 +135,7 @@ def compare_pitches(input_ultrastar_class, output_ultrastar_class) -> tuple[floa
     output_pitched_datapoints = len([x for x in output_datapoints if x != NO_PITCH])
 
     matches = 0
-    cross_octave_matches = 0
+    pitch_shift_matches = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
     pitch_where_should_be_no_pitch = 0
     no_pitch_where_should_be_pitch = 0
     for index, _ in enumerate(input_datapoints):
@@ -153,22 +153,25 @@ def compare_pitches(input_ultrastar_class, output_ultrastar_class) -> tuple[floa
         else:
             _, input_pitch_remainder = divmod(input_pitch, 12)
             _, output_pitch_remainder = divmod(output_pitch, 12)
-            if input_pitch_remainder == output_pitch_remainder:
-                cross_octave_matches += 1
+            pitch_difference = abs(input_pitch_remainder - output_pitch_remainder)
+            pitch_shift_matches[pitch_difference] += 1
 
     input_match_ratio = matches / input_pitched_datapoints
     output_match_ratio = matches / output_pitched_datapoints
 
-    cross_octave_input_match_ratio = (matches + cross_octave_matches) / input_pitched_datapoints
-    cross_octave_output_match_ratio = (matches + cross_octave_matches) / output_pitched_datapoints
+    input_pitch_shift_match_ratios = {}
+    output_pitch_shift_match_ratios = {}
+    for index, pitch_shift_matches_item in enumerate(pitch_shift_matches):
+        input_pitch_shift_match_ratios[index] = (matches + pitch_shift_matches_item) / input_pitched_datapoints
+        output_pitch_shift_match_ratios[index] = (matches + pitch_shift_matches_item) / output_pitched_datapoints
 
     output_pitch_where_should_be_no_pitch_ratio = pitch_where_should_be_no_pitch / output_pitched_datapoints
     output_no_pitch_where_should_be_pitch_ratio = no_pitch_where_should_be_pitch / input_pitched_datapoints
 
     return (input_match_ratio,
             output_match_ratio,
-            cross_octave_input_match_ratio,
-            cross_octave_output_match_ratio,
+            input_pitch_shift_match_ratios,
+            output_pitch_shift_match_ratios,
             output_pitch_where_should_be_no_pitch_ratio,
             output_no_pitch_where_should_be_pitch_ratio
             )
