@@ -64,7 +64,7 @@ class UltrastarTxtValue:
     mp3 = ""
     video = None
     videoGap = None
-    gap = ""
+    gap = "0"
     bpm = ""
     language = None
     cover = None

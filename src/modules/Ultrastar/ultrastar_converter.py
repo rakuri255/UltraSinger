@@ -135,6 +135,7 @@ def compare_pitches(input_ultrastar_class, output_ultrastar_class) -> tuple[floa
     output_pitched_datapoints = len([x for x in output_datapoints if x != NO_PITCH])
 
     matches = 0
+    cross_octave_matches = 0
     pitch_where_should_be_no_pitch = 0
     no_pitch_where_should_be_pitch = 0
     for index, _ in enumerate(input_datapoints):
@@ -147,17 +148,31 @@ def compare_pitches(input_ultrastar_class, output_ultrastar_class) -> tuple[floa
             matches += 1
         elif input_pitch == NO_PITCH:
             pitch_where_should_be_no_pitch += 1
-        else:
+        elif output_pitch == NO_PITCH:
             no_pitch_where_should_be_pitch += 1
+        else:
+            _, input_pitch_remainder = divmod(input_pitch, 12)
+            _, output_pitch_remainder = divmod(output_pitch, 12)
+            if input_pitch_remainder == output_pitch_remainder:
+                cross_octave_matches += 1
 
     input_match_ratio = matches / input_pitched_datapoints
     output_match_ratio = matches / output_pitched_datapoints
+
+    cross_octave_input_match_ratio = (matches + cross_octave_matches) / input_pitched_datapoints
+    cross_octave_output_match_ratio = (matches + cross_octave_matches) / output_pitched_datapoints
 
     output_pitch_where_should_be_no_pitch_ratio = pitch_where_should_be_no_pitch / output_pitched_datapoints
     output_no_pitch_where_should_be_pitch_ratio = no_pitch_where_should_be_pitch / input_pitched_datapoints
 
 
-    return input_match_ratio, output_match_ratio, output_pitch_where_should_be_no_pitch_ratio, output_no_pitch_where_should_be_pitch_ratio
+    return (input_match_ratio,
+            output_match_ratio,
+            cross_octave_input_match_ratio,
+            cross_octave_output_match_ratio,
+            output_pitch_where_should_be_no_pitch_ratio,
+            output_no_pitch_where_should_be_pitch_ratio
+    )
 
 
 def determine_nearest_end_step(input_ultrastar_class, step_size) -> int:

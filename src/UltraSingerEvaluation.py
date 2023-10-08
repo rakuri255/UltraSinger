@@ -103,6 +103,8 @@ def main() -> None:
         (
             input_match_ratio,
             output_match_ratio,
+            cross_octave_input_match_ratio,
+            cross_octave_output_match_ratio,
             pitch_where_should_be_no_pitch_ratio,
             no_pitch_where_should_be_pitch_ratio,
         ) = compare_pitches(test_song.input_ultrastar_class, ultrastar_class)
@@ -111,6 +113,8 @@ def main() -> None:
         tested_song.success = True
         tested_song.input_match_ratio = input_match_ratio
         tested_song.output_match_ratio = output_match_ratio
+        tested_song.cross_octave_input_match_ratio = cross_octave_input_match_ratio
+        tested_song.cross_octave_output_match_ratio = cross_octave_output_match_ratio
         tested_song.pitch_where_should_be_no_pitch_ratio = pitch_where_should_be_no_pitch_ratio
         tested_song.no_pitch_where_should_be_pitch_ratio = no_pitch_where_should_be_pitch_ratio
         tested_song.output_score_simple = simple_score
@@ -131,6 +135,8 @@ def find_ultrastar_song(
                 song_folder_item.endswith(".txt")
                 and song_folder_item != "license.txt"
                 and not song_folder_item.endswith("[Karaoke].txt")
+                and not song_folder_item.endswith("[MULTI].txt")
+                and not song_folder_item.endswith("[DUET].txt")
             ):
                 txt_file = os.path.join(song_folder, song_folder_item)
                 ultrastar_class = ultrastar_parser.parse_ultrastar_txt(txt_file)
