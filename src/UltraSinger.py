@@ -570,6 +570,7 @@ def separate_vocal_from_audio(
         input_path = ultrastar_audio_input_path
 
     convert_audio_to_mono_wav(input_path, settings.mono_audio_path)
+
     return audio_separation_path
 
 

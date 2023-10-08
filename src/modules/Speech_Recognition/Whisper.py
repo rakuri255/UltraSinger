@@ -107,7 +107,7 @@ def convert_to_transcribed_data(result_aligned):
             vtd = from_whisper(obj)  # create custom Word object
             vtd.word = vtd.word + " "  # add space to end of word
             if len(obj) < 4:
-                previous = transcribed_data[-1] if len(transcribed_data) != 0 else {"end": 0, "word": ""}
+                previous = transcribed_data[-1] if len(transcribed_data) != 0 else TranscribedData()
                 vtd.start = previous.end + 0.1
                 vtd.end = previous.end + 0.2
                 msg = f'Error: There is no timestamp for word:  {obj["word"]}. ' \
