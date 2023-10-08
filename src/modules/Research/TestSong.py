@@ -7,7 +7,6 @@ from modules.Ultrastar.ultrastar_txt import UltrastarTxtValue
 class TestSong:
     """Test song"""
 
-    txt: str
-    folder: str
-    audio: float
-    ultrastar_class: UltrastarTxtValue
+    input_txt: str
+    input_folder: str
+    input_ultrastar_class: UltrastarTxtValue

@@ -4,6 +4,7 @@ import copy
 import getopt
 import os
 import sys
+from typing import Tuple, Any
 
 import Levenshtein
 import librosa
@@ -18,6 +19,7 @@ from modules.Audio.vocal_chunks import (
 )
 from modules.Audio.silence_processing import remove_silence_from_transcription_data
 from modules.Speech_Recognition.TranscriptionResult import TranscriptionResult
+from modules.Ultrastar.ultrastar_score_calculator import Score
 from modules.csv_handler import export_transcribed_data_to_csv
 from modules.Audio.convert_audio import convert_audio_to_mono_wav, convert_wav_to_mp3
 from modules.Audio.youtube import (
@@ -343,7 +345,7 @@ def merge_syllable_segments(
     return new_data, new_midi_notes, new_us_notes
 
 
-def run() -> None:
+def run() -> tuple[str, Score, Score]:
     """The processing function of this program"""
     settings.input_file_is_ultrastar_txt = settings.input_file_path.endswith(".txt")
 
@@ -392,7 +394,9 @@ def run() -> None:
 
     os_helper.create_folder(cache_path)
     # Separate vocal from audio
-    audio_separation_path = separate_vocal_from_audio(basename_without_ext, cache_path, ultrastar_audio_input_path)
+    audio_separation_path = separate_vocal_from_audio(
+        basename_without_ext, cache_path, ultrastar_audio_input_path
+    )
 
     # Denoise vocal audio
     denoise_vocal_audio(basename_without_ext, cache_path)
@@ -463,13 +467,16 @@ def run() -> None:
             song_output, ultrastar_class, ultrastar_note_numbers
         )
 
-    # Calc Points
-    ultrastar_class, simple_score, accurate_score = calculate_score_points(
-        pitched_data, ultrastar_class, ultrastar_file_output
-    )
+    simple_score = None
+    accurate_score = None
+    if settings.calculate_score:
+        # Calc Points
+        ultrastar_class, simple_score, accurate_score = calculate_score_points(
+            pitched_data, ultrastar_class, ultrastar_file_output
+        )
 
-    # Add calculated score to Ultrastar txt
-    ultrastar_writer.add_score_to_ultrastar_txt(ultrastar_file_output, simple_score)
+        # Add calculated score to Ultrastar txt
+        ultrastar_writer.add_score_to_ultrastar_txt(ultrastar_file_output, simple_score)
 
     # Midi
     if settings.create_midi:
@@ -477,6 +484,7 @@ def run() -> None:
 
     # Print Support
     print_support()
+    return ultrastar_file_output, simple_score, accurate_score
 
 
 def get_unused_song_output_dir(path: str) -> str:
@@ -519,7 +527,9 @@ def transcribe_audio(cache_path: str) -> TranscriptionResult:
             with open(transcription_path, "w", encoding=FILE_ENCODING) as file:
                 file.write(transcription_result.to_json())
         else:
-            print(f"{ULTRASINGER_HEAD} {green_highlighted('cache')} reusing cached transcribed data")
+            print(
+                f"{ULTRASINGER_HEAD} {green_highlighted('cache')} reusing cached transcribed data"
+            )
             with open(transcription_path) as file:
                 json = file.read()
                 transcription_result = TranscriptionResult.from_json(json)
@@ -542,14 +552,17 @@ def separate_vocal_from_audio(
     vocals_path = os.path.join(audio_separation_path, "vocals.wav")
     instrumental_path = os.path.join(audio_separation_path, "no_vocals.wav")
     if settings.use_separated_vocal or settings.create_karaoke:
-        cache_available = (check_file_exists(vocals_path)
-                           and check_file_exists(instrumental_path))
+        cache_available = check_file_exists(vocals_path) and check_file_exists(
+            instrumental_path
+        )
         if settings.skip_cache_vocal_separation or not cache_available:
             separate_audio(
                 ultrastar_audio_input_path, cache_path, settings.pytorch_device
             )
         else:
-            print(f"{ULTRASINGER_HEAD} {green_highlighted('cache')} reusing cached separated vocals")
+            print(
+                f"{ULTRASINGER_HEAD} {green_highlighted('cache')} reusing cached separated vocals"
+            )
 
     if settings.use_separated_vocal:
         input_path = vocals_path
@@ -803,8 +816,10 @@ def create_midi_file(
 
 
 def pitch_audio(
-    transcribed_data: list[TranscribedData], ultrastar_class: UltrastarTxtValue, cache_path: str) -> tuple[
-    list[str], PitchedData, list[int]]:
+    transcribed_data: list[TranscribedData],
+    ultrastar_class: UltrastarTxtValue,
+    cache_path: str,
+) -> tuple[list[str], PitchedData, list[int]]:
     """Pitch audio"""
     # todo: chunk pitching as option?
     # midi_notes = pitch_each_chunk_with_crepe(chunk_folder_name)
@@ -820,14 +835,16 @@ def pitch_audio(
             settings.crepe_model_capacity,
             settings.crepe_step_size,
             settings.tensorflow_device,
-            settings.pitch_loudness_threshold
+            settings.pitch_loudness_threshold,
         )
 
         pitched_data_json = pitched_data.to_json()
         with open(pitched_data_path, "w", encoding=FILE_ENCODING) as file:
             file.write(pitched_data_json)
     else:
-        print(f"{ULTRASINGER_HEAD} {green_highlighted('cache')} reusing cached pitch data")
+        print(
+            f"{ULTRASINGER_HEAD} {green_highlighted('cache')} reusing cached pitch data"
+        )
         with open(pitched_data_path) as file:
             json = file.read()
             pitched_data = PitchedData.from_json(json)
@@ -880,7 +897,9 @@ def denoise_vocal_audio(basename_without_ext: str, cache_path: str) -> None:
     if settings.skip_cache_denoise_vocal_audio or not cache_available:
         ffmpeg_reduce_noise(settings.mono_audio_path, denoised_path)
     else:
-        print(f"{ULTRASINGER_HEAD} {green_highlighted('cache')} reusing cached denoised audio")
+        print(
+            f"{ULTRASINGER_HEAD} {green_highlighted('cache')} reusing cached denoised audio"
+        )
 
     settings.mono_audio_path = denoised_path
 

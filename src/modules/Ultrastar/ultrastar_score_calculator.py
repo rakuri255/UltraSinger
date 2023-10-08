@@ -1,4 +1,7 @@
 """Ultrastar score calculator."""
+from dataclasses import dataclass
+
+from dataclasses_json import dataclass_json
 
 import librosa
 
@@ -48,6 +51,8 @@ def add_point(note_type: str, points: Points) -> Points:
     return points
 
 
+@dataclass_json
+@dataclass
 class Score:
     """Docstring"""
 

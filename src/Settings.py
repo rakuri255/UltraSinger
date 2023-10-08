@@ -1,3 +1,10 @@
+from dataclasses import dataclass
+
+from dataclasses_json import dataclass_json
+
+
+@dataclass_json
+@dataclass
 class Settings:
     create_midi = True
     create_plot = False
@@ -42,3 +49,4 @@ class Settings:
     skip_cache_denoise_vocal_audio = False
     skip_cache_transcription = False
     skip_cache_pitch_detection = False
+    calculate_score = True
