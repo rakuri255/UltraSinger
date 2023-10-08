@@ -1,5 +1,6 @@
 import copy
 import os
+import traceback
 from datetime import datetime
 from pathlib import Path
 from typing import List
@@ -75,9 +76,6 @@ def main() -> None:
         test_song_settings.cache_override_path = song_cache_path
         UltraSinger.settings = test_song_settings
 
-        output_txt = None
-        simple_score = None
-        accurate_score = None
         tested_song = TestedSong(test_song.input_txt)
         test_run.tested_songs.append(tested_song)
         try:
@@ -86,6 +84,7 @@ def main() -> None:
             print(
                 f"{ULTRASINGER_HEAD} {red_highlighted('Error!')} Failed to process {test_song.input_txt}\n{error}."
             )
+            traceback.print_exc()
             continue
 
 
@@ -137,6 +136,7 @@ def find_ultrastar_song(
                 and not song_folder_item.endswith("[Karaoke].txt")
                 and not song_folder_item.endswith("[MULTI].txt")
                 and not song_folder_item.endswith("[DUET].txt")
+                and not song_folder_item.endswith("instrumental.txt")
             ):
                 txt_file = os.path.join(song_folder, song_folder_item)
                 ultrastar_class = ultrastar_parser.parse_ultrastar_txt(txt_file)
