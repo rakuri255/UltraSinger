@@ -2,6 +2,7 @@
 
 import sys
 
+import torch
 import whisperx
 from torch.cuda import OutOfMemoryError
 
@@ -11,6 +12,7 @@ from modules.Speech_Recognition.TranscribedData import TranscribedData, from_whi
 
 
 MEMORY_ERROR_MESSAGE = f"{ULTRASINGER_HEAD} {blue_highlighted('whisper')} ran out of GPU memory; reduce --whisper_batch_size or force usage of cpu with --force_cpu"
+
 
 def transcribe_with_whisper(
     audio_path: str,
@@ -33,6 +35,7 @@ def transcribe_with_whisper(
         compute_type = "float16" if device == "cuda" else "int8"
 
     try:
+        torch.cuda.empty_cache()
         loaded_whisper_model = whisperx.load_model(
             model, language=language, device=device, compute_type=compute_type
         )
@@ -61,7 +64,7 @@ def transcribe_with_whisper(
                 f"{ULTRASINGER_HEAD} {red_highlighted('Error:')} Unknown language. "
                 f"Try add it with --align_model [hugingface]."
             )
-            sys.exit(1)
+            raise ve
 
         # align whisper output
         result_aligned = whisperx.align(
@@ -85,18 +88,16 @@ def transcribe_with_whisper(
             print(
                 f"{ULTRASINGER_HEAD} Your GPU does not support efficient float16 computation; run UltraSinger with '--whisper_compute_type int8'"
             )
-            sys.exit(1)
 
         raise value_error
     except OutOfMemoryError as oom_exception:
         print(oom_exception)
         print(MEMORY_ERROR_MESSAGE)
-        sys.exit(1)
+        raise oom_exception
     except Exception as exception:
         if "CUDA failed with error out of memory" in str(exception.args[0]):
             print(exception)
             print(MEMORY_ERROR_MESSAGE)
-            sys.exit(1)
         raise exception
 
 

@@ -162,8 +162,11 @@ def compare_pitches(input_ultrastar_class, output_ultrastar_class) -> tuple[floa
     input_pitch_shift_match_ratios = {}
     output_pitch_shift_match_ratios = {}
     for index, pitch_shift_matches_item in enumerate(pitch_shift_matches):
-        input_pitch_shift_match_ratios[index] = (matches + pitch_shift_matches_item) / input_pitched_datapoints
-        output_pitch_shift_match_ratios[index] = (matches + pitch_shift_matches_item) / output_pitched_datapoints
+        pitch_shift_matches_count = pitch_shift_matches_item
+        if index == 0:
+            pitch_shift_matches_count += matches
+        input_pitch_shift_match_ratios[index] = pitch_shift_matches_item / input_pitched_datapoints
+        output_pitch_shift_match_ratios[index] = pitch_shift_matches_item / output_pitched_datapoints
 
     output_pitch_where_should_be_no_pitch_ratio = pitch_where_should_be_no_pitch / output_pitched_datapoints
     output_no_pitch_where_should_be_pitch_ratio = no_pitch_where_should_be_pitch / input_pitched_datapoints
