@@ -1,3 +1,4 @@
+import datetime
 from dataclasses import dataclass, field
 
 from dataclasses_json import dataclass_json
@@ -19,8 +20,6 @@ class TestedSong:
     output_pitch_shift_match_ratios: dict[int, float] = field(default_factory=lambda: {})
     no_pitch_where_should_be_pitch_ratio: float = 0.0
     pitch_where_should_be_no_pitch_ratio: float = 0.0
-    output_score_simple: int = 0
-    output_score_accurate: int = 0
 
 
 @dataclass_json
@@ -29,4 +28,6 @@ class TestRun:
     """Test run"""
 
     settings: Settings
+    start_time: datetime.datetime = None
+    end_time: datetime.datetime = None
     tested_songs: list[TestedSong] = field(default_factory=lambda: [])

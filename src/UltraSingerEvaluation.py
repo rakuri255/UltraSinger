@@ -6,6 +6,8 @@ from pathlib import Path
 from typing import List
 import importlib.util
 
+import pandas
+
 import UltraSinger
 from Settings import Settings
 from modules.DeviceDetection.device_detection import check_gpu_support
@@ -19,9 +21,11 @@ from modules.console_colors import ULTRASINGER_HEAD, red_highlighted
 
 test_input_folder = os.path.normpath(os.path.abspath(__file__ + "/../../test_input"))
 test_output_folder = os.path.normpath(os.path.abspath(__file__ + "/../../test_output"))
+test_start_time = datetime.now()
 test_run_folder = os.path.join(
-    test_output_folder, datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+    test_output_folder, test_start_time.strftime("%Y-%m-%d_%H-%M-%S")
 )
+test_run_songs_folder = os.path.join(test_run_folder, "songs")
 
 
 def main() -> None:
@@ -29,9 +33,10 @@ def main() -> None:
     Path(test_input_folder).mkdir(parents=True, exist_ok=True)
     Path(test_output_folder).mkdir(parents=True, exist_ok=True)
     Path(test_run_folder).mkdir(parents=True)
+    Path(test_run_songs_folder).mkdir(parents=True)
 
     base_settings = initialize_settings()
-    base_settings.output_file_path = test_run_folder
+    base_settings.output_file_path = test_run_songs_folder
 
     base_settings.test_songs_input_folder = os.path.normpath(
         base_settings.test_songs_input_folder
@@ -60,7 +65,7 @@ def main() -> None:
 
     print(f"{ULTRASINGER_HEAD} Running evaluation for {len(test_songs)} songs")
 
-    test_run = TestRun(base_settings)
+    test_run = TestRun(base_settings, test_start_time)
     for index, test_song in enumerate(test_songs):
         print(f"{ULTRASINGER_HEAD} ========================")
         print(
@@ -79,7 +84,7 @@ def main() -> None:
         tested_song = TestedSong(test_song.input_txt)
         test_run.tested_songs.append(tested_song)
         try:
-            output_txt, simple_score, accurate_score = UltraSinger.run()
+            output_txt, _, _ = UltraSinger.run()
         except Exception as error:
             print(
                 f"{ULTRASINGER_HEAD} {red_highlighted('Error!')} Failed to process {test_song.input_txt}\n{error}."
@@ -89,7 +94,7 @@ def main() -> None:
 
 
         output_folder_name = f"{test_song.input_ultrastar_class.artist} - {test_song.input_ultrastar_class.title}"
-        output_folder = os.path.join(test_run_folder, output_folder_name)
+        output_folder = os.path.join(test_run_songs_folder, output_folder_name)
 
         if not os.path.isfile(output_txt):
             print(
@@ -116,9 +121,8 @@ def main() -> None:
         tested_song.output_pitch_shift_match_ratios = output_pitch_shift_match_ratios
         tested_song.pitch_where_should_be_no_pitch_ratio = pitch_where_should_be_no_pitch_ratio
         tested_song.no_pitch_where_should_be_pitch_ratio = no_pitch_where_should_be_pitch_ratio
-        tested_song.output_score_simple = simple_score
-        tested_song.output_score_accurate = accurate_score
 
+    test_run.end_time = datetime.now()
     test_run_result_file = os.path.join(test_run_folder, "run.json")
     test_run_json = test_run.to_json()
     with open(test_run_result_file, "w", encoding=FILE_ENCODING) as file:
