@@ -229,20 +229,25 @@ def remove_unecessary_punctuations(transcribed_data: list[TranscribedData]) -> N
 
 def hyphenate_each_word(language: str, transcribed_data: list[TranscribedData]) -> list[list[str]] | None:
     """Hyphenate each word in the transcribed data."""
-    hyphenated_word = []
     lang_region = language_check(language)
     if lang_region is None:
         print(
-            f"{ULTRASINGER_HEAD} {red_highlighted('Error in hyphenation for language ')} {blue_highlighted(language)} {red_highlighted(', maybe you want to disable it?')}"
+            f"{ULTRASINGER_HEAD} {red_highlighted('Error in hyphenation for language ')} {blue_highlighted(language)}{red_highlighted(', maybe you want to disable it?')}"
         )
         return None
 
-    hyphenator = create_hyphenator(lang_region)
-    for i in tqdm(enumerate(transcribed_data)):
-        pos = i[0]
-        hyphenated_word.append(
-            hyphenation(transcribed_data[pos].word, hyphenator)
-        )
+    hyphenated_word = []
+    try:
+        hyphenator = create_hyphenator(lang_region)
+        for i in tqdm(enumerate(transcribed_data)):
+            pos = i[0]
+            hyphenated_word.append(
+                hyphenation(transcribed_data[pos].word, hyphenator)
+            )
+    except:
+        print(f"{ULTRASINGER_HEAD} {red_highlighted('Error in hyphenation for language ')} {blue_highlighted(language)}{red_highlighted(', maybe you want to disable it?')}")
+        return None
+
     return hyphenated_word
 
 
@@ -808,7 +813,7 @@ def init_settings(argv: list[str]) -> None:
         elif opt in ("--midi"):
             settings.create_midi = arg in ["True", "true"]
         elif opt in ("--hyphenation"):
-            settings.hyphenation = arg
+            settings.hyphenation = eval(arg.title())
         elif opt in ("--disable_separation"):
             settings.use_separated_vocal = not arg
         elif opt in ("--disable_karaoke"):

@@ -1,5 +1,5 @@
 class Settings:
-    APP_VERSION = "0.0.1-2023-10-06"
+    APP_VERSION = "0.0.1-2023-11-13"
 
     create_midi = True
     create_plot = False
