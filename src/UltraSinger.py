@@ -264,6 +264,18 @@ def print_support() -> None:
         f"{ULTRASINGER_HEAD} {gold_highlighted('This will help alot to keep this project alive and improved.')}"
     )
 
+def print_version() -> None:
+    """Print version text"""
+    print()
+    print(
+        f"{ULTRASINGER_HEAD} {gold_highlighted('*****************************')}"
+    )
+    print(
+        f"{ULTRASINGER_HEAD} {gold_highlighted('UltraSinger Version:')} {light_blue_highlighted(settings.APP_VERSION)}"
+    )
+    print(
+        f"{ULTRASINGER_HEAD} {gold_highlighted('*****************************')}"
+    )
 
 def run() -> None:
     """The processing function of this program"""
@@ -772,6 +784,7 @@ def denoise_vocal_audio(basename_without_ext: str, cache_path: str) -> None:
 
 def main(argv: list[str]) -> None:
     """Main function"""
+    print_version()
     init_settings(argv)
     run()
     # todo: cleanup

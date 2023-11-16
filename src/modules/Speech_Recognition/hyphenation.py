@@ -2,7 +2,7 @@
 
 import string
 
-from hyphen import Hyphenator
+from hyphen import Hyphenator, dictools
 
 from modules.console_colors import (
     ULTRASINGER_HEAD,
@@ -78,10 +78,29 @@ def language_check(language="en") -> str | None:
     """Check if language is supported"""
 
     lang_region = None
-    for dict_lang in LANGUAGES:
-        if dict_lang.startswith(language):
-            lang_region = dict_lang
-            break
+    installed = dictools.list_installed()
+    installed_region_keys = [i for i in installed if i.startswith(language) and "_" in i]
+    try:
+        # Try to find installed language with region prediction
+        lang_region = next(i for i in installed_region_keys if i == f"{language}_{language.upper()}")
+    except StopIteration:
+        if installed_region_keys:
+            # Take first installed region language
+            lang_region = installed_region_keys[0]
+        else:
+            # Take downloadable language key
+            downloadable_key = [i for i in LANGUAGES if i.startswith(language)]
+            downloadable_folder_key = [i for i in downloadable_key if i == language]
+            if downloadable_folder_key:
+                lang_region = downloadable_key[0]
+            else:
+                try:
+                    # Try to find downloadable language with region prediction
+                    lang_region = next(i for i in downloadable_key if i == f"{language}_{language.upper()}")
+                except StopIteration:
+                    if downloadable_key:
+                        # Take first installed region language
+                        lang_region = downloadable_key[0]
 
     if lang_region is None:
         return None
