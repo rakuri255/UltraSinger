@@ -1,5 +1,5 @@
 class Settings:
-    APP_VERSION = "0.0.2"
+    APP_VERSION = "0.0.3"
 
     create_midi = True
     create_plot = False
@@ -33,3 +33,5 @@ class Settings:
     pytorch_device = 'cpu'  # cpu|cuda
     tensorflow_device = 'cpu'  # cpu|cuda
     force_cpu = False
+    force_whisper_cpu = False
+    force_crepe_cpu = False

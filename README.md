@@ -160,7 +160,11 @@ _Not all options working now!_
     --disable_karaoke       True|False >> ((default) is False)
     --create_audio_chunks   True|False >> ((default) is False)
     --plot                  True|False >> ((default) is False)
-    --force_cpu             True|False >> ((default) is False)
+    
+    [device]
+    --force_cpu             True|False >> ((default) is False)  All steps will be forced to cpu
+    --force_whisper_cpu     True|False >> ((default) is False)  Only whisper will be forced to cpu
+    --force_crepe_cpu       True|False >> ((default) is False)  Only crepe will be forced to cpu
 ```
 
 For standard use, you only need to use [opt]. All other options are optional.
