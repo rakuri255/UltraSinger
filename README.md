@@ -22,7 +22,7 @@ It also can re-pitch current UltraStar files and calculates the possible in-game
 
 Multiple AI models are used to extract text from the voice and to determine the pitch.
 
-Please mention UltraSinger in your UltraStar.txt file if you use it. It helps others  find this tool, and it helps this tool get improved and maintained.
+Please mention UltraSinger in your UltraStar.txt file if you use it. It helps others find this tool, and it helps this tool get improved and maintained.
 You should only use it on Creative Commons licensed songs.
 
 ## ❤️ Support
