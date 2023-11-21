@@ -79,7 +79,7 @@ This will help me a lot to keep this project alive and improve it.
 
 For more information about Python environments look [here](https://code.visualstudio.com/docs/python/environments#_global-virtual-or-conda-environments).
 
-Install a copy:
+Copy the below and paste it into a shell:
     
 ```commandline
 py -3.10 -m venv .venv
