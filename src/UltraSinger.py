@@ -264,13 +264,13 @@ def print_support() -> None:
     """Print support text"""
     print()
     print(
-        f"{ULTRASINGER_HEAD} {gold_highlighted('Do you like UltraSinger? And want it to be even better? Then help with your')} {light_blue_highlighted('support')}{gold_highlighted('!')}"
+        f"{ULTRASINGER_HEAD} {gold_highlighted('Do you like UltraSinger? Want it to be even better? Then help with your')} {light_blue_highlighted('support')}{gold_highlighted('!')}"
     )
     print(
         f"{ULTRASINGER_HEAD} See project page -> https://github.com/rakuri255/UltraSinger"
     )
     print(
-        f"{ULTRASINGER_HEAD} {gold_highlighted('This will help alot to keep this project alive and improved.')}"
+        f"{ULTRASINGER_HEAD} {gold_highlighted('This will help a lot to keep this project alive and improved.')}"
     )
 
 def print_version() -> None:
