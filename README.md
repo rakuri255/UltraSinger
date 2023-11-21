@@ -28,7 +28,7 @@ You should only use it on Creative Commons licensed songs.
 ## ❤️ Support
 There are many ways to support this project. Starring ⭐️ the repo is just one 🙏
 
-You can also support this work on <a href="https://patreon.com/Rakuri">Patreon</a> or <a href="https://www.buymeacoffee.com/rakuri255" target="_blank">Buy Me a Coffee</a>.
+You can also support this work on <a href="https://github.com/sponsors/rakuri255">GitHub sponsors</a> or <a href="https://patreon.com/Rakuri">Patreon</a> or <a href="https://www.buymeacoffee.com/rakuri255" target="_blank">Buy Me a Coffee</a>.
 
 This will help me a lot to keep this project alive and improve it.
 
