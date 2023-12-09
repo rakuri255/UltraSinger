@@ -13,8 +13,8 @@ def convert_audio_to_mono_wav(input_file: str, output_file: str) -> None:
 
     y, sr = librosa.load(input_file, sr=None)
 
-    if len(y.shape) > 1 and y.shape[0] > 1:
-        y = librosa.to_mono(y)
+    #if len(y.shape) > 1 and y.shape[0] > 1:
+    #    y = librosa.to_mono(y)
 
     sf.write(output_file, y, sr)
 
