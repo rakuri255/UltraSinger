@@ -9,7 +9,7 @@ import Levenshtein
 import librosa
 from tqdm import tqdm
 
-from modules import os_helper, timer
+from modules import os_helper
 from modules.Audio.denoise import ffmpeg_reduce_noise
 from modules.Audio.separation import separate_audio
 from modules.Audio.vocal_chunks import (
@@ -336,8 +336,23 @@ def run() -> None:
         basename_without_ext, cache_path, ultrastar_audio_input_path
     )
 
+    if settings.use_separated_vocal:
+        input_path = os.path.join(audio_separation_path, "vocals.wav")
+    else:
+        input_path = ultrastar_audio_input_path
+
     # Denoise vocal audio
-    denoise_vocal_audio(basename_without_ext, cache_path)
+    denoised_output_path = os.path.join(
+        cache_path, basename_without_ext + "_denoised.wav"
+    )
+    denoise_vocal_audio(input_path, denoised_output_path)
+
+    # Convert to mono audio
+    mono_output_path = os.path.join(
+        cache_path, basename_without_ext + "_mono.wav"
+    )
+    convert_audio_to_mono_wav(denoised_output_path, mono_output_path)
+    settings.mono_audio_path = mono_output_path
 
     # Audio transcription
     transcribed_data = None
@@ -469,14 +484,7 @@ def separate_vocal_from_audio(
     if settings.use_separated_vocal or settings.create_karaoke:
         separate_audio(ultrastar_audio_input_path, cache_path, settings.pytorch_device)
 
-    if settings.use_separated_vocal:
-        input_path = os.path.join(audio_separation_path, "vocals.wav")
-    else:
-        input_path = ultrastar_audio_input_path
-
-    convert_audio_to_mono_wav(input_path, settings.mono_audio_path)
     return audio_separation_path
-
 
 def calculate_score_points(
     is_audio: bool, pitched_data: PitchedData, ultrastar_class: UltrastarTxtValue, ultrastar_file_output: str
@@ -784,13 +792,9 @@ def create_audio_chunks(
         )
 
 
-def denoise_vocal_audio(basename_without_ext: str, cache_path: str) -> None:
+def denoise_vocal_audio(input_path: str, output_path: str) -> None:
     """Denoise vocal audio"""
-    denoised_path = os.path.join(
-        cache_path, basename_without_ext + "_denoised.wav"
-    )
-    ffmpeg_reduce_noise(settings.mono_audio_path, denoised_path)
-    settings.mono_audio_path = denoised_path
+    ffmpeg_reduce_noise(input_path, output_path)
 
 
 def main(argv: list[str]) -> None:
