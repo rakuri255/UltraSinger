@@ -776,6 +776,7 @@ def denoise_vocal_audio(basename_without_ext: str, cache_path: str) -> None:
 
     ffmpeg_reduce_noise(settings.mono_audio_path, denoised_path)
 
+    # Fixme
     a = get_silence_sections(denoised_path)
 
     y, sr = librosa.load(denoised_path, sr=None)
