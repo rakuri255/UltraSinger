@@ -14,7 +14,7 @@ import soundfile as sf
 from pydub import AudioSegment, silence
 import numpy as np
 
-from modules import os_helper, timer
+from modules import os_helper
 from modules.Audio.denoise import ffmpeg_reduce_noise
 from modules.Audio.separation import separate_audio
 from modules.Audio.vocal_chunks import (
@@ -205,13 +205,17 @@ def print_help() -> None:
 
     [transcription]
     # Default is whisper
-    --whisper       Multilingual model > tiny|base|small|medium|large-v1|large-v2  >> ((default) is large-v2
-                    English-only model > tiny.en|base.en|small.en|medium.en
-    --align_model   Use other languages model for Whisper provided from huggingface.co 
-        
+    --whisper               Multilingual model > tiny|base|small|medium|large-v1|large-v2  >> ((default) is large-v2
+                            English-only model > tiny.en|base.en|small.en|medium.en
+    --whisper_align_model   Use other languages model for Whisper provided from huggingface.co
+    --language              Override the language detected by whisper, does not affect transcription but steps after transcription
+    --whisper_batch_size    Reduce if low on GPU mem >> ((default) is 16)
+    --whisper_compute_type  Change to "int8" if low on GPU mem (may reduce accuracy) >> ((default) is "float16" for cuda devices, "int8" for cpu)
+    
     [pitcher]
     # Default is crepe
-    --crepe     tiny|small|medium|large|full >> ((default) is full)
+    --crepe            tiny|full >> ((default) is full)
+    --crepe_step_size  unit is miliseconds >> ((default) is 10)
     
     [extra]
     --hyphenation           True|False >> ((default) is True)
@@ -219,6 +223,11 @@ def print_help() -> None:
     --disable_karaoke       True|False >> ((default) is False)
     --create_audio_chunks   True|False >> ((default) is False)
     --plot                  True|False >> ((default) is False)
+    
+    [device]
+    --force_cpu             True|False >> ((default) is False)  All steps will be forced to cpu
+    --force_whisper_cpu     True|False >> ((default) is False)  Only whisper will be forced to cpu
+    --force_crepe_cpu       True|False >> ((default) is False)  Only crepe will be forced to cpu
     """
     print(help_string)
 
@@ -234,20 +243,25 @@ def remove_unecessary_punctuations(transcribed_data: list[TranscribedData]) -> N
 
 def hyphenate_each_word(language: str, transcribed_data: list[TranscribedData]) -> list[list[str]] | None:
     """Hyphenate each word in the transcribed data."""
-    hyphenated_word = []
     lang_region = language_check(language)
     if lang_region is None:
         print(
-            f"{ULTRASINGER_HEAD} {red_highlighted('Error in hyphenation for language ')} {blue_highlighted(language)} {red_highlighted(', maybe you want to disable it?')}"
+            f"{ULTRASINGER_HEAD} {red_highlighted('Error in hyphenation for language ')} {blue_highlighted(language)}{red_highlighted(', maybe you want to disable it?')}"
         )
         return None
 
-    hyphenator = create_hyphenator(lang_region)
-    for i in tqdm(enumerate(transcribed_data)):
-        pos = i[0]
-        hyphenated_word.append(
-            hyphenation(transcribed_data[pos].word, hyphenator)
-        )
+    hyphenated_word = []
+    try:
+        hyphenator = create_hyphenator(lang_region)
+        for i in tqdm(enumerate(transcribed_data)):
+            pos = i[0]
+            hyphenated_word.append(
+                hyphenation(transcribed_data[pos].word, hyphenator)
+            )
+    except:
+        print(f"{ULTRASINGER_HEAD} {red_highlighted('Error in hyphenation for language ')} {blue_highlighted(language)}{red_highlighted(', maybe you want to disable it?')}")
+        return None
+
     return hyphenated_word
 
 
@@ -255,15 +269,27 @@ def print_support() -> None:
     """Print support text"""
     print()
     print(
-        f"{ULTRASINGER_HEAD} {gold_highlighted('Do you like UltraSinger? And want it to be even better? Then help with your')} {light_blue_highlighted('support')}{gold_highlighted('!')}"
+        f"{ULTRASINGER_HEAD} {gold_highlighted('Do you like UltraSinger? Want it to be even better? Then help with your')} {light_blue_highlighted('support')}{gold_highlighted('!')}"
     )
     print(
         f"{ULTRASINGER_HEAD} See project page -> https://github.com/rakuri255/UltraSinger"
     )
     print(
-        f"{ULTRASINGER_HEAD} {gold_highlighted('This will help alot to keep this project alive and improved.')}"
+        f"{ULTRASINGER_HEAD} {gold_highlighted('This will help a lot to keep this project alive and improved.')}"
     )
 
+def print_version() -> None:
+    """Print version text"""
+    print()
+    print(
+        f"{ULTRASINGER_HEAD} {gold_highlighted('*****************************')}"
+    )
+    print(
+        f"{ULTRASINGER_HEAD} {gold_highlighted('UltraSinger Version:')} {light_blue_highlighted(settings.APP_VERSION)}"
+    )
+    print(
+        f"{ULTRASINGER_HEAD} {gold_highlighted('*****************************')}"
+    )
 
 def run() -> None:
     """The processing function of this program"""
@@ -315,8 +341,44 @@ def run() -> None:
         basename_without_ext, cache_path, ultrastar_audio_input_path
     )
 
+    if settings.use_separated_vocal:
+        input_path = os.path.join(audio_separation_path, "vocals.wav")
+    else:
+        input_path = ultrastar_audio_input_path
+
     # Denoise vocal audio
-    denoise_vocal_audio(basename_without_ext, cache_path)
+    denoised_output_path = os.path.join(
+        cache_path, basename_without_ext + "_denoised.wav"
+    )
+    denoise_vocal_audio(input_path, denoised_output_path)
+
+    # Fixme The slicer
+    a = get_silence_sections(denoised_output_path)
+
+    y, sr = librosa.load(denoised_output_path, sr=None)
+
+    for i in a:
+        # Define the time range to mute
+
+        start_time = i[0]  # Start time in seconds
+        end_time = i[1]  # End time in seconds
+
+        # Convert time to sample indices
+        start_sample = int(start_time * sr)
+        end_sample = int(end_time * sr)
+
+        y[start_sample:end_sample] = 0
+
+    sf.write(denoised_output_path, y, sr)
+
+    settings.mono_audio_path = denoised_output_path # Fixme Wrong!
+
+    # Convert to mono audio
+    mono_output_path = os.path.join(
+        cache_path, basename_without_ext + "_mono.wav"
+    )
+    convert_audio_to_mono_wav(denoised_output_path, mono_output_path)
+    settings.mono_audio_path = mono_output_path
 
     # Audio transcription
     transcribed_data = None
@@ -357,7 +419,8 @@ def run() -> None:
 
     # Create plot
     if settings.create_plot:
-        plot_spectrogram(settings.mono_audio_path, song_output)
+        vocals_path = os.path.join(audio_separation_path, "vocals.wav")
+        plot_spectrogram(vocals_path, song_output)
         plot(pitched_data, song_output, transcribed_data, midi_notes)
 
     # Write Ultrastar txt
@@ -421,10 +484,11 @@ def get_unused_song_output_dir(path: str) -> str:
 def transcribe_audio() -> (str, list[TranscribedData]):
     """Transcribe audio with AI"""
     if settings.transcriber == "whisper":
+        device = "cpu" if settings.force_whisper_cpu else settings.pytorch_device
         transcribed_data, detected_language = transcribe_with_whisper(
             settings.mono_audio_path,
             settings.whisper_model,
-            settings.pytorch_device,
+            device,
             settings.whisper_align_model,
             settings.whisper_batch_size,
             settings.whisper_compute_type,
@@ -446,14 +510,7 @@ def separate_vocal_from_audio(
     if settings.use_separated_vocal or settings.create_karaoke:
         separate_audio(ultrastar_audio_input_path, cache_path, settings.pytorch_device)
 
-    if settings.use_separated_vocal:
-        input_path = os.path.join(audio_separation_path, "vocals.wav")
-    else:
-        input_path = ultrastar_audio_input_path
-
-    convert_audio_to_mono_wav(input_path, settings.mono_audio_path)
     return audio_separation_path
-
 
 def calculate_score_points(
     is_audio: bool, pitched_data: PitchedData, ultrastar_class: UltrastarTxtValue, ultrastar_file_output: str
@@ -712,11 +769,12 @@ def pitch_audio(is_audio: bool, transcribed_data: list[TranscribedData], ultrast
     """Pitch audio"""
     # todo: chunk pitching as option?
     # midi_notes = pitch_each_chunk_with_crepe(chunk_folder_name)
+    device = "cpu" if settings.force_crepe_cpu else settings.tensorflow_device
     pitched_data = get_pitch_with_crepe_file(
         settings.mono_audio_path,
         settings.crepe_model_capacity,
         settings.crepe_step_size,
-        settings.tensorflow_device,
+        device,
     )
     if is_audio:
         start_times = []
@@ -768,39 +826,14 @@ def get_silence_sections(audio_path: str,
     s = [((start / 1000), (stop / 1000)) for start, stop in s]  # convert to sec
     return s
 
-def denoise_vocal_audio(basename_without_ext: str, cache_path: str) -> None:
+def denoise_vocal_audio(input_path: str, output_path: str) -> None:
     """Denoise vocal audio"""
-    denoised_path = os.path.join(
-        cache_path, basename_without_ext + "_denoised.wav"
-    )
-
-    ffmpeg_reduce_noise(settings.mono_audio_path, denoised_path)
-
-    # Fixme
-    a = get_silence_sections(denoised_path)
-
-    y, sr = librosa.load(denoised_path, sr=None)
-
-    for i in a:
-        # Define the time range to mute
-
-        start_time = i[0]  # Start time in seconds
-        end_time = i[1]  # End time in seconds
-
-        # Convert time to sample indices
-        start_sample = int(start_time * sr)
-        end_sample = int(end_time * sr)
-
-        y[start_sample:end_sample] = 0
-
-    sf.write(denoised_path, y, sr)
-
-    settings.mono_audio_path = denoised_path
-
+    ffmpeg_reduce_noise(input_path, output_path)
 
 
 def main(argv: list[str]) -> None:
     """Main function"""
+    print_version()
     init_settings(argv)
     run()
     # todo: cleanup
@@ -842,7 +875,7 @@ def init_settings(argv: list[str]) -> None:
         elif opt in ("--midi"):
             settings.create_midi = arg in ["True", "true"]
         elif opt in ("--hyphenation"):
-            settings.hyphenation = arg
+            settings.hyphenation = eval(arg.title())
         elif opt in ("--disable_separation"):
             settings.use_separated_vocal = not arg
         elif opt in ("--disable_karaoke"):
@@ -853,6 +886,10 @@ def init_settings(argv: list[str]) -> None:
             settings.force_cpu = arg
             if settings.force_cpu:
                 os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
+        elif opt in ("--force_whisper_cpu"):
+            settings.force_whisper_cpu = eval(arg.title())
+        elif opt in ("--force_crepe_cpu"):
+            settings.force_crepe_cpu = eval(arg.title())
 
     if settings.output_file_path == "":
         if settings.input_file_path.startswith("https:"):
@@ -884,6 +921,8 @@ def arg_options():
         "disable_karaoke=",
         "create_audio_chunks=",
         "force_cpu=",
+        "force_whisper_cpu=",
+        "force_crepe_cpu=",
     ]
     return long, short
 

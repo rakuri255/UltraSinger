@@ -82,7 +82,7 @@ class TestCreateUltrastarTxt(unittest.TestCase):
     @staticmethod
     def default_values(default_ultrastar_class):
         expected_calls = [
-            f"#{UltrastarTxtTag.VERSION}:{default_ultrastar_class.version}\n",
+            #f"#{UltrastarTxtTag.VERSION}:{default_ultrastar_class.version}\n", # todo: Version definition is in progress
             f"#{UltrastarTxtTag.ARTIST}:{default_ultrastar_class.artist}\n",
             f"#{UltrastarTxtTag.TITLE}:{default_ultrastar_class.title}\n",
             f"#{UltrastarTxtTag.MP3}:{default_ultrastar_class.mp3}\n",
@@ -103,7 +103,7 @@ class TestCreateUltrastarTxt(unittest.TestCase):
     @staticmethod
     def full_values(default_ultrastar_class):
         expected_calls = [
-            f"#{UltrastarTxtTag.VERSION}:{default_ultrastar_class.version}\n",
+            #f"#{UltrastarTxtTag.VERSION}:{default_ultrastar_class.version}\n", # todo: Version definition is in progress
             f"#{UltrastarTxtTag.ARTIST}:{default_ultrastar_class.artist}\n",
             f"#{UltrastarTxtTag.TITLE}:{default_ultrastar_class.title}\n",
             f"#{UltrastarTxtTag.YEAR}:{default_ultrastar_class.year}\n",

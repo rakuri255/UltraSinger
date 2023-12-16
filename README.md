@@ -17,23 +17,22 @@
 > ⚠️ _This project is still under development!_
 
 UltraSinger is a tool to automatically create UltraStar.txt, midi and notes from music. 
-Meaning it automaticly pitch UltraStar files, adding text and tapping to UltraStar files and creates separate UltraStar karaoke files.
+It automatically pitches UltraStar files, adding text and tapping to UltraStar files and creates separate UltraStar karaoke files.
 It also can re-pitch current UltraStar files and calculates the possible in-game score.
 
 Multiple AI models are used to extract text from the voice and to determine the pitch.
 
-Please mention UltraSinger in your UltraStar.txt file if you use it. It helps other to find this tool.
-And it helps you that this tool gets improved and maintained.
+Please mention UltraSinger in your UltraStar.txt file if you use it. It helps others find this tool, and it helps this tool get improved and maintained.
 You should only use it on Creative Commons licensed songs.
 
 ## ❤️ Support
 There are many ways to support this project. Starring ⭐️ the repo is just one 🙏
 
-You can also support this work on Patreon or Buy Me A Coffee.
+You can also support this work on <a href="https://github.com/sponsors/rakuri255">GitHub sponsors</a> or <a href="https://patreon.com/Rakuri">Patreon</a> or <a href="https://www.buymeacoffee.com/rakuri255" target="_blank">Buy Me a Coffee</a>.
 
-This will help me alot to keep this project alive and improve it.
+This will help me a lot to keep this project alive and improve it.
 
-<a href="https://www.buymeacoffee.com/rakuri255" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" style="height: 60px !important;width: 217px !important;" ></a>
+<a href="https://www.buymeacoffee.com/rakuri255" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me a Coffee" style="height: 60px !important;width: 217px !important;" ></a>
 <a href="https://patreon.com/Rakuri"><img src="https://raw.githubusercontent.com/rakuri255/UltraSinger/main/assets/patreon.png" alt="Become a Patron" style="height: 60px !important;width: 217px !important;"/> </a>
 <a href="https://github.com/sponsors/rakuri255"><img src="https://raw.githubusercontent.com/rakuri255/UltraSinger/main/assets/mona-heart-featured.webp" alt="GitHub Sponsor" style="height: 60px !important;width: auto;"/> </a>
 
@@ -80,7 +79,7 @@ This will help me alot to keep this project alive and improve it.
 
 For more information about Python environments look [here](https://code.visualstudio.com/docs/python/environments#_global-virtual-or-conda-environments).
 
-Installation As copy:
+Copy the below and paste it into a shell:
     
 ```commandline
 py -3.10 -m venv .venv
@@ -124,7 +123,7 @@ _Not all options working now!_
     -o      Output folder
     
     [mode]
-    ## INPUT is audio ##
+    ## if INPUT is audio ##
     default  Creates all
     
     # Single file creation selection is in progress, you currently getting all!
@@ -132,7 +131,7 @@ _Not all options working now!_
     (-m      Create midi file) # In Progress
     (-s      Create sheet file) # In Progress
     
-    ## INPUT is ultrastar.txt ##
+    ## if INPUT is ultrastar.txt ##
     default  Creates all
 
     # Single selection is in progress, you currently getting all!
@@ -160,7 +159,11 @@ _Not all options working now!_
     --disable_karaoke       True|False >> ((default) is False)
     --create_audio_chunks   True|False >> ((default) is False)
     --plot                  True|False >> ((default) is False)
-    --force_cpu             True|False >> ((default) is False)
+    
+    [device]
+    --force_cpu             True|False >> ((default) is False)  All steps will be forced to cpu
+    --force_whisper_cpu     True|False >> ((default) is False)  Only whisper will be forced to cpu
+    --force_crepe_cpu       True|False >> ((default) is False)  Only crepe will be forced to cpu
 ```
 
 For standard use, you only need to use [opt]. All other options are optional.
@@ -237,7 +240,7 @@ If you want solid accurate, then use the `full` model.
 ### 👄 Separation
 
 The vocals are separated from the audio before they are passed to the models. If problems occur with this, 
-you have the option to disable this function and the original audio file is used instead.
+you have the option to disable this function; in which case the original audio file is used instead.
 
 ```commandline
 -i XYZ --disable_separation True
@@ -245,7 +248,7 @@ you have the option to disable this function and the original audio file is used
 
 ### 🏆 Ultrastar Score Calculation
 
-The score what the singer in the audio would receive will be measured. 
+The score that the singer in the audio would receive will be measured. 
 You get 2 scores, simple and accurate. You wonder where the difference is? 
 Ultrastar is not interested in pitch hights. As long as it is in the pitch range A-G you get one point. 
 This makes sense for the game, because otherwise men don't get points for high female voices and women don't get points 
@@ -256,12 +259,11 @@ this MIDI and sheet are created. And you also want to have accurate files
 
 ### 📟 Use GPU
 
-With an GPU you can speed up the process and also the quality of the transcription and pitching is better.
+With a GPU you can speed up the process. Also the quality of the transcription and pitching is better.
 
-You need a cuda device for this to work.
-If you use an MAC-System than sorry, there is no cuda device for MAC machines.
+You need a cuda device for this to work. Sorry, there is no cuda device for macOS.
 
-It is recommended, but optional, to install the cuda driver for your gpu see [driver](https://developer.nvidia.com/cuda-downloads).
+It is optional (but recommended) to install the cuda driver for your gpu: see [driver](https://developer.nvidia.com/cuda-downloads).
 Install torch with cuda separately in your `venv`. See [tourch+cuda](https://pytorch.org/get-started/locally/).
 Also check you GPU cuda support. See [cuda support](https://gist.github.com/standaloneSA/99788f30466516dbcc00338b36ad5acf)
 
@@ -270,11 +272,11 @@ Command for `pip`:
 pip3 install torch==2.0.1+cu117 torchvision==0.15.2+cu117 torchaudio==2.0.2+cu117 --index-url https://download.pytorch.org/whl/cu117
 ```
 
-When you want to use `conda` instead you need a different installation command. See this [link](https://pytorch.org/get-started/locally/).
+When you want to use `conda` instead you need a [different installation command](https://pytorch.org/get-started/locally/).
 
 #### Considerations for Windows users
 
-The pitch tracker used by UltraSinger (crepe), uses TensorFlow as it's backend.
+The pitch tracker used by UltraSinger (crepe) uses TensorFlow as its backend.
 TensorFlow dropped GPU support for Windows for versions >2.10 as you can see in this [release note](https://github.com/tensorflow/tensorflow/releases/tag/v2.11.1) and their [installation instructions](https://www.tensorflow.org/install/pip#windows-native).
 
 For now UltraSinger runs the latest version available that still supports GPUs on windows.
@@ -288,7 +290,7 @@ For running later versions of TensorFlow on windows while still taking advantage
 
 #### Info
 
-If something crashes because of low VRAM than use a smaller model.
+If something crashes because of low VRAM then use a smaller model.
 Whisper needs more than 8GB VRAM in the `large` model!
 
 You can also force cpu usage with the extra option `--force_cpu`.
