@@ -76,7 +76,7 @@ def transcribe_with_whisper(
             f"{red_highlighted(f'{ve}')}"
             f"\n"
             f"{ULTRASINGER_HEAD} {red_highlighted('Error:')} Unknown language. "
-            f"Try add it with --align_model [hugingface]."
+            f"Try add it with --align_model [huggingface]."
         )
         sys.exit(1)
 

@@ -9,17 +9,98 @@ from modules.console_colors import (
     blue_highlighted,
 )
 
+# PyHyphen tries to retrieve dictionaries for download 'https://cgit.freedesktop.org/libreoffice/dictionaries/plain/'
+# Updated PyHyphen dictools Languages, so they can be installed
+LANGUAGES = [
+"af_ZA",
+"an_ES",
+"ar",
+"be_BY",
+"bg_BG",
+"bn_BD",
+"bo",
+"br_FR",
+"bs_BA",
+"ca",
+"ckb",
+"cs_CZ",
+"da_DK",
+"de",
+"el_GR",
+"en",
+"eo",
+"es",
+"et_EE",
+"fa_IR",
+"fr_FR",
+"gd_GB",
+"gl",
+"gu_IN",
+"gug",
+"he_IL",
+"hi_IN",
+"hr_HR",
+"hu_HU",
+"id",
+"is",
+"it_IT",
+"kmr_Latn",
+"ko_KR",
+"lo_LA",
+"lt_LT",
+"lv_LV",
+"mn_MN",
+"ne_NP",
+"nl_NL",
+"no",
+"oc_FR",
+"pl_PL",
+"pt_BR",
+"pt_PT",
+"ro",
+"ru_RU",
+"si_LK",
+"sk_SK",
+"sl_SI",
+"sq_AL",
+"sr",
+"sv_SE",
+"sw_TZ",
+"te_IN",
+"th_TH",
+"tr_TR",
+"uk_UA",
+"vi",
+"zu_ZA",
+]
 
 def language_check(language="en") -> str | None:
     """Check if language is supported"""
 
-    dict_langs = dictools.LANGUAGES
-
     lang_region = None
-    for dict_lang in dict_langs:
-        if dict_lang.startswith(language):
-            lang_region = dict_lang
-            break
+    installed = dictools.list_installed()
+    installed_region_keys = [i for i in installed if i.startswith(language) and "_" in i]
+    try:
+        # Try to find installed language with region prediction
+        lang_region = next(i for i in installed_region_keys if i == f"{language}_{language.upper()}")
+    except StopIteration:
+        if installed_region_keys:
+            # Take first installed region language
+            lang_region = installed_region_keys[0]
+        else:
+            # Take downloadable language key
+            downloadable_key = [i for i in LANGUAGES if i.startswith(language)]
+            downloadable_folder_key = [i for i in downloadable_key if i == language]
+            if downloadable_folder_key:
+                lang_region = downloadable_key[0]
+            else:
+                try:
+                    # Try to find downloadable language with region prediction
+                    lang_region = next(i for i in downloadable_key if i == f"{language}_{language.upper()}")
+                except StopIteration:
+                    if downloadable_key:
+                        # Take first installed region language
+                        lang_region = downloadable_key[0]
 
     if lang_region is None:
         return None

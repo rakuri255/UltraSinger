@@ -200,13 +200,17 @@ def print_help() -> None:
 
     [transcription]
     # Default is whisper
-    --whisper       Multilingual model > tiny|base|small|medium|large-v1|large-v2  >> ((default) is large-v2
-                    English-only model > tiny.en|base.en|small.en|medium.en
-    --align_model   Use other languages model for Whisper provided from huggingface.co 
-        
+    --whisper               Multilingual model > tiny|base|small|medium|large-v1|large-v2  >> ((default) is large-v2
+                            English-only model > tiny.en|base.en|small.en|medium.en
+    --whisper_align_model   Use other languages model for Whisper provided from huggingface.co
+    --language              Override the language detected by whisper, does not affect transcription but steps after transcription
+    --whisper_batch_size    Reduce if low on GPU mem >> ((default) is 16)
+    --whisper_compute_type  Change to "int8" if low on GPU mem (may reduce accuracy) >> ((default) is "float16" for cuda devices, "int8" for cpu)
+    
     [pitcher]
     # Default is crepe
-    --crepe     tiny|small|medium|large|full >> ((default) is full)
+    --crepe            tiny|full >> ((default) is full)
+    --crepe_step_size  unit is miliseconds >> ((default) is 10)
     
     [extra]
     --hyphenation           True|False >> ((default) is True)
@@ -214,6 +218,11 @@ def print_help() -> None:
     --disable_karaoke       True|False >> ((default) is False)
     --create_audio_chunks   True|False >> ((default) is False)
     --plot                  True|False >> ((default) is False)
+    
+    [device]
+    --force_cpu             True|False >> ((default) is False)  All steps will be forced to cpu
+    --force_whisper_cpu     True|False >> ((default) is False)  Only whisper will be forced to cpu
+    --force_crepe_cpu       True|False >> ((default) is False)  Only crepe will be forced to cpu
     """
     print(help_string)
 
@@ -229,20 +238,25 @@ def remove_unecessary_punctuations(transcribed_data: list[TranscribedData]) -> N
 
 def hyphenate_each_word(language: str, transcribed_data: list[TranscribedData]) -> list[list[str]] | None:
     """Hyphenate each word in the transcribed data."""
-    hyphenated_word = []
     lang_region = language_check(language)
     if lang_region is None:
         print(
-            f"{ULTRASINGER_HEAD} {red_highlighted('Error in hyphenation for language ')} {blue_highlighted(language)} {red_highlighted(', maybe you want to disable it?')}"
+            f"{ULTRASINGER_HEAD} {red_highlighted('Error in hyphenation for language ')} {blue_highlighted(language)}{red_highlighted(', maybe you want to disable it?')}"
         )
         return None
 
-    hyphenator = create_hyphenator(lang_region)
-    for i in tqdm(enumerate(transcribed_data)):
-        pos = i[0]
-        hyphenated_word.append(
-            hyphenation(transcribed_data[pos].word, hyphenator)
-        )
+    hyphenated_word = []
+    try:
+        hyphenator = create_hyphenator(lang_region)
+        for i in tqdm(enumerate(transcribed_data)):
+            pos = i[0]
+            hyphenated_word.append(
+                hyphenation(transcribed_data[pos].word, hyphenator)
+            )
+    except:
+        print(f"{ULTRASINGER_HEAD} {red_highlighted('Error in hyphenation for language ')} {blue_highlighted(language)}{red_highlighted(', maybe you want to disable it?')}")
+        return None
+
     return hyphenated_word
 
 
@@ -250,15 +264,27 @@ def print_support() -> None:
     """Print support text"""
     print()
     print(
-        f"{ULTRASINGER_HEAD} {gold_highlighted('Do you like UltraSinger? And want it to be even better? Then help with your')} {light_blue_highlighted('support')}{gold_highlighted('!')}"
+        f"{ULTRASINGER_HEAD} {gold_highlighted('Do you like UltraSinger? Want it to be even better? Then help with your')} {light_blue_highlighted('support')}{gold_highlighted('!')}"
     )
     print(
         f"{ULTRASINGER_HEAD} See project page -> https://github.com/rakuri255/UltraSinger"
     )
     print(
-        f"{ULTRASINGER_HEAD} {gold_highlighted('This will help alot to keep this project alive and improved.')}"
+        f"{ULTRASINGER_HEAD} {gold_highlighted('This will help a lot to keep this project alive and improved.')}"
     )
 
+def print_version() -> None:
+    """Print version text"""
+    print()
+    print(
+        f"{ULTRASINGER_HEAD} {gold_highlighted('*****************************')}"
+    )
+    print(
+        f"{ULTRASINGER_HEAD} {gold_highlighted('UltraSinger Version:')} {light_blue_highlighted(settings.APP_VERSION)}"
+    )
+    print(
+        f"{ULTRASINGER_HEAD} {gold_highlighted('*****************************')}"
+    )
 
 def run() -> None:
     """The processing function of this program"""
@@ -432,10 +458,11 @@ def get_unused_song_output_dir(path: str) -> str:
 def transcribe_audio() -> (str, list[TranscribedData]):
     """Transcribe audio with AI"""
     if settings.transcriber == "whisper":
+        device = "cpu" if settings.force_whisper_cpu else settings.pytorch_device
         transcribed_data, detected_language = transcribe_with_whisper(
             settings.mono_audio_path,
             settings.whisper_model,
-            settings.pytorch_device,
+            device,
             settings.whisper_align_model,
             settings.whisper_batch_size,
             settings.whisper_compute_type,
@@ -716,11 +743,12 @@ def pitch_audio(is_audio: bool, transcribed_data: list[TranscribedData], ultrast
     """Pitch audio"""
     # todo: chunk pitching as option?
     # midi_notes = pitch_each_chunk_with_crepe(chunk_folder_name)
+    device = "cpu" if settings.force_crepe_cpu else settings.tensorflow_device
     pitched_data = get_pitch_with_crepe_file(
         settings.mono_audio_path,
         settings.crepe_model_capacity,
         settings.crepe_step_size,
-        settings.tensorflow_device,
+        device,
     )
     if is_audio:
         start_times = []
@@ -771,6 +799,7 @@ def denoise_vocal_audio(input_path: str, output_path: str) -> None:
 
 def main(argv: list[str]) -> None:
     """Main function"""
+    print_version()
     init_settings(argv)
     run()
     # todo: cleanup
@@ -812,7 +841,7 @@ def init_settings(argv: list[str]) -> None:
         elif opt in ("--midi"):
             settings.create_midi = arg in ["True", "true"]
         elif opt in ("--hyphenation"):
-            settings.hyphenation = arg
+            settings.hyphenation = eval(arg.title())
         elif opt in ("--disable_separation"):
             settings.use_separated_vocal = not arg
         elif opt in ("--disable_karaoke"):
@@ -823,6 +852,10 @@ def init_settings(argv: list[str]) -> None:
             settings.force_cpu = arg
             if settings.force_cpu:
                 os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
+        elif opt in ("--force_whisper_cpu"):
+            settings.force_whisper_cpu = eval(arg.title())
+        elif opt in ("--force_crepe_cpu"):
+            settings.force_crepe_cpu = eval(arg.title())
 
     if settings.output_file_path == "":
         if settings.input_file_path.startswith("https:"):
@@ -854,6 +887,8 @@ def arg_options():
         "disable_karaoke=",
         "create_audio_chunks=",
         "force_cpu=",
+        "force_whisper_cpu=",
+        "force_crepe_cpu=",
     ]
     return long, short
 
