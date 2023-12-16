@@ -9,10 +9,7 @@ import Levenshtein
 import librosa
 
 from tqdm import tqdm
-from voicefixer import VoiceFixer, Vocoder
 import soundfile as sf
-from pydub import AudioSegment, silence
-import numpy as np
 
 from modules import os_helper
 from modules.Audio.denoise import ffmpeg_reduce_noise
@@ -21,7 +18,7 @@ from modules.Audio.vocal_chunks import (
     export_chunks_from_transcribed_data,
     export_chunks_from_ultrastar_data,
 )
-from modules.Audio.silence_processing import remove_silence_from_transcription_data
+from modules.Audio.silence_processing import remove_silence_from_transcription_data, get_silence_sections
 from modules.csv_handler import export_transcribed_data_to_csv
 from modules.Audio.convert_audio import convert_audio_to_mono_wav, convert_wav_to_mp3
 from modules.Audio.youtube import (
@@ -331,7 +328,7 @@ def run() -> None:
         ) = infos_from_audio_input_file()
 
     cache_path = os.path.join(song_output, "cache")
-    settings.mono_audio_path = os.path.join(
+    settings.processing_audio_path = os.path.join(
         cache_path, basename_without_ext + ".wav"
     )
     os_helper.create_folder(cache_path)
@@ -352,33 +349,20 @@ def run() -> None:
     )
     denoise_vocal_audio(input_path, denoised_output_path)
 
-    # Fixme The slicer
-    a = get_silence_sections(denoised_output_path)
-
-    y, sr = librosa.load(denoised_output_path, sr=None)
-
-    for i in a:
-        # Define the time range to mute
-
-        start_time = i[0]  # Start time in seconds
-        end_time = i[1]  # End time in seconds
-
-        # Convert time to sample indices
-        start_sample = int(start_time * sr)
-        end_sample = int(end_time * sr)
-
-        y[start_sample:end_sample] = 0
-
-    sf.write(denoised_output_path, y, sr)
-
-    settings.mono_audio_path = denoised_output_path # Fixme Wrong!
-
     # Convert to mono audio
     mono_output_path = os.path.join(
         cache_path, basename_without_ext + "_mono.wav"
     )
     convert_audio_to_mono_wav(denoised_output_path, mono_output_path)
-    settings.mono_audio_path = mono_output_path
+
+    # Mute silence sections
+    mute_output_path = os.path.join(
+        cache_path, basename_without_ext + "_mute.wav"
+    )
+    mute_no_singing_parts(mono_output_path, mute_output_path)
+
+    # Define the audio file to process
+    settings.processing_audio_path = mute_output_path
 
     # Audio transcription
     transcribed_data = None
@@ -390,7 +374,7 @@ def run() -> None:
 
         remove_unecessary_punctuations(transcribed_data)
         transcribed_data = remove_silence_from_transcription_data(
-            settings.mono_audio_path, transcribed_data
+            settings.processing_audio_path, transcribed_data
         )
 
         if settings.hyphenation:
@@ -420,7 +404,8 @@ def run() -> None:
     # Create plot
     if settings.create_plot:
         vocals_path = os.path.join(audio_separation_path, "vocals.wav")
-        plot_spectrogram(vocals_path, song_output)
+        plot_spectrogram(vocals_path, song_output, "vocals.wav")
+        plot_spectrogram(settings.processing_audio_path, song_output, "processing audio")
         plot(pitched_data, song_output, transcribed_data, midi_notes)
 
     # Write Ultrastar txt
@@ -461,6 +446,27 @@ def run() -> None:
     print_support()
 
 
+def mute_no_singing_parts(mono_output_path, mute_output_path):
+    print(
+        f"{ULTRASINGER_HEAD} Mute audio parts with no singing"
+    )
+    silence_sections = get_silence_sections(mono_output_path)
+    y, sr = librosa.load(mono_output_path, sr=None)
+    # Mute the parts of the audio with no singing
+    for i in silence_sections:
+        # Define the time range to mute
+
+        start_time = i[0]  # Start time in seconds
+        end_time = i[1]  # End time in seconds
+
+        # Convert time to sample indices
+        start_sample = int(start_time * sr)
+        end_sample = int(end_time * sr)
+
+        y[start_sample:end_sample] = 0
+    sf.write(mute_output_path, y, sr)
+
+
 def get_unused_song_output_dir(path: str) -> str:
     """Get an unused song output dir"""
     # check if dir exists and add (i) if it does
@@ -486,7 +492,7 @@ def transcribe_audio() -> (str, list[TranscribedData]):
     if settings.transcriber == "whisper":
         device = "cpu" if settings.force_whisper_cpu else settings.pytorch_device
         transcribed_data, detected_language = transcribe_with_whisper(
-            settings.mono_audio_path,
+            settings.processing_audio_path,
             settings.whisper_model,
             device,
             settings.whisper_align_model,
@@ -771,7 +777,7 @@ def pitch_audio(is_audio: bool, transcribed_data: list[TranscribedData], ultrast
     # midi_notes = pitch_each_chunk_with_crepe(chunk_folder_name)
     device = "cpu" if settings.force_crepe_cpu else settings.tensorflow_device
     pitched_data = get_pitch_with_crepe_file(
-        settings.mono_audio_path,
+        settings.processing_audio_path,
         settings.crepe_model_capacity,
         settings.crepe_step_size,
         device,
@@ -809,22 +815,13 @@ def create_audio_chunks(
     if is_audio:  # and csv
         csv_filename = os.path.join(audio_chunks_path, "_chunks.csv")
         export_chunks_from_transcribed_data(
-            settings.mono_audio_path, transcribed_data, audio_chunks_path
+            settings.processing_audio_path, transcribed_data, audio_chunks_path
         )
         export_transcribed_data_to_csv(transcribed_data, csv_filename)
     else:
         export_chunks_from_ultrastar_data(
             ultrastar_audio_input_path, ultrastar_class, audio_chunks_path
         )
-
-def get_silence_sections(audio_path: str,
-                         min_silence_len=50,
-                         silence_thresh=-50) -> list[tuple[float, float]]:
-
-    y = AudioSegment.from_wav(audio_path)
-    s = silence.detect_silence(y, min_silence_len=min_silence_len, silence_thresh=silence_thresh)
-    s = [((start / 1000), (stop / 1000)) for start, stop in s]  # convert to sec
-    return s
 
 def denoise_vocal_audio(input_path: str, output_path: str) -> None:
     """Denoise vocal audio"""

@@ -15,17 +15,17 @@ def remove_silence_from_transcription_data(audio_path: str, transcribed_data: li
     )
 
     #audio, sample_rate = librosa.load(audio_path, sr=None)
-    y = AudioSegment.from_wav(audio_path)
-    silence_timestamps = get_silence_sections(y)
+    silence_timestamps = get_silence_sections(audio_path)
     a = remove_silence2(silence_timestamps, transcribed_data)
     #remove_silence(audio, sample_rate, transcribed_data)
 
     return a
 
-def get_silence_sections(y,
+def get_silence_sections(audio_path: str,
                          min_silence_len=50,
                          silence_thresh=-50) -> list[tuple[float, float]]:
 
+    y = AudioSegment.from_wav(audio_path)
     s = silence.detect_silence(y, min_silence_len=min_silence_len, silence_thresh=silence_thresh)
     s = [((start / 1000), (stop / 1000)) for start, stop in s]  # convert to sec
     return s
@@ -43,7 +43,8 @@ def remove_silence2(timeList: list[tuple[float, float]], transcribed_data: list[
             if silence_start >= data.end or silence_end <= data.start:
                 continue
             if silence_start > data.start and silence_end < data.end:
-                print(f"{ULTRASINGER_HEAD} Splitting \"{data.word}\" because it was in silence")
+                # fixme: What is with multiple silences in one word?
+                print(f"{ULTRASINGER_HEAD} Splitting \"{data.word}\" because it has silence parts")
                 splitted = TranscribedData({
                     "conf": data.conf,
                     "word": "~",

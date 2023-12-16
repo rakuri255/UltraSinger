@@ -10,7 +10,7 @@ class Settings:
 
     input_file_path = ""
     output_file_path = ""
-    mono_audio_path = ""
+    processing_audio_path = ""
 
     language = None
 
