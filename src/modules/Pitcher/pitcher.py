@@ -24,6 +24,9 @@ def get_pitch_with_crepe(
     audio, sample_rate: int, model_capacity: str, step_size: int = 10
 ) -> PitchedData:
     """Pitch with crepe"""
+
+    # Info: The model is trained on 16 kHz audio, so if the input audio has a different sample rate, it will be first resampled to 16 kHz using resampy inside crepe.
+
     times, frequencies, confidence, activation = crepe.predict(
         audio, sample_rate, model_capacity, step_size=step_size, viterbi=True
     )

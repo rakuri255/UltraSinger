@@ -8,10 +8,8 @@ import sys
 import Levenshtein
 import librosa
 from tqdm import tqdm
-import soundfile as sf
-from pydub import AudioSegment
 
-from modules import os_helper, timer
+from modules import os_helper
 from modules.Audio.denoise import ffmpeg_reduce_noise
 from modules.Audio.separation import separate_audio
 from modules.Audio.vocal_chunks import (
@@ -317,89 +315,18 @@ def run() -> None:
     else:
         input_path = ultrastar_audio_input_path
 
-    # Convert back to original SR
-    sr_output_path = os.path.join(
-        cache_path, basename_without_ext + "_sr.wav"
-    )
-    # Fixme This is mono now?
-    convert_samplerate_back_to_original_sample_rate(ultrastar_audio_input_path, input_path, sr_output_path)
-
     # Denoise vocal audio
     denoised_output_path = os.path.join(
         cache_path, basename_without_ext + "_denoised.wav"
     )
-    denoise_vocal_audio(sr_output_path, denoised_output_path)
+    denoise_vocal_audio(input_path, denoised_output_path)
 
     # Convert to mono audio
-    #Fixme SR is already mono
-    #mono_output_path = os.path.join(
-    #    cache_path, basename_without_ext + "_mono.wav"
-    #)
-    mono_output_path = sr_output_path
-    #convert_audio_to_mono_wav(denoised_output_path, mono_output_path)
+    mono_output_path = os.path.join(
+        cache_path, basename_without_ext + "_mono.wav"
+    )
+    convert_audio_to_mono_wav(denoised_output_path, mono_output_path)
     settings.mono_audio_path = mono_output_path
-
-    # Todo: Audio length is different
-    # Demucs is shorter then original audio
-    # Denoised is again shorter
-
-    # Get SR from Audio
-    ultrastar_audio_input_path_sr = librosa.get_samplerate(ultrastar_audio_input_path)
-    input_path_sr = librosa.get_samplerate(input_path)
-    sr_output_path_sr = librosa.get_samplerate(sr_output_path)
-    denoised_output_path_sr = librosa.get_samplerate(denoised_output_path)
-    #mono_audio_sr = librosa.get_samplerate(mono_output_path)
-    mono_audio_sr = sr_output_path_sr # Fixme SR is already mono
-
-    print("- SR -")
-    print(f"Original: {str(ultrastar_audio_input_path_sr)}")
-    print(f"Vocals: {str(input_path_sr)}")
-    print(f"SR New: {str(sr_output_path_sr)}")
-    print(f"Denoised: {str(denoised_output_path_sr)}")
-    print(f"Mono: {str(mono_audio_sr)}")
-
-    # Check audio length
-    ultrastar_audio_input_path_length = librosa.get_duration(filename=ultrastar_audio_input_path)
-    input_path_length = librosa.get_duration(filename=input_path)
-    sr_output_path_length = librosa.get_duration(filename=sr_output_path)
-    denoised_output_path_length = librosa.get_duration(filename=denoised_output_path)
-    mono_audio_length = librosa.get_duration(filename=mono_output_path)
-
-    print("- Length- ")
-    print(f"Original: {str(ultrastar_audio_input_path_length)}")
-    print(f"Vocals: {str(input_path_length)}")
-    print(f"SR New: {str(sr_output_path_length)}")
-    print(f"Denoised: {str(denoised_output_path_length)}")
-    print(f"Mono: {str(mono_audio_length)}")
-
-    vocals_diff_ms = ((ultrastar_audio_input_path_length - input_path_length) * 1000)
-    sr_diff_ms = ((ultrastar_audio_input_path_length - sr_output_path_length) * 1000)
-    denoised_diff_ms = ((ultrastar_audio_input_path_length - denoised_output_path_length) * 1000)
-    mono_diff_ms = int((ultrastar_audio_input_path_length - mono_audio_length) * 1000)
-
-    print("- Diff - ")
-    print(f"Diff Vocals: {str(vocals_diff_ms)}")
-    print(f"Diff SR: {str(sr_diff_ms)}")
-    print(f"Diff Denoised: {str(denoised_diff_ms)}")
-    print(f"Diff Mono: {str(mono_diff_ms)}")
-
-    one_sec_segment = AudioSegment.silent(duration=mono_diff_ms, frame_rate=mono_audio_sr)
-    song = AudioSegment.from_wav(mono_output_path)
-    final_song = one_sec_segment + song
-
-    test_mono_output_path = os.path.join(
-        cache_path, basename_without_ext + "_test_mono.wav")
-
-    final_song.export(test_mono_output_path, format="wav", bitrate=mono_audio_sr)
-
-    mono_audio_length = librosa.get_duration(filename=test_mono_output_path)
-    mono_audio_sr = librosa.get_samplerate(test_mono_output_path)
-    mono_diff_ms = (ultrastar_audio_input_path_length - mono_audio_length) * 1000
-
-    print("- Converted - ")
-    print(f"New Mono: {str(mono_audio_sr)}")
-    print(f"New Length: {str(mono_audio_length)}")
-    print(f"New Diff: {str(mono_diff_ms)}")
 
     # Audio transcription
     transcribed_data = None
@@ -531,13 +458,6 @@ def separate_vocal_from_audio(
         separate_audio(ultrastar_audio_input_path, cache_path, settings.pytorch_device)
 
     return audio_separation_path
-
-def convert_samplerate_back_to_original_sample_rate(original_input_path: str, input_file_path: str, output_file_path: str):
-    # Convert back to SR
-    original_SR = librosa.get_samplerate(original_input_path)
-    y, sr = librosa.load(input_file_path, mono=True, sr=None)
-    y_8k = librosa.resample(y, orig_sr=sr, target_sr=original_SR)
-    sf.write(output_file_path, y_8k, original_SR)
 
 def calculate_score_points(
     is_audio: bool, pitched_data: PitchedData, ultrastar_class: UltrastarTxtValue, ultrastar_file_output: str
