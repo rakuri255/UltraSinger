@@ -585,7 +585,7 @@ def create_ultrastar_txt_from_automation(
     if artist is not None:
         ultrastar_header.artist = artist
     if year is not None:
-        ultrastar_header.year = year
+        ultrastar_header.year = extract_year(year)
     if genre is not None:
         ultrastar_header.genre = format_separated_string(genre)
 
@@ -618,6 +618,12 @@ def create_ultrastar_txt_from_automation(
         )
     return real_bpm, ultrastar_file_output
 
+def extract_year(date: str) -> str:
+    match = re.search(r'\b\d{4}\b', date)
+    if match:
+        return match.group(0)
+    else:
+        return date
 
 def format_separated_string(data: str) -> str:
     temp = re.sub(r'[;/]', ',', data)

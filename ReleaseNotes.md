@@ -2,6 +2,7 @@ Version: 0.0.5
 Date: 2023.12.23
 Changes:
 - Format GENRE string
+- Extract year from date
 
 Version: 0.0.4
 Date: 2023.12.16
