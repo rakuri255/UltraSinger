@@ -587,7 +587,7 @@ def create_ultrastar_txt_from_automation(
     if year is not None:
         ultrastar_header.year = extract_year(year)
     if genre is not None:
-        ultrastar_header.genre = genre
+        ultrastar_header.genre = format_separated_string(genre)
 
     real_bpm = get_bpm_from_file(ultrastar_audio_input_path)
     ultrastar_file_output = os.path.join(
@@ -624,6 +624,27 @@ def extract_year(date: str) -> str:
         return match.group(0)
     else:
         return date
+
+def format_separated_string(data: str) -> str:
+    temp = re.sub(r'[;/]', ',', data)
+    words = temp.split(',')
+    words = [s for s in words if s.strip()]
+
+    for i, word in enumerate(words):
+        if "-" not in word:
+            words[i] = word.strip().capitalize() + ', '
+        else:
+            dash_words = word.split('-')
+            capitalized_dash_words = [dash_word.strip().capitalize() for dash_word in dash_words]
+            formatted_dash_word = '-'.join(capitalized_dash_words) + ', '
+            words[i] = formatted_dash_word
+
+    formatted_string = ''.join(words)
+
+    if formatted_string.endswith(', '):
+        formatted_string = formatted_string[:-2]
+
+    return formatted_string
 
 def infos_from_audio_input_file() -> tuple[str, str, str, tuple[str, str, str, str]]:
     """Infos from audio input file"""
