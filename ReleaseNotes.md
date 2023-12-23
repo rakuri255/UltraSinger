@@ -1,3 +1,8 @@
+Version: 0.0.5
+Date: 2023.12.23
+Changes:
+- Extract year from date
+
 Version: 0.0.4
 Date: 2023.12.16
 Changes:
