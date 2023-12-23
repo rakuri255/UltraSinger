@@ -4,6 +4,7 @@ import copy
 import getopt
 import os
 import sys
+import re
 
 import Levenshtein
 import librosa
@@ -584,7 +585,7 @@ def create_ultrastar_txt_from_automation(
     if artist is not None:
         ultrastar_header.artist = artist
     if year is not None:
-        ultrastar_header.year = year
+        ultrastar_header.year = extract_year(year)
     if genre is not None:
         ultrastar_header.genre = genre
 
@@ -617,6 +618,12 @@ def create_ultrastar_txt_from_automation(
         )
     return real_bpm, ultrastar_file_output
 
+def extract_year(date: str) -> str:
+    match = re.search(r'\b\d{4}\b', date)
+    if match:
+        return match.group(0)
+    else:
+        return date
 
 def infos_from_audio_input_file() -> tuple[str, str, str, tuple[str, str, str, str]]:
     """Infos from audio input file"""
