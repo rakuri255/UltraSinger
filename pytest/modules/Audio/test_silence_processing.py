@@ -82,11 +82,11 @@ class SilenceProcessingTest(unittest.TestCase):
         self.assertEqual(result[3].end, 10.0)
 
         # Split to "Silence is inside~"
-        self.assertEqual(transcribed_data[4].word, "Silence is inside")
+        self.assertEqual(result[4].word, "Silence is inside")
         self.assertEqual(result[4].start, 1.0)
         self.assertEqual(result[4].end, 2.0)
 
-        self.assertEqual(transcribed_data[5].word, "~")
+        self.assertEqual(result[5].word, "~")
         self.assertEqual(result[5].start, 9.0)
         self.assertEqual(result[5].end, 12.0)
 

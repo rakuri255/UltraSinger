@@ -45,6 +45,7 @@ def remove_silence2(silence_parts_list: list[tuple[float, float]], transcribed_d
             # |  ***  ***   | data
             # |0 1 2 3 4 5 6| time
             if silence_start >= data.end or silence_end <= data.start:
+                # fixme: why equal?
                 continue
 
             # |    ****  | silence
