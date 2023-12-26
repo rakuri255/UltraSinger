@@ -7,41 +7,49 @@ from modules.console_colors import ULTRASINGER_HEAD
 from modules.Speech_Recognition.TranscribedData import TranscribedData
 
 
-def remove_silence_from_transcription_data(audio_path: str, transcribed_data: list[TranscribedData]) -> list[TranscribedData]:
+def remove_silence_from_transcription_data(audio_path: str, transcribed_data: list[TranscribedData]) -> list[
+    TranscribedData]:
     """Remove silence from given transcription data"""
 
     print(
         f"{ULTRASINGER_HEAD} Removing silent start and ending, from transcription data"
     )
 
-    #audio, sample_rate = librosa.load(audio_path, sr=None)
+    # audio, sample_rate = librosa.load(audio_path, sr=None)
     silence_timestamps = get_silence_sections(audio_path)
     a = remove_silence2(silence_timestamps, transcribed_data)
-    #remove_silence(audio, sample_rate, transcribed_data)
+    # remove_silence(audio, sample_rate, transcribed_data)
 
     return a
+
 
 def get_silence_sections(audio_path: str,
                          min_silence_len=50,
                          silence_thresh=-50) -> list[tuple[float, float]]:
-
     y = AudioSegment.from_wav(audio_path)
     s = silence.detect_silence(y, min_silence_len=min_silence_len, silence_thresh=silence_thresh)
     s = [((start / 1000), (stop / 1000)) for start, stop in s]  # convert to sec
     return s
 
-def remove_silence2(timeList: list[tuple[float, float]], transcribed_data: list[TranscribedData]):
 
+def remove_silence2(silence_parts_list: list[tuple[float, float]], transcribed_data: list[TranscribedData]):
     new_transcribed_data = []
     for i, data in enumerate(transcribed_data):
         new_transcribed_data.append(data)
 
-        for j in range(len(timeList)):
-            silence_start = timeList[j][0]
-            silence_end = timeList[j][1]
+        for j in range(len(silence_parts_list)):
+            silence_start = silence_parts_list[j][0]
+            silence_end = silence_parts_list[j][1]
 
+            # |    ****     | silence
+            # |  ***  ***   | data
+            # |0 1 2 3 4 5 6| time
             if silence_start >= data.end or silence_end <= data.start:
                 continue
+
+            # |    ****  | silence
+            # |  ********| data
+            # |0 1 2 3 4 | time
             if silence_start > data.start and silence_end < data.end:
                 # fixme: What is with multiple silences in one word?
                 print(f"{ULTRASINGER_HEAD} Splitting \"{data.word}\" because it has silence parts")
@@ -54,17 +62,35 @@ def remove_silence2(timeList: list[tuple[float, float]], transcribed_data: list[
                 data.end = silence_start
                 new_transcribed_data.append(splitted)
                 break
+
+            # |    ****  | silence
+            # |     **   | data
+            # |0 1 2 3 4 | time
             if silence_start < data.start and silence_end > data.end:
                 new_transcribed_data.remove(data)
                 print(f"{ULTRASINGER_HEAD} Removed \"{data.word}\" because it was in silence")
                 break
+
+            # |    ****  | silence
+            # |      ****| data
+            # |0 1 2 3 4 | time
             if silence_start < data.start:
                 data.start = silence_end
                 print(f"{ULTRASINGER_HEAD} Removed silence in the start of word \"{data.word}\"")
+
+            # |    ****  | silence
+            # |  ****    | data
+            # |0 1 2 3 4 | time
             if silence_end > data.end:
                 data.end = silence_start
                 print(f"{ULTRASINGER_HEAD} Removed silence in the end of word \"{data.word}\"")
+
+            # |    ****  | silence
+            # |  **      | data
+            # |0 1 2 3 4 | time
             if silence_start > data.end:
+                # fixme: why break?
+                print(f"{ULTRASINGER_HEAD} Break? \"{data.word}\"")
                 break
     return new_transcribed_data
 
