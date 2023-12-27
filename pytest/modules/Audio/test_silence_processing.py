@@ -1,7 +1,5 @@
-import os
 import unittest
 from src.modules.Audio.silence_processing import remove_silence2
-import pytest
 from modules.Speech_Recognition.TranscribedData import TranscribedData
 
 
@@ -112,7 +110,7 @@ class SilenceProcessingTest(unittest.TestCase):
         result = remove_silence2(silence_parts_list, transcribed_data)
 
         # Assert
-        self.assertEqual(result[0].word, "Before silence")
+        self.assertEqual(result[0].word, "Silence is inside")
         self.assertEqual(result[0].start, 1.0)
         self.assertEqual(result[0].end, 2.0)
 
@@ -131,10 +129,6 @@ class SilenceProcessingTest(unittest.TestCase):
         self.assertEqual(result[4].word, "~")
         self.assertEqual(result[4].start, 9.0)
         self.assertEqual(result[4].end, 12.0)
-
-        self.assertEqual(result[5].word, "~")
-        self.assertEqual(result[5].start, 1.0)
-        self.assertEqual(result[5].end, 2.0)
 
 if __name__ == "__main__":
     unittest.main()

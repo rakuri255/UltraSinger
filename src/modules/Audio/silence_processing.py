@@ -37,44 +37,55 @@ def remove_silence2(silence_parts_list: list[tuple[float, float]], transcribed_d
     for i, data in enumerate(transcribed_data):
         new_transcribed_data.append(data)
 
+        origin_end = data.end
+        was_split = False
+
         for j in range(len(silence_parts_list)):
             silence_start = silence_parts_list[j][0]
             silence_end = silence_parts_list[j][1]
 
-            # |    ****     | silence
-            # |  ***  ***   | data
-            # |0 1 2 3 4 5 6| time
-            if silence_start >= data.end or silence_end <= data.start:
-                # fixme: why equal?
+            # |    ****    | silence
+            # |  ***  ***  | data
+            # |0 1 2 3 4 5 | time
+            if silence_start > origin_end or silence_end < data.start:
                 continue
 
-            # |    ****  | silence
-            # |  ********| data
-            # |0 1 2 3 4 | time
-            if silence_start > data.start and silence_end < data.end:
-                # fixme: What is with multiple silences in one word?
+            # |    **  **    | silence
+            # |  **********  | data
+            # |0 1 2 3 4 5 6 | time
+            if silence_start > data.start and silence_end < origin_end:
                 print(f"{ULTRASINGER_HEAD} Splitting \"{data.word}\" because it has silence parts")
-                splitted = TranscribedData({
+
+                if len(silence_parts_list) > j + 1 and silence_parts_list[j + 1][0] < origin_end:
+                    split_end = silence_parts_list[j + 1][0]
+                else:
+                    split_end = origin_end
+
+                split_data = TranscribedData({
                     "conf": data.conf,
                     "word": "~",
-                    "end": data.end,
+                    "end": split_end,
                     "start": silence_end
                 })
-                data.end = silence_start
-                new_transcribed_data.append(splitted)
-                break
+
+                if was_split is False:
+                    data.end = silence_start
+
+                was_split = True
+                new_transcribed_data.append(split_data)
+                continue
 
             # |    ****  | silence
             # |     **   | data
             # |0 1 2 3 4 | time
-            if silence_start < data.start and silence_end > data.end:
+            if silence_start < data.start and silence_end > origin_end:
                 new_transcribed_data.remove(data)
                 print(f"{ULTRASINGER_HEAD} Removed \"{data.word}\" because it was in silence")
                 break
 
-            # |    ****  | silence
-            # |      ****| data
-            # |0 1 2 3 4 | time
+            # |    ****    | silence
+            # |      ****  | data
+            # |0 1 2 3 4 5 | time
             if silence_start < data.start:
                 data.start = silence_end
                 print(f"{ULTRASINGER_HEAD} Removed silence in the start of word \"{data.word}\"")
@@ -82,16 +93,15 @@ def remove_silence2(silence_parts_list: list[tuple[float, float]], transcribed_d
             # |    ****  | silence
             # |  ****    | data
             # |0 1 2 3 4 | time
-            if silence_end > data.end:
+            if silence_end > origin_end:
                 data.end = silence_start
                 print(f"{ULTRASINGER_HEAD} Removed silence in the end of word \"{data.word}\"")
 
             # |    ****  | silence
             # |  **      | data
             # |0 1 2 3 4 | time
-            if silence_start > data.end:
-                # fixme: why break?
-                print(f"{ULTRASINGER_HEAD} Break? \"{data.word}\"")
+            if silence_start > origin_end:
+                # Nothing to do with this word anymore, go to next word
                 break
     return new_transcribed_data
 
