@@ -15,12 +15,13 @@ def remove_silence_from_transcription_data(audio_path: str, transcribed_data: li
         f"{ULTRASINGER_HEAD} Removing silent start and ending, from transcription data"
     )
 
-    # audio, sample_rate = librosa.load(audio_path, sr=None)
     silence_timestamps = get_silence_sections(audio_path)
     a = remove_silence2(silence_timestamps, transcribed_data)
-    # remove_silence(audio, sample_rate, transcribed_data)
-
     return a
+
+    #audio, sample_rate = librosa.load(audio_path, sr=None)
+    #remove_silence(audio, sample_rate, transcribed_data)
+    #return transcribed_data
 
 
 def get_silence_sections(audio_path: str,
@@ -44,7 +45,7 @@ def remove_silence2(silence_parts_list: list[tuple[float, float]], transcribed_d
         for silence_start, silence_end in silence_parts_list:
 
             # |    ****    | silence
-            # |  ***  ***  | data
+            # |  **    **  | data
             # |0 1 2 3 4 5 | time
             if silence_start > origin_end or silence_end < data.start:
                 continue
@@ -53,17 +54,25 @@ def remove_silence2(silence_parts_list: list[tuple[float, float]], transcribed_d
             # |  **********  | data
             # |0 1 2 3 4 5 6 | time
             if silence_start > data.start and silence_end < origin_end:
-                print(f"{ULTRASINGER_HEAD} Splitting \"{data.word}\" because it has silence parts")
+                next_index = silence_parts_list.index((silence_start, silence_end)) + 1
+                if next_index < len(silence_parts_list) and silence_parts_list[next_index][0] < origin_end:
+                    split_end = silence_parts_list[next_index][0]
 
-                if silence_parts_list.index((silence_start, silence_end)) + 1 < len(silence_parts_list):
-                    split_end = silence_parts_list[silence_parts_list.index((silence_start, silence_end)) + 1][0]
+                    if silence_parts_list[next_index][1] > origin_end:
+                        split_word = "2 "
+                    else:
+                        split_word = "1"
                 else:
                     split_end = origin_end
+                    split_word = "2 "
 
-                split_data = TranscribedData({"conf": data.conf, "word": "~", "end": split_end, "start": silence_end})
+                split_data = TranscribedData({"conf": data.conf, "word": split_word, "end": split_end, "start": silence_end})
 
                 if not was_split:
                     data.end = silence_start
+                    # Remove last whitespace from the data.word
+                    if data.word[-1] == " ":
+                        data.word = data.word[:-1]
 
                 was_split = True
                 new_transcribed_data.append(split_data)
@@ -74,7 +83,6 @@ def remove_silence2(silence_parts_list: list[tuple[float, float]], transcribed_d
             # |0 1 2 3 4 | time
             if silence_start < data.start and silence_end > origin_end:
                 new_transcribed_data.remove(data)
-                print(f"{ULTRASINGER_HEAD} Removed \"{data.word}\" because it was in silence")
                 break
 
             # |    ****    | silence
@@ -82,14 +90,12 @@ def remove_silence2(silence_parts_list: list[tuple[float, float]], transcribed_d
             # |0 1 2 3 4 5 | time
             if silence_start < data.start:
                 data.start = silence_end
-                print(f"{ULTRASINGER_HEAD} Removed silence in the start of word \"{data.word}\"")
 
             # |    ****  | silence
             # |  ****    | data
             # |0 1 2 3 4 | time
             if silence_end > origin_end:
                 data.end = silence_start
-                print(f"{ULTRASINGER_HEAD} Removed silence in the end of word \"{data.word}\"")
 
             # |    ****  | silence
             # |  **      | data

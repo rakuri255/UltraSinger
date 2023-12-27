@@ -373,14 +373,15 @@ def run() -> None:
             language = detected_language
 
         remove_unecessary_punctuations(transcribed_data)
-        transcribed_data = remove_silence_from_transcription_data(
-            settings.processing_audio_path, transcribed_data
-        )
 
         if settings.hyphenation:
             hyphen_words = hyphenate_each_word(language, transcribed_data)
             if hyphen_words is not None:
                 transcribed_data = add_hyphen_to_data(transcribed_data, hyphen_words)
+
+        transcribed_data = remove_silence_from_transcription_data(
+            settings.processing_audio_path, transcribed_data
+        )
 
         # todo: do we need to correct words?
         # lyric = 'input/faber_lyric.txt'
