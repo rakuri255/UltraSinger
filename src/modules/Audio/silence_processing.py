@@ -6,7 +6,6 @@ from pydub import AudioSegment, silence
 from modules.console_colors import ULTRASINGER_HEAD
 from modules.Speech_Recognition.TranscribedData import TranscribedData
 
-
 def remove_silence_from_transcription_data(audio_path: str, transcribed_data: list[TranscribedData]) -> list[
     TranscribedData]:
     """Remove silence from given transcription data"""
@@ -53,7 +52,7 @@ def remove_silence2(silence_parts_list: list[tuple[float, float]], transcribed_d
             # |    **  **    | silence
             # |  **********  | data
             # |0 1 2 3 4 5 6 | time
-            if silence_start > data.start and silence_end < origin_end:
+            if silence_start >= data.start and silence_end <= origin_end:
                 next_index = silence_parts_list.index((silence_start, silence_end)) + 1
                 if next_index < len(silence_parts_list) and silence_parts_list[next_index][0] < origin_end:
                     split_end = silence_parts_list[next_index][0]
@@ -73,13 +72,29 @@ def remove_silence2(silence_parts_list: list[tuple[float, float]], transcribed_d
 
                 if not was_split:
                     data.end = silence_start
+
+                    if data.end - data.start < 0.1:
+                        data.start = silence_end
+                        data.end = split_end
+                        continue
+
+                    if split_data.end - split_data.start <= 0.1:
+                        continue
+
                     data.is_hyphen = True
+
                     # Remove last whitespace from the data.word
                     if data.word[-1] == " ":
                         data.word = data.word[:-1]
 
-                was_split = True
-                new_transcribed_data.append(split_data)
+                if split_data.end - split_data.start > 0.1:
+                    was_split = True
+                    new_transcribed_data.append(split_data)
+                elif split_word == "~ " and data.is_hyphen:
+                    if new_transcribed_data[-1].word[-1] != " ":
+                        new_transcribed_data[-1].word += " "
+                    new_transcribed_data[-1].is_hyphen = False
+
                 continue
 
             # |    ****  | silence

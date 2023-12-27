@@ -186,9 +186,61 @@ class SilenceProcessingTest(unittest.TestCase):
         self.assertEqual(result[3].end, 8.0)
         self.assertEqual(result[3].is_hyphen, False)
 
-        # todo
-        # |    **  **  **   *****          | silence_parts_list
-        # |     *00**00**0                 | multi silence is inside
-        # |0 1 2 3 4 5 6 7 8 9 10 11 12| time
+    def test_remove_no_duration_silence2(self):
+        #
+        # |    * * * * * *   | silence_parts_list
+        # |  000 000 00000   | multi silence is inside
+        # |0 1 2 3 4 5 6 7 8 | time
+
+        # Arrange
+
+        silence_parts_list = [(2.0, 2.1), (3.09, 3.1), (4.0, 4.09), (5.0, 5.09), (6.0, 6.09), (7.0, 7.09)]
+        transcribed_data = [
+            TranscribedData({
+                "conf": 0.95,
+                "word": "Remove split ",
+                "end": 2.19,
+                "start": 1.0
+            }),
+            TranscribedData({
+                "conf": 0.95,
+                "word": "Is split ",
+                "end": 4.1,
+                "start": 3.0
+            }),
+            TranscribedData({
+                "conf": 0.95,
+                "word": "Is split2 ",
+                "end": 7.1,
+                "start": 5.0
+            }),
+        ]
+
+        # Act
+        result = remove_silence2(silence_parts_list, transcribed_data)
+
+        # Assert
+        self.assertEqual(result[0].word, "Remove split ")
+        self.assertEqual(result[0].start, 1.0)
+        self.assertEqual(result[0].end, 2.0)
+        self.assertEqual(result[0].is_hyphen, None)
+
+        self.assertEqual(result[1].word, "Is split ")
+        self.assertEqual(result[1].start, 3.1)
+        self.assertEqual(result[1].end, 4.0)
+        self.assertEqual(result[1].is_hyphen, None)
+
+        self.assertEqual(len(result), 4) # "removed " is removed
+
+        self.assertEqual(result[2].word, "Is split2")
+        self.assertEqual(result[2].start, 5.09)
+        self.assertEqual(result[2].end, 6.0)
+        self.assertEqual(result[2].is_hyphen, True)
+
+        self.assertEqual(result[3].word, "~ ")
+        self.assertEqual(result[3].start, 6.09)
+        self.assertEqual(result[3].end, 7.0)
+        self.assertEqual(result[3].is_hyphen, False)
+
 if __name__ == "__main__":
     unittest.main()

@@ -70,7 +70,7 @@ def create_ultrastar_txt_from_automation(
     ultrastar_bpm = real_bpm_to_ultrastar_bpm(bpm)
     multiplication = get_multiplier(ultrastar_bpm)
     ultrastar_bpm = ultrastar_bpm * get_multiplier(ultrastar_bpm)
-    silence_split_duration = get_eighth_note_second(bpm)
+    silence_split_duration = get_sixteenth_note_second(bpm)
 
     with open(ultrastar_file_output, "w", encoding=FILE_ENCODING) as file:
         gap = transcribed_data[0].start
