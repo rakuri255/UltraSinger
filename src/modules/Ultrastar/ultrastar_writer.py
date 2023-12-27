@@ -14,6 +14,25 @@ from modules.Ultrastar.ultrastar_txt import UltrastarTxtValue, UltrastarTxtTag, 
 from modules.Speech_Recognition.TranscribedData import TranscribedData
 from modules.Ultrastar.ultrastar_score_calculator import Score
 
+def get_sixteenth_note_second(real_bpm: float):
+    """Converts a beat to a 1/16 note in second"""
+    return 60 / real_bpm / 4
+
+def get_eighth_note_second(real_bpm: float):
+    """Converts a beat to a 1/8 note in second"""
+    return 60 / real_bpm / 2
+
+def get_quarter_note_second(real_bpm: float):
+    """Converts a beat to a 1/4 note in second"""
+    return 60 / real_bpm
+
+def get_half_note_second(real_bpm: float):
+    """Converts a beat to a 1/2 note in second"""
+    return 60 / real_bpm * 2
+
+def get_whole_note_second(real_bpm: float):
+    """Converts a beat to a 1/1 note in second"""
+    return 60 / real_bpm * 4
 
 def get_multiplier(real_bpm: float) -> int:
     """Calculates the multiplier for the BPM"""
@@ -51,6 +70,7 @@ def create_ultrastar_txt_from_automation(
     ultrastar_bpm = real_bpm_to_ultrastar_bpm(bpm)
     multiplication = get_multiplier(ultrastar_bpm)
     ultrastar_bpm = ultrastar_bpm * get_multiplier(ultrastar_bpm)
+    silence_split_duration = get_eighth_note_second(bpm)
 
     with open(ultrastar_file_output, "w", encoding=FILE_ENCODING) as file:
         gap = transcribed_data[0].start
@@ -101,6 +121,9 @@ def create_ultrastar_txt_from_automation(
             file.write(line)
 
             # detect silence between words
+            if transcribed_data[i].is_hyphen:
+                continue
+
             if i < len(transcribed_data) - 1:
                 silence = (
                         transcribed_data[i + 1].start - data.end
@@ -108,7 +131,7 @@ def create_ultrastar_txt_from_automation(
             else:
                 silence = 0
 
-            if silence > 0.3 and i != len(transcribed_data) - 1:
+            if silence > silence_split_duration and i != len(transcribed_data) - 1:
                 # - 10
                 # '-' end of current sing part
                 # 'n1' show next at time in real beat

@@ -66,31 +66,37 @@ class SilenceProcessingTest(unittest.TestCase):
         self.assertEqual(result[0].word, "Before silence ")
         self.assertEqual(result[0].start, 1.0)
         self.assertEqual(result[0].end, 2.0)
+        self.assertEqual(result[0].is_hyphen, None)
 
         self.assertEqual(result[1].word, "End is in silence ")
         self.assertEqual(result[1].start, 1.0)
         self.assertEqual(result[1].end, 2.0)
+        self.assertEqual(result[1].is_hyphen, None)
 
         self.assertEqual(len(result), 6) # "in silence" is removed
 
         self.assertEqual(result[2].word, "Start is in silence ")
         self.assertEqual(result[2].start, 9.0)
         self.assertEqual(result[2].end, 10.0)
+        self.assertEqual(result[2].is_hyphen, None)
 
         self.assertEqual(result[3].word, "After silence ")
         self.assertEqual(result[3].start, 9.0)
         self.assertEqual(result[3].end, 10.0)
+        self.assertEqual(result[3].is_hyphen, None)
 
-        # Split to "Silence is inside~"
+        # Split to "Silence is inside~ "
         self.assertEqual(result[4].word, "Silence is inside")
         self.assertEqual(result[4].start, 1.0)
         self.assertEqual(result[4].end, 2.0)
+        self.assertEqual(result[4].is_hyphen, True)
 
         self.assertEqual(result[5].word, "~ ")
         self.assertEqual(result[5].start, 9.0)
         self.assertEqual(result[5].end, 12.0)
+        self.assertEqual(result[5].is_hyphen, False)
 
-    def test_remove_multi_silence2(self):
+    def test_remove_multiple_silence_in_between_silence2(self):
         #
         # |    **  **  **  **          | silence_parts_list
         # |  00**00**00**00**00000000  | multi silence is inside
@@ -115,25 +121,30 @@ class SilenceProcessingTest(unittest.TestCase):
         self.assertEqual(result[0].word, "Silence is inside")
         self.assertEqual(result[0].start, 1.0)
         self.assertEqual(result[0].end, 2.0)
+        self.assertEqual(result[0].is_hyphen, True)
 
-        self.assertEqual(result[1].word, "1")
+        self.assertEqual(result[1].word, "~")
         self.assertEqual(result[1].start, 3.0)
         self.assertEqual(result[1].end, 4.0)
+        self.assertEqual(result[1].is_hyphen, True)
 
-        self.assertEqual(result[2].word, "1")
+        self.assertEqual(result[2].word, "~")
         self.assertEqual(result[2].start, 5.0)
         self.assertEqual(result[2].end, 6.0)
+        self.assertEqual(result[2].is_hyphen, True)
 
-        self.assertEqual(result[3].word, "1")
+        self.assertEqual(result[3].word, "~")
         self.assertEqual(result[3].start, 7.0)
         self.assertEqual(result[3].end, 8.0)
+        self.assertEqual(result[3].is_hyphen, True)
 
-        self.assertEqual(result[4].word, "2 ")
+        self.assertEqual(result[4].word, "~ ")
         self.assertEqual(result[4].start, 9.0)
         self.assertEqual(result[4].end, 12.0)
+        self.assertEqual(result[4].is_hyphen, False)
 
 
-    def test_remove_multi_silence2(self):
+    def test_remove_multiple_silence_till_end_silence2(self):
         #
         # |    **  **  **  **          | silence_parts_list
         # |  00**00**00**00**          | multi silence is inside
@@ -158,22 +169,26 @@ class SilenceProcessingTest(unittest.TestCase):
         self.assertEqual(result[0].word, "Silence is inside")
         self.assertEqual(result[0].start, 1.0)
         self.assertEqual(result[0].end, 2.0)
+        self.assertEqual(result[0].is_hyphen, True)
 
-        self.assertEqual(result[1].word, "1")
+        self.assertEqual(result[1].word, "~")
         self.assertEqual(result[1].start, 3.0)
         self.assertEqual(result[1].end, 4.0)
+        self.assertEqual(result[1].is_hyphen, True)
 
-        self.assertEqual(result[2].word, "1")
+        self.assertEqual(result[2].word, "~")
         self.assertEqual(result[2].start, 5.0)
         self.assertEqual(result[2].end, 6.0)
+        self.assertEqual(result[2].is_hyphen, True)
 
-        self.assertEqual(result[3].word, "2 ")
+        self.assertEqual(result[3].word, "~ ")
         self.assertEqual(result[3].start, 7.0)
         self.assertEqual(result[3].end, 8.0)
+        self.assertEqual(result[3].is_hyphen, False)
 
         # todo
         # |    **  **  **   *****          | silence_parts_list
-        # |  00**00**00**0                 | multi silence is inside
+        # |     *00**00**0                 | multi silence is inside
         # |0 1 2 3 4 5 6 7 8 9 10 11 12| time
 if __name__ == "__main__":
     unittest.main()

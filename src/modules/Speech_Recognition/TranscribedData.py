@@ -15,4 +15,4 @@ class TranscribedData:
         )
         self.end = transcribed_json.get("end", None)
         self.start = transcribed_json.get("start", None)
-        self.is_hyphen = None
+        self.is_hyphen = transcribed_json.get("is_hyphen", None)

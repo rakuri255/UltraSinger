@@ -58,18 +58,22 @@ def remove_silence2(silence_parts_list: list[tuple[float, float]], transcribed_d
                 if next_index < len(silence_parts_list) and silence_parts_list[next_index][0] < origin_end:
                     split_end = silence_parts_list[next_index][0]
 
-                    if silence_parts_list[next_index][1] > origin_end:
-                        split_word = "2 "
+                    if silence_parts_list[next_index][1] >= origin_end:
+                        split_word = "~ "
+                        is_hyphen = False
                     else:
-                        split_word = "1"
+                        split_word = "~"
+                        is_hyphen = True
                 else:
                     split_end = origin_end
-                    split_word = "2 "
+                    split_word = "~ "
+                    is_hyphen = False
 
-                split_data = TranscribedData({"conf": data.conf, "word": split_word, "end": split_end, "start": silence_end})
+                split_data = TranscribedData({"conf": data.conf, "word": split_word, "end": split_end, "start": silence_end, "is_hyphen": is_hyphen})
 
                 if not was_split:
                     data.end = silence_start
+                    data.is_hyphen = True
                     # Remove last whitespace from the data.word
                     if data.word[-1] == " ":
                         data.word = data.word[:-1]
