@@ -132,6 +132,10 @@ def add_hyphen_to_data(transcribed_data: list[TranscribedData], hyphen_words: li
                 dup.end = next_start
                 dup.word = hyphen_words[i][hyphenated_word_index]
                 dup.is_hyphen = True
+                if hyphenated_word_index == len(hyphen_words[i]) - 1:
+                    dup.is_word_end = True
+                else:
+                    dup.is_word_end = False
                 new_data.append(dup)
 
     return new_data

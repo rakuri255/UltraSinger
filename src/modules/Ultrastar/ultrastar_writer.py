@@ -121,7 +121,7 @@ def create_ultrastar_txt_from_automation(
             file.write(line)
 
             # detect silence between words
-            if transcribed_data[i].is_hyphen:
+            if not transcribed_data[i].is_word_end:
                 continue
 
             if i < len(transcribed_data) - 1:
