@@ -247,6 +247,19 @@ you have the option to disable this function; in which case the original audio f
 -i XYZ --disable_separation True
 ```
 
+#### Format Version
+
+This defines the format version of the UltraStar.txt file. For more info see [Official UltraStar format specification](https://usdx.eu/format/).
+
+You can choose between 3 different format versions. The default is `1.0.0`.
+* `0.3.0` is the old format version. Use this if you have problems with the new format.
+* `1.0.0` is the current format version.
+* `1.1.0` is the upcoming format version. It is not finished yet.
+
+```commandline
+-i XYZ --format_version 1.0.0
+```
+
 ### 🏆 Ultrastar Score Calculation
 
 The score that the singer in the audio would receive will be measured. 
