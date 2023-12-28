@@ -225,6 +225,7 @@ def print_help() -> None:
     --disable_karaoke       True|False >> ((default) is False)
     --create_audio_chunks   True|False >> ((default) is False)
     --plot                  True|False >> ((default) is False)
+    --format_version        0.3.0|1.0.0|1.1.0 >> ((default) is 1.0.0)
     
     [device]
     --force_cpu             True|False >> ((default) is False)  All steps will be forced to cpu
@@ -920,6 +921,13 @@ def init_settings(argv: list[str]) -> None:
             settings.force_whisper_cpu = eval(arg.title())
         elif opt in ("--force_crepe_cpu"):
             settings.force_crepe_cpu = eval(arg.title())
+        elif opt in ("--format_version"):
+            if arg != "0.3.0" or arg != "1.0.0" or arg != "1.1.0":
+                print(
+                    f"{ULTRASINGER_HEAD} {red_highlighted('Error: Format version')} {blue_highlighted(arg)} {red_highlighted('is not supported.')}"
+                )
+                sys.exit(1)
+            settings.format_version = arg
 
     if settings.output_file_path == "":
         if settings.input_file_path.startswith("https:"):
@@ -953,6 +961,7 @@ def arg_options():
         "force_cpu=",
         "force_whisper_cpu=",
         "force_crepe_cpu=",
+        "format_version="
     ]
     return long, short
 

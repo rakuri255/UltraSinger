@@ -13,6 +13,7 @@ class Settings:
     processing_audio_path = ""
 
     language = None
+    format_version = "1.0.0"
 
     # Transcribe
     audio_chunk_folder_name = "audio-chunks"

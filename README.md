@@ -159,7 +159,8 @@ _Not all options working now!_
     --disable_karaoke       True|False >> ((default) is False)
     --create_audio_chunks   True|False >> ((default) is False)
     --plot                  True|False >> ((default) is False)
-    
+    --format_version        0.3.0|1.0.0|1.1.0 >> ((default) is 1.0.0)
+
     [device]
     --force_cpu             True|False >> ((default) is False)  All steps will be forced to cpu
     --force_whisper_cpu     True|False >> ((default) is False)  Only whisper will be forced to cpu
