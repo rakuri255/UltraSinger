@@ -1,5 +1,5 @@
 class Settings:
-    APP_VERSION = "0.0.5"
+    APP_VERSION = "0.0.6"
 
     create_midi = True
     create_plot = False
@@ -10,7 +10,7 @@ class Settings:
 
     input_file_path = ""
     output_file_path = ""
-    mono_audio_path = ""
+    processing_audio_path = ""
 
     language = None
 

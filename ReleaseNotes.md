@@ -1,3 +1,10 @@
+Version: 0.0.6
+Date: 2023.12.28
+Changes:
+- Optimized the removing of silence in transcription data
+- Mute the processing audio in parts where no singing is detected
+- Plot muted audio
+
 Version: 0.0.5
 Date: 2023.12.23
 Changes:
