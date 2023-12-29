@@ -55,6 +55,7 @@ This will help me a lot to keep this project alive and improve it.
       - [✍️ Hyphenation](#️-hyphenation)
     - [👂 Pitcher](#-pitcher)
     - [👄 Separation](#-separation)
+    - [Format version](#format-version)
     - [🏆 Ultrastar Score Calculation](#-ultrastar-score-calculation)
     - [📟 Use GPU](#-use-gpu)
       - [Considerations for Windows users](#considerations-for-windows-users)
@@ -247,7 +248,7 @@ you have the option to disable this function; in which case the original audio f
 -i XYZ --disable_separation True
 ```
 
-#### Format Version
+### Format Version
 
 This defines the format version of the UltraStar.txt file. For more info see [Official UltraStar format specification](https://usdx.eu/format/).
 
