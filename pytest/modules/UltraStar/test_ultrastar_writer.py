@@ -1,6 +1,7 @@
 """Tests for the ultrastar_writer.py module."""
 
 import unittest
+from packaging import version
 from unittest.mock import patch, mock_open
 from src.modules.Ultrastar.ultrastar_writer import create_ultrastar_txt_from_automation
 from src.modules.Speech_Recognition.TranscribedData import TranscribedData
@@ -11,11 +12,21 @@ class TestCreateUltrastarTxt(unittest.TestCase):
     def test_create_ultrastar_txt_from_automation_default_values(self):
         # Arrange
         bpm, note_numbers, transcribed_data, ultrastar_file_output = self.arrange()
-
-        # Assert default values
         class_under_test = UltrastarTxtValue()
-        expected_calls = self.default_values(class_under_test)
 
+        # Act and Assert default values
+        class_under_test.version = "0.2.0"
+        expected_calls = self.default_values(class_under_test, class_under_test.version)
+        self.act_and_assert(bpm, class_under_test, expected_calls, note_numbers, transcribed_data,
+                            ultrastar_file_output)
+
+        class_under_test.version = "1.0.0"
+        expected_calls = self.default_values(class_under_test, class_under_test.version)
+        self.act_and_assert(bpm, class_under_test, expected_calls, note_numbers, transcribed_data,
+                            ultrastar_file_output)
+
+        class_under_test.version = "1.1.0"
+        expected_calls = self.default_values(class_under_test, class_under_test.version)
         self.act_and_assert(bpm, class_under_test, expected_calls, note_numbers, transcribed_data,
                             ultrastar_file_output)
 
@@ -23,19 +34,34 @@ class TestCreateUltrastarTxt(unittest.TestCase):
         # Arrange
         bpm, note_numbers, transcribed_data, ultrastar_file_output = self.arrange()
 
-        # Assert full values
         class_under_test = UltrastarTxtValue()
         class_under_test.artist = "artist"
         class_under_test.title = "title"
         class_under_test.year = "2023"
         class_under_test.language = "de"
         class_under_test.genre = "pop, rock"
+        class_under_test.tags = "pop, rock"
         class_under_test.cover = "cover [CO].jpg"
         class_under_test.video = "video.mp4"
         class_under_test.mp3 = "music.mp3"
+        class_under_test.audio = "music.mp3"
+        class_under_test.vocals = "vocals.mp3"
+        class_under_test.instrumental = "instrumental.mp3"
 
-        expected_calls = self.full_values(class_under_test)
+        # Act and Assert full values
 
+        class_under_test.version = "0.2.0"
+        expected_calls = self.full_values(class_under_test, class_under_test.version)
+        self.act_and_assert(bpm, class_under_test, expected_calls, note_numbers, transcribed_data,
+                            ultrastar_file_output)
+
+        class_under_test.version = "1.0.0"
+        expected_calls = self.full_values(class_under_test, class_under_test.version)
+        self.act_and_assert(bpm, class_under_test, expected_calls, note_numbers, transcribed_data,
+                            ultrastar_file_output)
+
+        class_under_test.version = "1.1.0"
+        expected_calls = self.full_values(class_under_test, class_under_test.version)
         self.act_and_assert(bpm, class_under_test, expected_calls, note_numbers, transcribed_data,
                             ultrastar_file_output)
 
@@ -80,49 +106,58 @@ class TestCreateUltrastarTxt(unittest.TestCase):
         self.assertEqual(write_calls, expected_calls_default_values)
 
     @staticmethod
-    def default_values(default_ultrastar_class):
-        expected_calls = [
-            #f"#{UltrastarTxtTag.VERSION}:{default_ultrastar_class.version}\n", # todo: Version definition is in progress
-            f"#{UltrastarTxtTag.ARTIST}:{default_ultrastar_class.artist}\n",
-            f"#{UltrastarTxtTag.TITLE}:{default_ultrastar_class.title}\n",
-            f"#{UltrastarTxtTag.MP3}:{default_ultrastar_class.mp3}\n",
-            f"#{UltrastarTxtTag.VIDEO}:{default_ultrastar_class.video}\n", # todo: video is optional
-            f"#{UltrastarTxtTag.BPM}:390.0\n",
-            f"#{UltrastarTxtTag.GAP}:500\n",
-            f"#{UltrastarTxtTag.CREATOR}:{default_ultrastar_class.creator}\n",
-            f"#{UltrastarTxtTag.COMMENT}:{default_ultrastar_class.comment}\n",
-            ": 0 52 1 UltraSinger \n",
-            "- 52\n",
-            ": 65 39 2 is \n",
-            "- 104\n",
-            ": 130 52 3 cool! \n",
-            "E"
-        ]
+    def default_values(default_ultrastar_class, ver):
+        expected_calls = []
+        if version.parse(ver) >= version.parse("1.0.0"):
+            expected_calls.append(f"#{UltrastarTxtTag.VERSION}:{default_ultrastar_class.version}\n")
+        expected_calls.append(f"#{UltrastarTxtTag.ARTIST}:{default_ultrastar_class.artist}\n")
+        expected_calls.append(f"#{UltrastarTxtTag.TITLE}:{default_ultrastar_class.title}\n")
+        expected_calls.append(f"#{UltrastarTxtTag.MP3}:{default_ultrastar_class.mp3}\n")
+        if version.parse(ver) >= version.parse("1.1.0"):
+            expected_calls.append(f"#{UltrastarTxtTag.AUDIO}:{default_ultrastar_class.audio}\n")
+        expected_calls.append(f"#{UltrastarTxtTag.VIDEO}:{default_ultrastar_class.video}\n") # todo: video is optional
+        expected_calls.append(f"#{UltrastarTxtTag.BPM}:390.0\n")
+        expected_calls.append(f"#{UltrastarTxtTag.GAP}:500\n")
+        expected_calls.append(f"#{UltrastarTxtTag.CREATOR}:{default_ultrastar_class.creator}\n")
+        expected_calls.append(f"#{UltrastarTxtTag.COMMENT}:{default_ultrastar_class.comment}\n")
+        expected_calls.append(": 0 52 1 UltraSinger \n")
+        expected_calls.append("- 52\n")
+        expected_calls.append(": 65 39 2 is \n")
+        expected_calls.append("- 104\n")
+        expected_calls.append(": 130 52 3 cool! \n")
+        expected_calls.append("E")
+
         return expected_calls
 
     @staticmethod
-    def full_values(default_ultrastar_class):
-        expected_calls = [
-            #f"#{UltrastarTxtTag.VERSION}:{default_ultrastar_class.version}\n", # todo: Version definition is in progress
-            f"#{UltrastarTxtTag.ARTIST}:{default_ultrastar_class.artist}\n",
-            f"#{UltrastarTxtTag.TITLE}:{default_ultrastar_class.title}\n",
-            f"#{UltrastarTxtTag.YEAR}:{default_ultrastar_class.year}\n",
-            f"#{UltrastarTxtTag.LANGUAGE}:German\n",
-            f"#{UltrastarTxtTag.GENRE}:{default_ultrastar_class.genre}\n",
-            f"#{UltrastarTxtTag.COVER}:{default_ultrastar_class.cover}\n",
-            f"#{UltrastarTxtTag.MP3}:{default_ultrastar_class.mp3}\n",
-            f"#{UltrastarTxtTag.VIDEO}:{default_ultrastar_class.video}\n",
-            f"#{UltrastarTxtTag.BPM}:390.0\n",
-            f"#{UltrastarTxtTag.GAP}:500\n",
-            f"#{UltrastarTxtTag.CREATOR}:{default_ultrastar_class.creator}\n",
-            f"#{UltrastarTxtTag.COMMENT}:{default_ultrastar_class.comment}\n",
-            ": 0 52 1 UltraSinger \n",
-            "- 52\n",
-            ": 65 39 2 is \n",
-            "- 104\n",
-            ": 130 52 3 cool! \n",
-            "E"
-        ]
+    def full_values(default_ultrastar_class, ver):
+        expected_calls = []
+        if version.parse(ver) >= version.parse("1.0.0"):
+            expected_calls.append(f"#{UltrastarTxtTag.VERSION}:{default_ultrastar_class.version}\n")
+        expected_calls.append(f"#{UltrastarTxtTag.ARTIST}:{default_ultrastar_class.artist}\n")
+        expected_calls.append(f"#{UltrastarTxtTag.TITLE}:{default_ultrastar_class.title}\n")
+        expected_calls.append(f"#{UltrastarTxtTag.YEAR}:{default_ultrastar_class.year}\n")
+        expected_calls.append(f"#{UltrastarTxtTag.LANGUAGE}:German\n")
+        expected_calls.append(f"#{UltrastarTxtTag.GENRE}:{default_ultrastar_class.genre}\n")
+        expected_calls.append(f"#{UltrastarTxtTag.COVER}:{default_ultrastar_class.cover}\n")
+        expected_calls.append(f"#{UltrastarTxtTag.MP3}:{default_ultrastar_class.mp3}\n")
+        if version.parse(ver) >= version.parse("1.1.0"):
+            expected_calls.append(f"#{UltrastarTxtTag.AUDIO}:{default_ultrastar_class.audio}\n")
+            expected_calls.append(f"#{UltrastarTxtTag.VOCALS}:{default_ultrastar_class.vocals}\n")
+            expected_calls.append(f"#{UltrastarTxtTag.INSTRUMENTAL}:{default_ultrastar_class.instrumental}\n")
+            expected_calls.append(f"#{UltrastarTxtTag.TAGS}:{default_ultrastar_class.tags}\n")
+        expected_calls.append(f"#{UltrastarTxtTag.VIDEO}:{default_ultrastar_class.video}\n")
+        expected_calls.append(f"#{UltrastarTxtTag.BPM}:390.0\n")
+        expected_calls.append(f"#{UltrastarTxtTag.GAP}:500\n")
+        expected_calls.append(f"#{UltrastarTxtTag.CREATOR}:{default_ultrastar_class.creator}\n")
+        expected_calls.append(f"#{UltrastarTxtTag.COMMENT}:{default_ultrastar_class.comment}\n")
+        expected_calls.append(": 0 52 1 UltraSinger \n")
+        expected_calls.append("- 52\n")
+        expected_calls.append(": 65 39 2 is \n")
+        expected_calls.append("- 104\n")
+        expected_calls.append(": 130 52 3 cool! \n")
+        expected_calls.append("E")
+
         return expected_calls
 
     @staticmethod

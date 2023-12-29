@@ -159,7 +159,8 @@ _Not all options working now!_
     --disable_karaoke       True|False >> ((default) is False)
     --create_audio_chunks   True|False >> ((default) is False)
     --plot                  True|False >> ((default) is False)
-    
+    --format_version        0.3.0|1.0.0|1.1.0 >> ((default) is 1.0.0)
+
     [device]
     --force_cpu             True|False >> ((default) is False)  All steps will be forced to cpu
     --force_whisper_cpu     True|False >> ((default) is False)  Only whisper will be forced to cpu
@@ -244,6 +245,19 @@ you have the option to disable this function; in which case the original audio f
 
 ```commandline
 -i XYZ --disable_separation True
+```
+
+#### Format Version
+
+This defines the format version of the UltraStar.txt file. For more info see [Official UltraStar format specification](https://usdx.eu/format/).
+
+You can choose between 3 different format versions. The default is `1.0.0`.
+* `0.3.0` is the old format version. Use this if you have problems with the new format.
+* `1.0.0` is the current format version.
+* `1.1.0` is the upcoming format version. It is not finished yet.
+
+```commandline
+-i XYZ --format_version 1.0.0
 ```
 
 ### 🏆 Ultrastar Score Calculation

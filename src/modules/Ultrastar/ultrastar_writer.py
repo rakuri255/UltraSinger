@@ -1,7 +1,7 @@
 """Ultrastar writer module"""
 
 import re
-
+from packaging import version
 import langcodes
 
 from modules.console_colors import ULTRASINGER_HEAD
@@ -47,7 +47,6 @@ def get_multiplier(real_bpm: float) -> int:
         multiplier += 1
     return multiplier - 2
 
-
 def get_language_name(language: str) -> str:
     """Creates the language name from the language code"""
 
@@ -75,7 +74,8 @@ def create_ultrastar_txt_from_automation(
     with open(ultrastar_file_output, "w", encoding=FILE_ENCODING) as file:
         gap = transcribed_data[0].start
 
-        # file.write(f"#{UltrastarTxtTag.VERSION}:{ultrastar_class.version}\n"),
+        if version.parse(ultrastar_class.version) >= version.parse("1.0.0"):
+            file.write(f"#{UltrastarTxtTag.VERSION}:{ultrastar_class.version}\n"),
         file.write(f"#{UltrastarTxtTag.ARTIST}:{ultrastar_class.artist}\n")
         file.write(f"#{UltrastarTxtTag.TITLE}:{ultrastar_class.title}\n")
         if ultrastar_class.year is not None:
@@ -87,6 +87,14 @@ def create_ultrastar_txt_from_automation(
         if ultrastar_class.cover is not None:
             file.write(f"#{UltrastarTxtTag.COVER}:{ultrastar_class.cover}\n")
         file.write(f"#{UltrastarTxtTag.MP3}:{ultrastar_class.mp3}\n")
+        if version.parse(ultrastar_class.version) >= version.parse("1.1.0"):
+            file.write(f"#{UltrastarTxtTag.AUDIO}:{ultrastar_class.audio}\n")
+            if ultrastar_class.vocals is not None:
+                file.write(f"#{UltrastarTxtTag.VOCALS}:{ultrastar_class.vocals}\n")
+            if ultrastar_class.instrumental is not None:
+                file.write(f"#{UltrastarTxtTag.INSTRUMENTAL}:{ultrastar_class.instrumental}\n")
+            if ultrastar_class.tags is not None:
+                file.write(f"#{UltrastarTxtTag.TAGS}:{ultrastar_class.tags}\n")
         file.write(f"#{UltrastarTxtTag.VIDEO}:{ultrastar_class.video}\n")
         file.write(f"#{UltrastarTxtTag.BPM}:{round(ultrastar_bpm, 2)}\n")  # not the real BPM!
         file.write(f"#{UltrastarTxtTag.GAP}:{int(gap * 1000)}\n")

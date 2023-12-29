@@ -1,5 +1,5 @@
 class Settings:
-    APP_VERSION = "0.0.6"
+    APP_VERSION = "0.0.7"
 
     create_midi = True
     create_plot = False
@@ -13,6 +13,7 @@ class Settings:
     processing_audio_path = ""
 
     language = None
+    format_version = "1.0.0"
 
     # Transcribe
     audio_chunk_folder_name = "audio-chunks"

@@ -10,6 +10,8 @@ import Levenshtein
 import librosa
 
 from tqdm import tqdm
+from packaging import version
+
 import soundfile as sf
 
 from modules import os_helper
@@ -225,6 +227,7 @@ def print_help() -> None:
     --disable_karaoke       True|False >> ((default) is False)
     --create_audio_chunks   True|False >> ((default) is False)
     --plot                  True|False >> ((default) is False)
+    --format_version        0.3.0|1.0.0|1.1.0 >> ((default) is 1.0.0)
     
     [device]
     --force_cpu             True|False >> ((default) is False)  All steps will be forced to cpu
@@ -342,9 +345,22 @@ def run() -> None:
     audio_separation_path = separate_vocal_from_audio(
         basename_without_ext, cache_path, ultrastar_audio_input_path
     )
+    vocals_path = os.path.join(audio_separation_path, "vocals.wav")
+    instrumental_path = os.path.join(audio_separation_path, "no_vocals.wav")
+
+    # Move instrumental and vocals
+    if settings.create_karaoke and version.parse(settings.format_version) < version.parse("1.1.0"):
+        karaoke_output_path = os.path.join(song_output, basename_without_ext + " [Karaoke].mp3")
+        convert_wav_to_mp3(instrumental_path, karaoke_output_path)
+
+    if version.parse(settings.format_version) >= version.parse("1.1.0"):
+        instrumental_output_path = os.path.join(song_output, basename_without_ext + " [Instrumental].mp3")
+        convert_wav_to_mp3(instrumental_path, instrumental_output_path)
+        vocals_output_path = os.path.join(song_output, basename_without_ext + " [Vocals].mp3")
+        convert_wav_to_mp3(vocals_path, vocals_output_path)
 
     if settings.use_separated_vocal:
-        input_path = os.path.join(audio_separation_path, "vocals.wav")
+        input_path = vocals_path
     else:
         input_path = ultrastar_audio_input_path
 
@@ -417,7 +433,6 @@ def run() -> None:
     # Write Ultrastar txt
     if is_audio:
         real_bpm, ultrastar_file_output = create_ultrastar_txt_from_automation(
-            audio_separation_path,
             basename_without_ext,
             song_output,
             transcribed_data,
@@ -588,7 +603,6 @@ def create_ultrastar_txt_from_ultrastar_data(
 
 
 def create_ultrastar_txt_from_automation(
-    audio_separation_path: str,
     basename_without_ext: str,
     song_output: str,
     transcribed_data: list[TranscribedData],
@@ -602,9 +616,13 @@ def create_ultrastar_txt_from_automation(
 ):
     """Create Ultrastar txt from automation"""
     ultrastar_header = UltrastarTxtValue()
+    ultrastar_header.version = settings.format_version
     ultrastar_header.title = basename_without_ext
     ultrastar_header.artist = basename_without_ext
     ultrastar_header.mp3 = basename_without_ext + ".mp3"
+    ultrastar_header.audio = basename_without_ext + ".mp3"
+    ultrastar_header.vocals = basename_without_ext + " [Vocals].mp3"
+    ultrastar_header.instrumental = basename_without_ext + " [Instrumental].mp3"
     ultrastar_header.video = basename_without_ext + ".mp4"
     ultrastar_header.language = language
     cover = basename_without_ext + " [CO].jpg"
@@ -637,14 +655,11 @@ def create_ultrastar_txt_from_automation(
         ultrastar_header,
         real_bpm,
     )
-    if settings.create_karaoke:
-        no_vocals_path = os.path.join(audio_separation_path, "no_vocals.wav")
+    if settings.create_karaoke and version.parse(settings.format_version) < version.parse("1.1.0"):
         title = basename_without_ext + " [Karaoke]"
         ultrastar_header.title = title
         ultrastar_header.mp3 = title + ".mp3"
         karaoke_output_path = os.path.join(song_output, title)
-        karaoke_audio_output_path = karaoke_output_path + ".mp3"
-        convert_wav_to_mp3(no_vocals_path, karaoke_audio_output_path)
         karaoke_txt_output_path = karaoke_output_path + ".txt"
         ultrastar_writer.create_ultrastar_txt_from_automation(
             transcribed_data,
@@ -920,6 +935,13 @@ def init_settings(argv: list[str]) -> None:
             settings.force_whisper_cpu = eval(arg.title())
         elif opt in ("--force_crepe_cpu"):
             settings.force_crepe_cpu = eval(arg.title())
+        elif opt in ("--format_version"):
+            if arg != '0.3.0' and arg != '1.0.0' and arg != '1.1.0':
+                print(
+                    f"{ULTRASINGER_HEAD} {red_highlighted('Error: Format version')} {blue_highlighted(arg)} {red_highlighted('is not supported.')}"
+                )
+                sys.exit(1)
+            settings.format_version = arg
 
     if settings.output_file_path == "":
         if settings.input_file_path.startswith("https:"):
@@ -953,6 +975,7 @@ def arg_options():
         "force_cpu=",
         "force_whisper_cpu=",
         "force_crepe_cpu=",
+        "format_version="
     ]
     return long, short
 
