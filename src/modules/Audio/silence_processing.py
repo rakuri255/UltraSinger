@@ -1,6 +1,5 @@
 """Silence processing module"""
 
-import librosa
 from pydub import AudioSegment, silence
 
 from modules.console_colors import ULTRASINGER_HEAD
