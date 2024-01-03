@@ -236,6 +236,7 @@ def draw_words(transcribed_data, midi_notes):
                 alpha=0.5,
             )
             plt.gca().add_patch(rect)
+            plt.text(data.start + width/4, numpy.log10([note_frequency + half_frequency_range])[0], data.word, rotation=90)
 
 
 def snake(s):
