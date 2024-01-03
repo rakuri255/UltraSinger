@@ -1,3 +1,8 @@
+Version: 0.0.8
+- Date: 2024.01.XX
+- Fix:
+  - Missing word lines in plot:
+
 Version: 0.0.7
 - Date: 2023.12.29
 - Changes:
