@@ -224,7 +224,7 @@ def draw_words(transcribed_data, midi_notes):
 
             xy_start_pos = (
                 data.start,
-                1,
+                numpy.log10([note_frequency - half_frequency_range])[0],
             )
             width = data.end - data.start
             rect = Rectangle(
