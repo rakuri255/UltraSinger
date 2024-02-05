@@ -1,3 +1,9 @@
+# Version: 0.0.9
+Date: 2024.02.06
+- Fix:
+  - Re-Pitch mode now re-pitch the audio again
+  - Re-Pitch mode now show the text and lines in plot
+
 # Version: 0.0.8
 Date: 2024.01.03
 - Changes:

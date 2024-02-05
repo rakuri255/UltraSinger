@@ -170,7 +170,7 @@ def create_repitched_txt_from_ultrastar_data(
     # todo: just add '_repitched' to input_file
     with open(output_repitched_ultrastar, "w", encoding=FILE_ENCODING) as file:
         for line in txt:
-            if line.startswith(f"#{UltrastarTxtNoteTypeTag.NORMAL} "):
+            if line.startswith(f"{UltrastarTxtNoteTypeTag.NORMAL} "):
                 parts = re.findall(r"\S+|\s+", line)
                 # between are whitespaces
                 # [0] :

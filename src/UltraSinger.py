@@ -428,7 +428,7 @@ def run() -> None:
         vocals_path = os.path.join(audio_separation_path, "vocals.wav")
         plot_spectrogram(vocals_path, song_output, "vocals.wav")
         plot_spectrogram(settings.processing_audio_path, song_output, "processing audio")
-        plot(pitched_data, song_output, transcribed_data, midi_notes)
+        plot(pitched_data, song_output, transcribed_data, ultrastar_class, midi_notes)
 
     # Write Ultrastar txt
     if is_audio:
