@@ -214,7 +214,7 @@ If the language is not in this list, you need to find a phoneme-based ASR model 
 
 Example for romanian:
 ```commandline
--i XYZ --align_model "gigant/romanian-wav2vec2"
+-i XYZ --whisper_align_model "gigant/romanian-wav2vec2"
 ```
 
 #### ✍️ Hyphenation
