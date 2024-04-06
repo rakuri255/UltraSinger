@@ -8,6 +8,26 @@ from torch.cuda import OutOfMemoryError
 from modules.console_colors import ULTRASINGER_HEAD, blue_highlighted, red_highlighted
 from modules.Speech_Recognition.TranscribedData import TranscribedData
 
+import re
+import ast
+import inflect
+
+re_split_preserve_space = re.compile(r'(\S+)')
+inflect_engine = inflect.engine()
+
+def any_number_to_words(line):
+    # https://github.com/m-bain/whisperX
+    # Transcript words which do not contain characters in the alignment models dictionary e.g. "2014." or "£13.60" cannot be aligned and therefore are not given a timing.
+    # Therefore, convert numbers to words
+    out_tokens = []
+    in_tokens = re_split_preserve_space.split(line)
+    for token in in_tokens:
+        try:
+            num = ast.literal_eval(token)
+            out_tokens.append(inflect_engine.number_to_words(num))
+        except Exception:
+            out_tokens.append(token)
+    return ''.join(out_tokens)
 
 def transcribe_with_whisper(
     audio_path: str,
@@ -80,6 +100,10 @@ def transcribe_with_whisper(
         )
         sys.exit(1)
 
+    # convert any numbers to words so align will have timing
+    for obj in result["segments"]:
+        obj['text'] = any_number_to_words(obj['text'])
+
     # align whisper output
     result_aligned = whisperx.align(
         result["segments"],
@@ -102,14 +126,20 @@ def convert_to_transcribed_data(result_aligned):
             vtd = TranscribedData(obj)  # create custom Word object
             vtd.word = vtd.word + " "  # add space to end of word
             if len(obj) < 4:
-                previous = transcribed_data[-1]
-                if not previous:
-                    previous.end = 0
-                    previous.end = ""
-                vtd.start = previous.end + 0.1
-                vtd.end = previous.end + 0.2
-                msg = f'Error: There is no timestamp for word: "{obj["word"]}". ' \
-                      f'Fixing it by placing it after the previous word: "{previous.word}". At start: {vtd.start} end: {vtd.end}. Fix it manually!'
+                if len(transcribed_data) == 0: # if the first word doesn't have any timing data
+                    vtd.start = 0.0
+                    vtd.end = 0.1
+                    msg = f'Error: There is no timestamp for word: "{obj["word"]}". ' \
+                        f'Fixing it by placing it at beginning. At start: {vtd.start} end: {vtd.end}. Fix it manually!'
+                else:
+                    previous = transcribed_data[-1]
+                    if not previous:
+                        previous.end = 0
+                        previous.end = ""
+                    vtd.start = previous.end + 0.1
+                    vtd.end = previous.end + 0.2
+                    msg = f'Error: There is no timestamp for word: "{obj["word"]}". ' \
+                        f'Fixing it by placing it after the previous word: "{previous.word}". At start: {vtd.start} end: {vtd.end}. Fix it manually!'
                 print(f"{red_highlighted(msg)}")
             transcribed_data.append(vtd)  # and add it to list
     return transcribed_data
