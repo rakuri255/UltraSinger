@@ -10,16 +10,24 @@ def get_music_infos(search_string: str) -> tuple[str, str, str, str]:
     musicbrainzngs.set_useragent("UltraSinger", "0.1", "https://github.com/rakuri255/UltraSinger")
 
     # search for artist and titel to get release on the first place
+    artist = None
     artists = musicbrainzngs.search_artists(search_string)
-    artist = artists['artist-list'][0]['name'].strip()
-    release_groups = musicbrainzngs.search_release_groups(search_string, artist=artist)
-    release = release_groups['release-group-list'][0]
+    if len(artists['artist-list']) != 0:
+        artist = artists['artist-list'][0]['name'].strip()
+    else:
+        print(f"{ULTRASINGER_HEAD} {red_highlighted('No match found')}")
+        return None, None, None, None
 
-    if 'artist-credit-phrase' in release:
+    release = None
+    release_groups = musicbrainzngs.search_release_groups(search_string, artist=artist)
+    if len(release_groups['release-group-list']) != 0:
+        release = release_groups['release-group-list'][0]
+
+    if release is not None and 'artist-credit-phrase' in release:
         artist = release['artist-credit-phrase'].strip()
 
     title = None
-    if 'title' in release:
+    if release is not None and 'title' in release:
         clean_search_string = search_string.translate(str.maketrans('', '', string.punctuation)).lower().strip()
         clean_release_title = release['title'].translate(str.maketrans('', '', string.punctuation)).lower().strip()
         clean_artist = artist.translate(str.maketrans('', '', string.punctuation)).lower().strip()
