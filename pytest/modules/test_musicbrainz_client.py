@@ -88,6 +88,44 @@ class TestGetMusicInfos(unittest.TestCase):
         self.assertEqual(year, None)
         self.assertEqual(genre, None)
 
+    @patch('musicbrainzngs.search_artists')
+    @patch('musicbrainzngs.search_release_groups')
+    def test_get_music_infos(self, mock_search_release_groups, mock_search_artists):
+        # Arrange
+        artist = 'UltraSinger'
+        title = 'That\'s Rocking!'
+        search = f'{artist} - {title} (UltrStar 2023) FULL HD'
+
+        # Set up mock return values for the MusicBrainz API calls
+        mock_search_artists.return_value = {
+            'artist-list': [
+                {'name': f'  {artist}  '}  # Also test leading and trailing whitespaces
+            ]
+        }
+
+        mock_search_release_groups.return_value = {
+            'release-group-list': [
+                {
+                    'title': f'  {title}  ',  # Also test leading and trailing whitespaces
+                    'artist-credit-phrase': f'  {artist}  ',  # Also test leading and trailing whitespaces
+                    'first-release-date': '  2023-01-01  ',  # Also test leading and trailing whitespaces
+                    'tag-list': [
+                        {'name': '  Genre 1  '},  # Also test leading and trailing whitespaces
+                        {'name': '  Genre 2  '}  # Also test leading and trailing whitespaces
+                    ]
+                }
+            ]
+        }
+
+        # Call the function to test
+        title, artist, year, genre = get_music_infos(search)
+
+        # Assert the returned values
+        self.assertEqual(title, 'That\'s Rocking!')
+        self.assertEqual(artist, 'UltraSinger')
+        self.assertEqual(year, '2023-01-01')
+        self.assertEqual(genre, 'Genre 1,Genre 2,')
+
 
 if __name__ == '__main__':
     unittest.main()

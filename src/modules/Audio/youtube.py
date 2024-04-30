@@ -9,6 +9,7 @@ from PIL import Image
 from modules.console_colors import ULTRASINGER_HEAD
 from modules.Image.image_helper import crop_image_to_square
 
+
 def get_youtube_title(url: str) -> tuple[str, str]:
     """Get the title of the YouTube video"""
 
@@ -19,10 +20,10 @@ def get_youtube_title(url: str) -> tuple[str, str]:
         )
 
     if "artist" in result:
-        return result["artist"], result["track"]
+        return result["artist"].strip(), result["track"].strip()
     if "-" in result["title"]:
-        return result["title"].split("-")[0], result["title"].split("-")[1]
-    return result["channel"], result["title"]
+        return result["title"].split("-")[0].strip(), result["title"].split("-")[1].strip()
+    return result["channel"].strip(), result["title"].strip()
 
 
 def download_youtube_audio(url: str, clear_filename: str, output_path: str):
