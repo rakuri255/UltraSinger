@@ -63,6 +63,7 @@ def download_and_convert_thumbnail(ydl_opts, url: str, clear_filename: str, outp
             response = ydl.urlopen(thumbnail_url)
             image_data = response.read()
             image = Image.open(io.BytesIO(image_data))
+            image = image.convert('RGB') # Convert to RGB to avoid transparency or RGBA issues
             image_path = os.path.join(output_path, clear_filename + " [CO].jpg")
             image.save(image_path, "JPEG")
             crop_image_to_square(image_path)
