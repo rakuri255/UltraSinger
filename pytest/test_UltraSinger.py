@@ -1,10 +1,12 @@
 """Tests for UltraSinger.py"""
 
 import unittest
+import os
 from unittest.mock import patch, MagicMock
 from src.UltraSinger import format_separated_string
 from src.UltraSinger import extract_year
 from src.UltraSinger import parse_ultrastar_txt
+from src import UltraSinger
 
 class TestUltraSinger(unittest.TestCase):
     def test_format_separated_string(self):
@@ -28,9 +30,8 @@ class TestUltraSinger(unittest.TestCase):
     @patch("src.UltraSinger.ultrastar_parser.parse_ultrastar_txt")
     @patch("src.UltraSinger.ultrastar_converter.ultrastar_bpm_to_real_bpm")
     @patch("src.UltraSinger.os.path.dirname")
-    @patch("src.UltraSinger.get_unused_song_output_dir")
     @patch("src.UltraSinger.os_helper.create_folder")
-    def test_parse_ultrastar_txt(self, mock_create_folder, mock_get_unused_song_output_dir,
+    def test_parse_ultrastar_txt(self, mock_create_folder,
                                  mock_dirname, mock_ultrastar_bpm_to_real_bpm,
                                  mock_parse_ultrastar_txt):
         # Arrange
@@ -38,8 +39,8 @@ class TestUltraSinger(unittest.TestCase):
                                                           artist="  Test Artist  ",  # Also test leading and trailing whitespaces
                                                           title="  Test Title  ")  # Also test leading and trailing whitespaces
         mock_ultrastar_bpm_to_real_bpm.return_value = 120.0
-        mock_dirname.return_value = "\\path\\to\\input"
-        mock_get_unused_song_output_dir.return_value = "\\path\\to\\output\\Test Artist - Test Title"
+        mock_dirname.return_value = os.path.join("path", "to", "input")
+        UltraSinger.Settings.output_file_path = os.path.join("path", "to", "output")
         mock_create_folder.return_value = None
 
         # Act
@@ -48,12 +49,11 @@ class TestUltraSinger(unittest.TestCase):
         # Assert
         self.assertEqual(result, ("test",
                                   120.0,
-                                  "\\path\\to\\output\\Test Artist - Test Title",
-                                  "\\path\\to\\input\\test.mp3",
+                                  os.path.join("path", "to", "output", "Test Artist - Test Title"),
+                                  os.path.join("path", "to", "input", "test.mp3"),
                                   mock_parse_ultrastar_txt.return_value))
 
         mock_parse_ultrastar_txt.assert_called_once()
         mock_ultrastar_bpm_to_real_bpm.assert_called_once()
         mock_dirname.assert_called_once()
-        mock_get_unused_song_output_dir.assert_called_once()
         mock_create_folder.assert_called_once()
