@@ -787,15 +787,16 @@ def parse_ultrastar_txt() -> tuple[str, float, str, str, UltrastarTxtValue]:
     ultrastar_audio_input_path = os.path.join(dirname, ultrastar_mp3_name)
     song_output = os.path.join(
         settings.output_file_path,
-        ultrastar_class.artist + " - " + ultrastar_class.title,
+        ultrastar_class.artist.strip() + " - " + ultrastar_class.title.strip(),
     )
-    song_output = get_unused_song_output_dir(song_output)
+    song_output = get_unused_song_output_dir(str(song_output))
     os_helper.create_folder(song_output)
+
     return (
-        basename_without_ext,
+        str(basename_without_ext),
         real_bpm,
         song_output,
-        ultrastar_audio_input_path,
+        str(ultrastar_audio_input_path),
         ultrastar_class,
     )
 

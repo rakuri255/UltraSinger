@@ -1,3 +1,15 @@
+# Version: 0.0.11
+Date: 2024.06.02
+- Changes:
+  - Better linebreak calculation
+
+# Version: 0.0.10
+Date: 2024.05.01
+- Fix:
+  - remove whitespace from the beginning and end of title and artist
+  - image conversion to jpeg for transparent or RGBA
+  - index out of range error in when list is empty from musicbrainz
+
 # Version: 0.0.9
 Date: 2024.02.06
 - Fix:
