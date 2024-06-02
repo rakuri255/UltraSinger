@@ -2,7 +2,7 @@
 
 import unittest
 from src.modules.Speech_Recognition.TranscribedData import TranscribedData
-from src.modules.Speech_Recognition.Whisper import convert_to_transcribed_data
+from src.modules.Speech_Recognition.Whisper import convert_to_transcribed_data, any_number_to_words
 
 
 class ConvertToTranscribedDataTest(unittest.TestCase):
@@ -50,6 +50,20 @@ class ConvertToTranscribedDataTest(unittest.TestCase):
             self.assertEqual(transcribed_data[i].end, expected_output[i].end)
             self.assertEqual(transcribed_data[i].start, expected_output[i].start)
             self.assertEqual(transcribed_data[i].is_hyphen, expected_output[i].is_hyphen)
+
+    def test_any_number_to_words_converts(self):
+        self.act_and_assert("I have 1 million dollars and 2 cents.", "I have one million dollars and two cents.")
+        self.act_and_assert("1 2 3 4 5", "one two three four five")
+        self.act_and_assert("1, 2, 3, 4, 5,", "one, two, three, four, five,")
+        self.act_and_assert("Hello world 1, 2!. 3. 4? Test 100#",
+                            "Hello world one, two!. three. four? Test one hundred#")
+
+    def act_and_assert(self, text, expected_output):
+        # Act
+        result = any_number_to_words(text)
+
+        # Assert
+        self.assertEqual(result, expected_output)
 
 
 if __name__ == "__main__":

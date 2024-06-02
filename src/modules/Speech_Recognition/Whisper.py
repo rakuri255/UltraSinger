@@ -12,7 +12,7 @@ import re
 import ast
 import inflect
 
-re_split_preserve_space = re.compile(r'(\S+)')
+re_split_preserve_space = re.compile(r'(\d+|\W+|\w+)')
 inflect_engine = inflect.engine()
 
 def any_number_to_words(line):
@@ -20,7 +20,7 @@ def any_number_to_words(line):
     # Transcript words which do not contain characters in the alignment models dictionary e.g. "2014." or "£13.60" cannot be aligned and therefore are not given a timing.
     # Therefore, convert numbers to words
     out_tokens = []
-    in_tokens = re_split_preserve_space.split(line)
+    in_tokens = re_split_preserve_space.findall(line)
     for token in in_tokens:
         try:
             num = ast.literal_eval(token)
