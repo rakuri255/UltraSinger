@@ -1,5 +1,5 @@
 class Settings:
-    APP_VERSION = "0.0.11-dev1"
+    APP_VERSION = "0.0.11-dev2"
 
     create_midi = True
     create_plot = False
@@ -7,6 +7,7 @@ class Settings:
     hyphenation = True
     use_separated_vocal = True
     create_karaoke = True
+    keep_cache = False
 
     input_file_path = ""
     output_file_path = ""

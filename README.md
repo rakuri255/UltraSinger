@@ -159,6 +159,7 @@ _Not all options working now!_
     --disable_separation    True|False >> ((default) is False)
     --disable_karaoke       True|False >> ((default) is False)
     --create_audio_chunks   True|False >> ((default) is False)
+    --keep_cache            True|False >> ((default) is False)
     --plot                  True|False >> ((default) is False)
     --format_version        0.3.0|1.0.0|1.1.0 >> ((default) is 1.0.0)
 

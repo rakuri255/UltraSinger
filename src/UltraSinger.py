@@ -226,6 +226,7 @@ def print_help() -> None:
     --disable_separation    True|False >> ((default) is False)
     --disable_karaoke       True|False >> ((default) is False)
     --create_audio_chunks   True|False >> ((default) is False)
+    --keep_cache            True|False >> ((default) is False)
     --plot                  True|False >> ((default) is False)
     --format_version        0.3.0|1.0.0|1.1.0 >> ((default) is 1.0.0)
     
@@ -462,6 +463,10 @@ def run() -> None:
     # Midi
     if settings.create_midi:
         create_midi_file(real_bpm, song_output, ultrastar_class, basename_without_ext)
+
+    # Cleanup
+    if not settings.keep_cache:
+        remove_cache_folder(cache_path)
 
     # Print Support
     print_support()
@@ -882,9 +887,11 @@ def main(argv: list[str]) -> None:
     print_version()
     init_settings(argv)
     run()
-    # todo: cleanup
     sys.exit()
 
+def remove_cache_folder(cache_path: str) -> None:
+    """Remove cache folder"""
+    os_helper.remove_folder(cache_path)
 
 def init_settings(argv: list[str]) -> None:
     """Init settings"""
@@ -943,7 +950,8 @@ def init_settings(argv: list[str]) -> None:
                 )
                 sys.exit(1)
             settings.format_version = arg
-
+        elif opt in ("--keep_cache"):
+            settings.keep_cache = arg
     if settings.output_file_path == "":
         if settings.input_file_path.startswith("https:"):
             dirname = os.getcwd()
@@ -976,7 +984,8 @@ def arg_options():
         "force_cpu=",
         "force_whisper_cpu=",
         "force_crepe_cpu=",
-        "format_version="
+        "format_version=",
+        "keep_cache"
     ]
     return long, short
 

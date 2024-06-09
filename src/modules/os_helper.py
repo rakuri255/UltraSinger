@@ -47,3 +47,8 @@ def check_file_exists(file_path: str) -> bool:
 def check_if_folder_exists(song_output: str) -> bool:
     """Checks if a folder exists."""
     return os.path.isdir(song_output)
+
+
+def remove_folder(cache_path):
+    """Removes a folder."""
+    shutil.rmtree(cache_path)

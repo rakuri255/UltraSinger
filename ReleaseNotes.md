@@ -2,6 +2,7 @@
 Date: 2024.06.02
 - Changes:
   - Better linebreak calculation
+  - Remove cache folder when finished
 
 # Version: 0.0.10
 Date: 2024.05.01
