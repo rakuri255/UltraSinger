@@ -74,7 +74,7 @@ def download_youtube_video(url: str, clear_filename: str, output_path: str) -> N
 
     print(f"{ULTRASINGER_HEAD} Downloading Video")
     ydl_opts = {
-        "format": "bestvideo[ext=mp4]+bestaudio[ext=m4a]/mp4",
+        "format": "bestvideo[ext=mp4]/mp4",
         "outtmpl": output_path + "/" + clear_filename + ".mp4",
     }
     start_download(ydl_opts, url)
