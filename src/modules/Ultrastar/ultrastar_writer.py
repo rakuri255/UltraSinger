@@ -181,7 +181,11 @@ def deviation(silence_parts):
     sorted_parts = sorted(silence_parts)
     filtered_parts = [part for part in sorted_parts if part < sorted_parts[-1]]
 
-    mean = sum(filtered_parts) / len(filtered_parts)
+    sum_parts = sum(filtered_parts)
+    if sum_parts == 0:
+        return 0
+
+    mean = sum_parts / len(filtered_parts)
     return mean
 
 
