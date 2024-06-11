@@ -63,53 +63,18 @@ This will help me a lot to keep this project alive and improve it.
 
 ## 💻 How to use this source code
 
-### With Console (Windows)
+### Installation
 
 * Install Python 3.10 **(older and newer versions has some breaking changes)**. [Download](https://www.python.org/downloads/)
 * Also install ffmpeg separately with PATH. [Download](https://www.ffmpeg.org/download.html)
-* Open a console (CMD) and navigate to the project folder.
-* Type `py -3.10 -m venv .venv` and press enter. If this does not work, try instead of `py` `python` or `python3`.
-  * If you have multiple versions installed, you can use `py -0p` to see all installed versions.
-  * Build with the newest version use `py -m venv .venv`. But currently it only works with 3.10.
-* Wait until the console is done with creating the environment. This can take a while.
-* Type `.venv\Scripts\activate` and press enter.
-* You should see now a `(.venv)` in front of your console line.
-* Install the requirements with `pip install -r requirements.txt`.
-* Install gpu requirements `pip3 install torch==2.0.1+cu117 torchvision==0.15.2+cu117 torchaudio==2.0.2+cu117 --index-url https://download.pytorch.org/whl/cu117`
+* Go to folder `install` and run install script for your OS.
+  * Choose `GPU` if you have an nvidia CUDA GPU.
+  * Choose `CPU` if you don't have an nvidia CUDA GPU.
+
+### Run
+
+* In root folder just run `run_on_windows.bat` or `run_on_linux.sh` to start the app.
 * Now you can use the UltraSinger source code with `py UltraSinger.py [opt] [mode] [transcription] [pitcher] [extra]`. See [How to use](#how-to-use) for more information.
-
-For more information about Python environments look [here](https://code.visualstudio.com/docs/python/environments#_global-virtual-or-conda-environments).
-
-Copy the below and paste it into a shell:
-    
-```commandline
-py -3.10 -m venv .venv
-.venv\Scripts\activate
-pip install -r requirements.txt
-pip3 install torch==2.0.1+cu117 torchvision==0.15.2+cu117 torchaudio==2.0.2+cu117 --index-url https://download.pytorch.org/whl/cu117
-
-```
-
-Run UltraSinger:
-
-* Activate the environment with `.venv\Scripts\activate`. (You dont need this if you already activated it, or just installed with the step above)
-* Navigate to src folder `cd src`
-* Start UltraSinger `py UltraSinger.py`
-
-Start environment only once:
-
-```commandline
-.venv\Scripts\activate
-cd src
-
-```
-
-Start UltraSinger:
-
-```commandline
-py UltraSinger.py
-
-```
 
 ## 📖 How to use the App
 
