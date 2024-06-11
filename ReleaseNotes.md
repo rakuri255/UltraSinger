@@ -4,6 +4,7 @@ Date: 2024.06.02
   - Better linebreak calculation
   - Remove cache folder when finished
   - Remove audio from yt video
+  - Added install and start scripts
 
 # Version: 0.0.10
 Date: 2024.05.01
