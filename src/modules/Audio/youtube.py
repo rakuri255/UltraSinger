@@ -9,6 +9,7 @@ from PIL import Image
 from modules.console_colors import ULTRASINGER_HEAD
 from modules.Image.image_helper import crop_image_to_square
 
+
 def get_youtube_title(url: str) -> tuple[str, str]:
     """Get the title of the YouTube video"""
 
@@ -19,10 +20,10 @@ def get_youtube_title(url: str) -> tuple[str, str]:
         )
 
     if "artist" in result:
-        return result["artist"], result["track"]
+        return result["artist"].strip(), result["track"].strip()
     if "-" in result["title"]:
-        return result["title"].split("-")[0], result["title"].split("-")[1]
-    return result["channel"], result["title"]
+        return result["title"].split("-")[0].strip(), result["title"].split("-")[1].strip()
+    return result["channel"].strip(), result["title"].strip()
 
 
 def download_youtube_audio(url: str, clear_filename: str, output_path: str):
@@ -62,6 +63,7 @@ def download_and_convert_thumbnail(ydl_opts, url: str, clear_filename: str, outp
             response = ydl.urlopen(thumbnail_url)
             image_data = response.read()
             image = Image.open(io.BytesIO(image_data))
+            image = image.convert('RGB') # Convert to RGB to avoid transparency or RGBA issues
             image_path = os.path.join(output_path, clear_filename + " [CO].jpg")
             image.save(image_path, "JPEG")
             crop_image_to_square(image_path)
@@ -72,7 +74,7 @@ def download_youtube_video(url: str, clear_filename: str, output_path: str) -> N
 
     print(f"{ULTRASINGER_HEAD} Downloading Video")
     ydl_opts = {
-        "format": "bestvideo[ext=mp4]+bestaudio[ext=m4a]/mp4",
+        "format": "bestvideo[ext=mp4]/mp4",
         "outtmpl": output_path + "/" + clear_filename + ".mp4",
     }
     start_download(ydl_opts, url)

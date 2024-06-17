@@ -27,6 +27,10 @@ def parse_ultrastar_txt(input_file: str) -> UltrastarTxtValue:
                 ultrastar_class.title = line.split(":")[1].replace("\n", "")
             elif line.startswith(f"#{UltrastarTxtTag.MP3}"):
                 ultrastar_class.mp3 = line.split(":")[1].replace("\n", "")
+            elif line.startswith(f"#{UltrastarTxtTag.AUDIO}"):
+                ultrastar_class.audio = line.split(":")[1].replace("\n", "")
+            elif line.startswith(f"#{UltrastarTxtTag.VIDEO}"):
+                ultrastar_class.video = line.split(":")[1].replace("\n", "")
             elif line.startswith(f"#{UltrastarTxtTag.GAP}"):
                 ultrastar_class.gap = line.split(":")[1].replace("\n", "")
             elif line.startswith(f"#{UltrastarTxtTag.BPM}"):

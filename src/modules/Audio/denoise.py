@@ -22,9 +22,14 @@ def ffmpeg_reduce_noise(input_file_path: str, output_file: str) -> None:
     print(
         f"{ULTRASINGER_HEAD} Reduce noise from vocal audio with {blue_highlighted('ffmpeg')}."
     )
-    (
-        ffmpeg.input(input_file_path)
-        .output(output_file, af="afftdn=nr=70:nf=-50:tn=1")
-        .overwrite_output()
-        .run()
-    )
+    try:
+        (
+            ffmpeg.input(input_file_path)
+            .output(output_file, af="afftdn=nr=70:nf=-80:tn=1")
+            .overwrite_output()
+            .run(capture_stdout=True, capture_stderr=True)
+        )
+    except ffmpeg.Error as ffmpeg_exception:
+        print("ffmpeg stdout:", ffmpeg_exception.stdout.decode("utf8"))
+        print("ffmpeg stderr:", ffmpeg_exception.stderr.decode("utf8"))
+        raise ffmpeg_exception
