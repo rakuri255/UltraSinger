@@ -2,11 +2,8 @@ from modules.Pitcher import pitched_data
 import librosa
 
 def merge_pitch_data(datas: list[pitched_data.PitchedData], step_size: float = 0.1) -> pitched_data.PitchedData:
-  merged_data = pitched_data.PitchedData()
-  merged_data.times = []
-  merged_data.frequencies = []
-  merged_data.confidence = []
-  
+  merged_data = pitched_data.PitchedData([],[],[])
+
   offset = float(0)
   for data in datas:
     if (len(data.times) > 0):
@@ -36,12 +33,7 @@ def flat_pitch(duration: float, frequency: float, step_size: float = 0.1,  confi
     frequencies.append(frequency)
     confidences.append(confidence)
 
-  data = pitched_data.PitchedData()
-  data.times = times
-  data.frequencies = frequencies
-  data.confidence = confidences
-  
-  return data
+  return pitched_data.PitchedData(times, frequencies, confidences)
 
 def steady_pitch_change(duration: float, start_frequency: float, end_frequency: float, step_size: float = 0.1,  confidence: float = 1) -> pitched_data.PitchedData:
   times = []
@@ -61,12 +53,7 @@ def steady_pitch_change(duration: float, start_frequency: float, end_frequency: 
     frequencies.append(start_frequency + (frequency_shift_factor * round(step * frequency_step_size, 1)))
     confidences.append(confidence)
 
-  data = pitched_data.PitchedData()
-  data.times = times
-  data.frequencies = frequencies
-  data.confidence = confidences
-  
-  return data
+  return pitched_data.PitchedData(times, frequencies, confidences)
 
 def expect_midi(note: str, start_time: float, duration: float, step_size: float = 0.01) -> tuple[int, float, float]:
   return note, start_time, start_time + duration - step_size

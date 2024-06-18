@@ -103,7 +103,6 @@ def create_midi_notes_from_pitched_data(start_times: list[float], end_times: lis
 
         midi_segment = create_midi_note_from_pitched_data(start_time, end_time, pitched_data, word)
 
-        # Todo: Whats that?
         # segment_count = len(midi_segment)
         # if segment_count > 1:
         #     for index, midi_segment in enumerate(midi_segment[1:]):

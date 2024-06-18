@@ -33,7 +33,7 @@ class MidiCreatorTest(unittest.TestCase):
         ideal_result = merge_expected_midis_to_expected_output(ideal_midis)
 
         # Act
-        result = test_subject.create_midi_note_from_pitched_data(0, merged_pitch_data.times[-1], merged_pitch_data)
+        result = test_subject.create_midi_note_from_pitched_data(0, merged_pitch_data.times[-1], merged_pitch_data, "")
 
         # Assert
         print(merged_pitch_data)
