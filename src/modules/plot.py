@@ -8,6 +8,7 @@ import numpy
 from matplotlib import pyplot as plt
 from matplotlib.patches import Rectangle
 
+from modules.Ultrastar.ultrastar_txt import UltrastarTxtValue
 from modules.console_colors import ULTRASINGER_HEAD
 from modules.Pitcher.pitched_data import PitchedData
 from modules.Pitcher.pitcher import get_pitched_data_with_high_confidence
@@ -55,11 +56,12 @@ PLOTTED_NOTES = create_plot_notes(NOTES, OCTAVES)
 
 
 def plot(
-    pitched_data: PitchedData,
-    output_path: str,
-    transcribed_data: list[TranscribedData] = None,
-    midi_notes: list[str] = None,
-    title: str = None,
+        pitched_data: PitchedData,
+        output_path: str,
+        transcribed_data: list[TranscribedData] = None,
+        ultrastar_class: UltrastarTxtValue = None,
+        midi_notes: list[str] = None,
+        title: str = None,
 ) -> None:
     """Plot transcribed data"""
 
@@ -119,7 +121,7 @@ def plot(
 
     set_figure_dimensions(xmax - xmin, y_upper_bound - y_lower_bound)
 
-    draw_words(transcribed_data, midi_notes)
+    plot_words(transcribed_data, ultrastar_class, midi_notes)
 
     if title is not None:
         plt.title(label=title)
@@ -193,8 +195,8 @@ def create_gaps(pitched_data: PitchedData, step_size: float) -> PitchedData:
     for i, time in enumerate(pitched_data.times):
         comes_right_after_previous = time - previous_time <= step_size
         previous_frequency_is_not_gap = (
-            len(pitched_data_with_gaps.frequencies) > 0
-            and str(pitched_data_with_gaps.frequencies[-1]) != "nan"
+                len(pitched_data_with_gaps.frequencies) > 0
+                and str(pitched_data_with_gaps.frequencies[-1]) != "nan"
         )
         if previous_frequency_is_not_gap and not comes_right_after_previous:
             pitched_data_with_gaps.times.append(time)
@@ -210,33 +212,42 @@ def create_gaps(pitched_data: PitchedData, step_size: float) -> PitchedData:
     return pitched_data_with_gaps
 
 
-def draw_words(transcribed_data, midi_notes):
+def plot_word(midi_note: str, start, end, word):
+    note_frequency = librosa.note_to_hz(midi_note)
+    frequency_range = get_frequency_range(midi_note)
+
+    half_frequency_range = frequency_range / 2
+    height = (
+            numpy.log10([note_frequency + half_frequency_range])[0]
+            - numpy.log10([note_frequency - half_frequency_range])[0]
+    )
+    xy_start_pos = (
+        start,
+        numpy.log10([note_frequency - half_frequency_range])[0],
+    )
+    width = end - start
+    rect = Rectangle(
+        xy_start_pos,
+        width,
+        height,
+        edgecolor="none",
+        facecolor="red",
+        alpha=0.5,
+    )
+    plt.gca().add_patch(rect)
+    plt.text(start + width / 4, numpy.log10([note_frequency + half_frequency_range])[0], word, rotation=90)
+
+
+def plot_words(transcribed_data: list[TranscribedData], ultrastar_class: UltrastarTxtValue, midi_notes: list[str]):
     """Draw rectangles for each word"""
     if transcribed_data is not None and len(transcribed_data) > 0:
         for i, data in enumerate(transcribed_data):
-            note_frequency = librosa.note_to_hz(midi_notes[i])
-            frequency_range = get_frequency_range(midi_notes[i])
+            plot_word(midi_notes[i], data.start, data.end, data.word)
 
-            half_frequency_range = frequency_range / 2
-            height = (
-                numpy.log10([note_frequency + half_frequency_range])[0]
-                - numpy.log10([note_frequency - half_frequency_range])[0]
-            )
-
-            xy_start_pos = (
-                data.start,
-                numpy.log10([note_frequency - half_frequency_range])[0],
-            )
-            width = data.end - data.start
-            rect = Rectangle(
-                xy_start_pos,
-                width,
-                height,
-                edgecolor="none",
-                facecolor="red",
-                alpha=0.5,
-            )
-            plt.gca().add_patch(rect)
+    elif ultrastar_class is not None:
+        for i, data in enumerate(ultrastar_class.words):
+            plot_word(midi_notes[i], ultrastar_class.startTimes[i], ultrastar_class.endTimes[i],
+                      ultrastar_class.words[i])
 
 
 def snake(s):
@@ -246,3 +257,47 @@ def snake(s):
             "([A-Z][a-z]+)", r" \1", sub("([A-Z]+)", r" \1", s.replace("-", " "))
         ).split()
     ).lower()
+
+
+def plot_spectrogram(audio_seperation_path: str,
+                     output_path: str,
+                     title: str = "Spectrogram",
+
+                     ) -> None:
+    """Plot spectrogram of data"""
+
+    print(
+        f"{ULTRASINGER_HEAD} Creating plot{': ' + title}"
+    )
+
+    audio, sr = librosa.load(audio_seperation_path, sr=None)
+    powerSpectrum, frequenciesFound, time, imageAxis = plt.specgram(audio, Fs=sr)
+    plt.colorbar()
+
+    if title is not None:
+        plt.title(label=title)
+
+    plt.xlabel("Time (s)")
+    plt.ylabel("Frequency (Hz)")
+
+    ymin = 0
+    ymax = max(frequenciesFound) + 0.05
+    plt.ylim(ymin, ymax)
+    xmin = 0
+    xmax = max(time)
+    plt.xlim(xmin, xmax)
+
+    plt.figure(1).set_figwidth(max(6.4, xmax))
+    plt.figure(1).set_figheight(4)
+
+    plt.figure(1).tight_layout(h_pad=1.4)
+
+    dpi = 200
+    plt.savefig(
+        os.path.join(
+            output_path, f"plot{'_' + snake(title)}.svg"
+        ),
+        dpi=dpi,
+    )
+    plt.clf()
+    plt.cla()

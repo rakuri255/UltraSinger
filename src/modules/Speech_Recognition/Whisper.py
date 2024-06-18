@@ -25,6 +25,8 @@ def transcribe_with_whisper(
 ) -> TranscriptionResult:
     """Transcribe with whisper"""
 
+    # Info: Regardless of the audio sampling rate used in the original audio file, whisper resample the audio signal to 16kHz (via ffmpeg). So the standard input from (44.1 or 48 kHz) should work.
+
     print(
         f"{ULTRASINGER_HEAD} Loading {blue_highlighted('whisper')} with model {blue_highlighted(model)} and {red_highlighted(device)} as worker"
     )
@@ -52,19 +54,19 @@ def transcribe_with_whisper(
         if language is None:
             language = detected_language
 
-        # load alignment model and metadata
-        try:
-            model_a, metadata = whisperx.load_align_model(
-                language_code=language, device=device, model_name=model_name
-            )
-        except ValueError as ve:
-            print(
-                f"{red_highlighted(f'{ve}')}"
-                f"\n"
-                f"{ULTRASINGER_HEAD} {red_highlighted('Error:')} Unknown language. "
-                f"Try add it with --align_model [hugingface]."
-            )
-            raise ve
+    # load alignment model and metadata
+    try:
+        model_a, metadata = whisperx.load_align_model(
+            language_code=language, device=device, model_name=model_name
+        )
+    except ValueError as ve:
+        print(
+            f"{red_highlighted(f'{ve}')}"
+            f"\n"
+            f"{ULTRASINGER_HEAD} {red_highlighted('Error:')} Unknown language. "
+            f"Try add it with --align_model [huggingface]."
+        )
+        raise ve
 
         # align whisper output
         result_aligned = whisperx.align(
@@ -111,8 +113,8 @@ def convert_to_transcribed_data(result_aligned):
                 previous = transcribed_data[-1] if len(transcribed_data) != 0 else TranscribedData()
                 vtd.start = previous.end + 0.1
                 vtd.end = previous.end + 0.2
-                msg = f'Error: There is no timestamp for word:  {obj["word"]}. ' \
-                      f'Fixing it by placing it after the previous word: {previous.word}. At start: {vtd.start} end: {vtd.end}. Fix it manually!'
+                msg = f'Error: There is no timestamp for word: "{obj["word"]}". ' \
+                      f'Fixing it by placing it after the previous word: "{previous.word}". At start: {vtd.start} end: {vtd.end}. Fix it manually!'
                 print(f"{red_highlighted(msg)}")
             transcribed_data.append(vtd)  # and add it to list
     return transcribed_data

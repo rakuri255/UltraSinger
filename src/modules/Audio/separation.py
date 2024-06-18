@@ -22,8 +22,9 @@ def separate_audio(input_file_path: str, output_folder: str, device="cpu") -> No
 
     demucs.separate.main(shlex.split(f'--two-stems vocals -d {device} --out "{os.path.join(output_folder, "separated")}" "{input_file_path}"'))
     # Model selection?
-    # -n mdx_q
     # -n htdemucs_ft
-    # subprocess.run(
-    #     ["demucs", "-d", device, "--two-stems=vocals", input_file_path.replace("\\", "/")]
-    # )
+    subprocess.run(
+        ["demucs", "-d", device, "--two-stems=vocals", "--float32", input_file_path]
+    )
+    separated_folder = path_join(current_executor_path(), "separated")
+    move(separated_folder, output_file)

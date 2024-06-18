@@ -6,20 +6,24 @@ from dataclasses_json import dataclass_json
 @dataclass_json
 @dataclass
 class Settings:
+    APP_VERSION = "0.0.11-dev4"
+
     create_midi = True
     create_plot = False
     create_audio_chunks = False
     hyphenation = True
     use_separated_vocal = True
     create_karaoke = True
+    keep_cache = False
     ignore_audio = False
     input_file_is_ultrastar_txt = False
 
     input_file_path = ""
     output_file_path = ""
-    mono_audio_path = ""
+    processing_audio_path = ""
 
     language = None
+    format_version = "1.0.0"
 
     # Transcribe
     audio_chunk_folder_name = "audio-chunks"
@@ -41,6 +45,8 @@ class Settings:
     pytorch_device = 'cpu'  # cpu|cuda
     tensorflow_device = 'cpu'  # cpu|cuda
     force_cpu = False
+    force_whisper_cpu = False
+    force_crepe_cpu = False
 
     # UltraSinger Evaluation Configuration
     test_songs_input_folder = None
