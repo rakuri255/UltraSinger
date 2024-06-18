@@ -489,9 +489,9 @@ def run() -> tuple[str, Score, Score]:
         remove_unecessary_punctuations(transcription_result.transcribed_data)
 
         if settings.hyphenation:
-            hyphen_words = hyphenate_each_word(language, transcribed_data)
+            hyphen_words = hyphenate_each_word(language, transcription_result.transcribed_data)
             if hyphen_words is not None:
-                transcribed_data = add_hyphen_to_data(transcribed_data, hyphen_words)
+                transcribed_data = add_hyphen_to_data(transcription_result.transcribed_data, hyphen_words)
 
         transcribed_data = remove_silence_from_transcription_data(
             settings.processing_audio_path, transcribed_data

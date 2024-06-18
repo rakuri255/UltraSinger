@@ -20,11 +20,13 @@ def separate_audio(input_file_path: str, output_folder: str, device="cpu") -> No
         f"{ULTRASINGER_HEAD} Separating vocals from audio with {blue_highlighted('demucs')} and {red_highlighted(device)} as worker."
     )
 
-    demucs.separate.main(shlex.split(f'--two-stems vocals -d {device} --out "{os.path.join(output_folder, "separated")}" "{input_file_path}"'))
     # Model selection?
     # -n htdemucs_ft
-    subprocess.run(
-        ["demucs", "-d", device, "--two-stems=vocals", "--float32", input_file_path]
-    )
-    separated_folder = path_join(current_executor_path(), "separated")
-    move(separated_folder, output_file)
+    # subprocess.run(
+    #     ["demucs", "-d", device, "--two-stems=vocals", "--float32", input_file_path]
+    # )
+    # separated_folder = path_join(current_executor_path(), "separated")
+    # move(separated_folder, output_file)
+
+    # fixme "--float32" is missing
+    demucs.separate.main(shlex.split(f'--two-stems vocals -d {device} --out "{os.path.join(output_folder, "separated")}" "{input_file_path}"'))
