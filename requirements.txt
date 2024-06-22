@@ -1,5 +1,5 @@
-crepe~=0.0.13
-demucs~=4.0.0
+crepe~=0.0.15
+demucs~=4.0.1
 ffmpeg_python~=0.2.0
 git+https://github.com/m-bain/whisperx.git
 langcodes~=3.4.0
