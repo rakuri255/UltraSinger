@@ -275,3 +275,26 @@ If something crashes because of low VRAM then use a smaller model.
 Whisper needs more than 8GB VRAM in the `large` model!
 
 You can also force cpu usage with the extra option `--force_cpu`.
+
+#### Docker
+to run the docker run `git clone https://github.com/rakuri255/UltraSinger.git`
+enter the UltraSinger folder.
+run this command to build the docker
+`docker build -t ultrasinger .` make sure to include the "." at the end
+let this run till complete.
+then run this command
+`docker run --gpus all -it --name UltraSinger -v  $(pwd)/src/output:/app/src/output ultrasinger`
+
+this will create and drop you into the docker.
+now run this command.
+`python3 UltraSinger.py -i file`
+or
+`python3 UltraSinger.py -i youtube_url`
+to use mp3's in the folder you git cloned you must place all songs you like in UltraSinger/src/output.
+this will be the place for youtube links aswell.
+
+to quit the docker just type exit.
+
+to reenter docker run this command
+`docker start UltraSinger && Docker exec -it UltraSinger /bin/bash`
+
