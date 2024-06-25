@@ -1,7 +1,7 @@
 FROM nvidia/cuda:12.5.0-runtime-ubuntu22.04
 
 WORKDIR /app
-RUN apt update
+RUN apt-get update
 RUN apt-get install git python3-pip -y
 
 RUN git clone https://github.com/rakuri255/UltraSinger.git
