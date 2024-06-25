@@ -8,7 +8,6 @@ RUN git clone https://github.com/rakuri255/UltraSinger.git
 WORKDIR /app/UltraSinger
 RUN apt-get install ffmpeg curl -y
 RUN pip install --no-cache-dir -r requirements.txt
-RUN pip install --upgrade pip
 RUN pip install --no-cache-dir  torch==2.3.0 torchvision==0.18.0 torchaudio==2.3.0 --index-url https://download.pytorch.org/whl/cu121
 RUN pip install --no-cache-dir  tensorflow[and-cuda]==2.16.1
 ENV UID=0
