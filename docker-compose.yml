@@ -1,0 +1,17 @@
+version: "3"
+services:
+    ultrasinger:
+        deploy:
+            resources:
+                reservations:
+                    devices:
+                        - driver: nvidia
+                          count: all
+                          capabilities:
+                              - gpu
+        stdin_open: true
+        tty: true
+        container_name: UltraSinger
+        volumes:
+            - '"$pwd"/src/output:/app/src/output'
+        image: ultrasinger
