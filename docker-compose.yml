@@ -1,4 +1,4 @@
-version: "3"
+name: ultrasinger
 services:
     ultrasinger:
         deploy:
@@ -11,7 +11,7 @@ services:
                               - gpu
         stdin_open: true
         tty: true
-        container_name: UltraSinger
+        container_name: UltraSinger 
         volumes:
-            - '"$pwd"/src/output:/app/src/output'
+            - ./src/output:/app/src/output
         image: ultrasinger
