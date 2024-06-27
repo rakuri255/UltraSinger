@@ -302,9 +302,9 @@ to edit the file.
 use any text editor you wish. i would recoment nano.
 run `nano docker-compose.yml`
 then change this line
-`            -  ./output:/output`
+`            -  ./output:/app/UltraSinger/src/output`
 to anything you line for on your host machine.
-`            -  /yourfolderpathhere:/output`
+`            -  /yourfolderpathhere:/app/UltraSinger/src/output`
 sample
 `            -  /mnt/user/appdata/UltraSinger:/output`
 note the blank space before the `-`
@@ -314,7 +314,7 @@ this will create and drop you into the docker.
 now run this command.
 `python3 UltraSinger.py -i file -o /output`
 or
-`python3 UltraSinger.py -i youtube_url -o /output`
+`python3 UltraSinger.py -i youtube_url`
 to use mp3's in the folder you git cloned you must place all songs you like in UltraSinger/src/output.
 this will be the place for youtube links aswell.
 
