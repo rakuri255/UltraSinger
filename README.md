@@ -312,7 +312,7 @@ formating is important here in this file.
 
 this will create and drop you into the docker.
 now run this command.
-`python3 UltraSinger.py -i file -o /output`
+`python3 UltraSinger.py -i file`
 or
 `python3 UltraSinger.py -i youtube_url`
 to use mp3's in the folder you git cloned you must place all songs you like in UltraSinger/src/output.
