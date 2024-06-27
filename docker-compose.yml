@@ -1,4 +1,6 @@
-name: ultrasinger
+---
+version: "3.9"
+name: ${COMPOSE_PROJECT_NAME}"
 services:
     ultrasinger:
         deploy:
@@ -13,5 +15,5 @@ services:
         tty: true
         container_name: UltraSinger 
         volumes:
-            - ./src/output:/app/src/output
-        image: ultrasinger
+            -  ./output:/app/src/output
+        image: rakuri255/ultrasinger:latest
