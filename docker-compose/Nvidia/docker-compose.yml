@@ -1,6 +1,6 @@
 ---
 version: "3.9"
-name: ${COMPOSE_PROJECT_NAME}"
+name: "${COMPOSE_PROJECT_NAME}"
 services:
     ultrasinger:
         deploy:
