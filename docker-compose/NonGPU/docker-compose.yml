@@ -1,0 +1,11 @@
+---
+version: "3.9"
+name: ${COMPOSE_PROJECT_NAME}"
+services:
+    ultrasinger:
+        stdin_open: true
+        tty: true
+        container_name: UltraSinger 
+        volumes:
+            -  ./output:/app/src/output
+        image: rakuri255/ultrasinger:latest
