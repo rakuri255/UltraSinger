@@ -15,5 +15,5 @@ services:
         tty: true
         container_name: UltraSinger 
         volumes:
-            -  ./output:/app/src/output
+            -  ./output:/app/UltraSinger/src/output
         image: rakuri255/ultrasinger:latest
