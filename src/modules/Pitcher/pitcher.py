@@ -1,43 +1,59 @@
 """Pitcher module"""
 
 import crepe
-from scipy.io import wavfile
+import librosa
 
 from modules.console_colors import ULTRASINGER_HEAD, blue_highlighted, red_highlighted
+from modules.Pitcher.core import CREPE_MODEL_SAMPLE_RATE
+from modules.Pitcher.loudness import set_confidence_to_zero_in_silent_regions
 from modules.Pitcher.pitched_data import PitchedData
+import modules.timer as timer
 
 
 def get_pitch_with_crepe_file(
-    filename: str, model_capacity: str, step_size: int = 10, device: str = "cpu"
+    filename: str, model_capacity: str, step_size: int = 10, device: str = "cpu", filter_silence_threshold: int = -60
 ) -> PitchedData:
     """Pitch with crepe"""
 
     print(
         f"{ULTRASINGER_HEAD} Pitching with {blue_highlighted('crepe')} and model {blue_highlighted(model_capacity)} and {red_highlighted(device)} as worker"
     )
-    sample_rate, audio = wavfile.read(filename)
+    timer.log('Load file for pitch detection start')
+    audio, sample_rate = librosa.load(filename)
+    timer.log('Load file for pitch detection end')
 
-    return get_pitch_with_crepe(audio, sample_rate, model_capacity, step_size)
+    return get_pitch_with_crepe(audio, sample_rate, model_capacity, step_size, filter_silence_threshold)
 
 
-def get_pitch_with_crepe(
-    audio, sample_rate: int, model_capacity: str, step_size: int = 10
-) -> PitchedData:
+def get_pitch_with_crepe(audio, sample_rate: int, model_capacity: str, step_size: int = 10, filter_silence_threshold: int = -60) -> PitchedData:
     """Pitch with crepe"""
 
-    # Info: The model is trained on 16 kHz audio, so if the input audio has a different sample rate, it will be first resampled to 16 kHz using resampy inside crepe.
 
-    times, frequencies, confidence, activation = crepe.predict(
-        audio, sample_rate, model_capacity, step_size=step_size, viterbi=True
-    )
-    return PitchedData(times, frequencies, confidence)
+    if sample_rate != CREPE_MODEL_SAMPLE_RATE:
+        from resampy import resample
+        audio = resample(audio, sample_rate, CREPE_MODEL_SAMPLE_RATE)
+        sample_rate = CREPE_MODEL_SAMPLE_RATE
+
+    timer.log('Crepe pitch detection start')
+    # Info: The model is trained on 16 kHz audio, so if the input audio has a different sample rate, it will be first resampled to 16 kHz using resampy inside crepe.
+    times, frequencies, confidence, activation = crepe.predict(audio, sample_rate, model_capacity, step_size=step_size, viterbi=True)
+    timer.log('Crepe pitch detection end')
+
+    timer.log('Computing loudness start')
+    confidence, perceived_loudness = set_confidence_to_zero_in_silent_regions(confidence, audio, threshold=filter_silence_threshold, step_size=step_size)
+    timer.log('Computing loudness end')
+
+    # convert to native float for serialization
+    confidence = [float(x) for x in confidence]
+
+    return PitchedData(times, frequencies, confidence, perceived_loudness)
 
 
 def get_pitched_data_with_high_confidence(
     pitched_data: PitchedData, threshold=0.4
 ) -> PitchedData:
     """Get frequency with high confidence"""
-    new_pitched_data = PitchedData([], [], [])
+    new_pitched_data = PitchedData([], [], [], [])
     for i, conf in enumerate(pitched_data.confidence):
         if conf > threshold:
             new_pitched_data.times.append(pitched_data.times[i])

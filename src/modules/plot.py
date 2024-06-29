@@ -177,7 +177,7 @@ def determine_bounds(frequency_log_10: list[float]) -> tuple[float, float]:
 def set_figure_dimensions(time_range, frequency_log_10_range):
     """Dynamically scale the figure dimensions based on the duration/frequency amplitude of the song"""
     height = frequency_log_10_range / 0.06
-    width = time_range / 2
+    width = time_range / 4
 
     plt.figure(1).set_figwidth(max(6.4, width))
     plt.figure(1).set_figheight(max(4, height))
@@ -189,7 +189,7 @@ def create_gaps(pitched_data: PitchedData, step_size: float) -> PitchedData:
     This way the graph is only continuous where it should be.
 
     """
-    pitched_data_with_gaps = PitchedData([], [], [])
+    pitched_data_with_gaps = PitchedData([], [], [], [])
 
     previous_time = 0
     for i, time in enumerate(pitched_data.times):
@@ -240,7 +240,7 @@ def plot_word(midi_note: str, start, end, word):
 
 def plot_words(transcribed_data: list[TranscribedData], ultrastar_class: UltrastarTxtValue, midi_notes: list[str]):
     """Draw rectangles for each word"""
-    if transcribed_data is not None:
+    if transcribed_data is not None and len(transcribed_data) > 0:
         for i, data in enumerate(transcribed_data):
             plot_word(midi_notes[i], data.start, data.end, data.word)
 

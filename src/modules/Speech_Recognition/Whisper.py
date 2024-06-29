@@ -2,11 +2,16 @@
 
 import sys
 
+import torch
 import whisperx
 from torch.cuda import OutOfMemoryError
 
+from modules.Speech_Recognition.TranscriptionResult import TranscriptionResult
 from modules.console_colors import ULTRASINGER_HEAD, blue_highlighted, red_highlighted
-from modules.Speech_Recognition.TranscribedData import TranscribedData
+from modules.Speech_Recognition.TranscribedData import TranscribedData, from_whisper
+
+
+MEMORY_ERROR_MESSAGE = f"{ULTRASINGER_HEAD} {blue_highlighted('whisper')} ran out of GPU memory; reduce --whisper_batch_size or force usage of cpu with --force_cpu"
 
 
 def transcribe_with_whisper(
@@ -17,7 +22,7 @@ def transcribe_with_whisper(
     batch_size: int = 16,
     compute_type: str = None,
     language: str = None,
-) -> (list[TranscribedData], str):
+) -> TranscriptionResult:
     """Transcribe with whisper"""
 
     # Info: Regardless of the audio sampling rate used in the original audio file, whisper resample the audio signal to 16kHz (via ffmpeg). So the standard input from (44.1 or 48 kHz) should work.
@@ -32,27 +37,30 @@ def transcribe_with_whisper(
         compute_type = "float16" if device == "cuda" else "int8"
 
     try:
+        torch.cuda.empty_cache()
         loaded_whisper_model = whisperx.load_model(
             model, language=language, device=device, compute_type=compute_type
         )
     except ValueError as value_error:
         if (
-            "Requested float16 compute type, but the target device or backend do not support efficient float16 computation."
-            in str(value_error.args[0])
+                "Requested float16 compute type, but the target device or backend do not support efficient float16 computation."
+                in str(value_error.args[0])
         ):
             print(value_error)
             print(
                 f"{ULTRASINGER_HEAD} Your GPU does not support efficient float16 computation; run UltraSinger with '--whisper_compute_type int8'"
             )
-            sys.exit(1)
 
         raise value_error
     except OutOfMemoryError as oom_exception:
         print(oom_exception)
-        print(
-            f"{ULTRASINGER_HEAD} {blue_highlighted('whisper')} ran out of GPU memory; reduce --whisper_batch_size or force usage of cpu with --force_cpu"
-        )
-        sys.exit(1)
+        print(MEMORY_ERROR_MESSAGE)
+        raise oom_exception
+    except Exception as exception:
+        if "CUDA failed with error out of memory" in str(exception.args[0]):
+            print(exception)
+            print(MEMORY_ERROR_MESSAGE)
+        raise exception
 
     audio = whisperx.load_audio(audio_path)
 
@@ -78,7 +86,7 @@ def transcribe_with_whisper(
             f"{ULTRASINGER_HEAD} {red_highlighted('Error:')} Unknown language. "
             f"Try add it with --align_model [huggingface]."
         )
-        sys.exit(1)
+        raise ve
 
     # align whisper output
     result_aligned = whisperx.align(
@@ -92,20 +100,18 @@ def transcribe_with_whisper(
 
     transcribed_data = convert_to_transcribed_data(result_aligned)
 
-    return transcribed_data, detected_language
+    return TranscriptionResult(transcribed_data, detected_language)
+
 
 
 def convert_to_transcribed_data(result_aligned):
     transcribed_data = []
     for segment in result_aligned["segments"]:
         for obj in segment["words"]:
-            vtd = TranscribedData(obj)  # create custom Word object
+            vtd = from_whisper(obj)  # create custom Word object
             vtd.word = vtd.word + " "  # add space to end of word
             if len(obj) < 4:
-                previous = transcribed_data[-1]
-                if not previous:
-                    previous.end = 0
-                    previous.end = ""
+                previous = transcribed_data[-1] if len(transcribed_data) != 0 else TranscribedData()
                 vtd.start = previous.end + 0.1
                 vtd.end = previous.end + 0.2
                 msg = f'Error: There is no timestamp for word: "{obj["word"]}". ' \

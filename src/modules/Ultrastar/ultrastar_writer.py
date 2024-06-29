@@ -99,6 +99,8 @@ def create_ultrastar_txt_from_automation(
             file.write(f"#{UltrastarTxtTag.GENRE}:{ultrastar_class.genre}\n")
         if ultrastar_class.cover is not None:
             file.write(f"#{UltrastarTxtTag.COVER}:{ultrastar_class.cover}\n")
+        if ultrastar_class.background is not None:
+            file.write(f"#{UltrastarTxtTag.BACKGROUND}:{ultrastar_class.background}\n")
         file.write(f"#{UltrastarTxtTag.MP3}:{ultrastar_class.mp3}\n")
         if version.parse(ultrastar_class.version) >= version.parse("1.1.0"):
             file.write(f"#{UltrastarTxtTag.AUDIO}:{ultrastar_class.audio}\n")
@@ -108,7 +110,10 @@ def create_ultrastar_txt_from_automation(
                 file.write(f"#{UltrastarTxtTag.INSTRUMENTAL}:{ultrastar_class.instrumental}\n")
             if ultrastar_class.tags is not None:
                 file.write(f"#{UltrastarTxtTag.TAGS}:{ultrastar_class.tags}\n")
-        file.write(f"#{UltrastarTxtTag.VIDEO}:{ultrastar_class.video}\n")
+        if ultrastar_class.video is not None:
+            file.write(f"#{UltrastarTxtTag.VIDEO}:{ultrastar_class.video}\n")
+        if ultrastar_class.videoGap is not None:
+            file.write(f"#{UltrastarTxtTag.VIDEOGAP}:{ultrastar_class.videoGap}\n")
         file.write(f"#{UltrastarTxtTag.BPM}:{round(ultrastar_bpm, 2)}\n")  # not the real BPM!
         file.write(f"#{UltrastarTxtTag.GAP}:{int(gap * 1000)}\n")
         file.write(f"#{UltrastarTxtTag.CREATOR}:{ultrastar_class.creator}\n")
