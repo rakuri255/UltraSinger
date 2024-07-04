@@ -101,16 +101,15 @@ def calculate_score(pitched_data: PitchedData, ultrastar_class: UltrastarTxtValu
         ultrastar_class.words
     )
 
-    for i in enumerate(ultrastar_class.words):
-        pos = i[0]
+    for i, word in enumerate(ultrastar_class.words):
         if ultrastar_class.words == "":
             continue
 
-        if ultrastar_class.noteType[pos] == "F":
+        if ultrastar_class.noteType[i] == "F":
             continue
 
-        start_time = get_start_time_from_ultrastar(ultrastar_class, pos)
-        end_time = get_end_time_from_ultrastar(ultrastar_class, pos)
+        start_time = get_start_time_from_ultrastar(ultrastar_class, i)
+        end_time = get_end_time_from_ultrastar(ultrastar_class, i)
         duration = end_time - start_time
         step_size = 0.09  # Todo: Whats is the step size of the game? Its not 1/bps -> one beat in seconds s = 60/bpm
         parts = int(duration / step_size)
@@ -120,7 +119,7 @@ def calculate_score(pitched_data: PitchedData, ultrastar_class: UltrastarTxtValu
         simple_part_line_bonus_points = 0
 
         ultrastar_midi_note = ultrastar_note_to_midi_note(
-            int(ultrastar_class.pitches[pos])
+            int(ultrastar_class.pitches[i])
         )
         ultrastar_note = librosa.midi_to_note(ultrastar_midi_note)
 
@@ -129,21 +128,21 @@ def calculate_score(pitched_data: PitchedData, ultrastar_class: UltrastarTxtValu
             end = start + step_size
             if end_time < end or part == parts - 1:
                 end = end_time
-            pitch_note = create_midi_note_from_pitched_data(
-                start, end, pitched_data
+            midi_segment = create_midi_note_from_pitched_data(
+                start, end, pitched_data, word
             )
 
-            if pitch_note[:-1] == ultrastar_note[:-1]:
+            if midi_segment.note[:-1] == ultrastar_note[:-1]:
                 # Ignore octave high
                 simple_points = add_point(
-                    ultrastar_class.noteType[pos], simple_points
+                    ultrastar_class.noteType[i], simple_points
                 )
                 simple_part_line_bonus_points += 1
 
-            if pitch_note == ultrastar_note:
+            if midi_segment.note == ultrastar_note:
                 # Octave high must be the same
                 accurate_points = add_point(
-                    ultrastar_class.noteType[pos], accurate_points
+                    ultrastar_class.noteType[i], accurate_points
                 )
                 accurate_part_line_bonus_points += 1
 

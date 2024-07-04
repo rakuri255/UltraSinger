@@ -13,6 +13,7 @@ from modules.console_colors import ULTRASINGER_HEAD
 from modules.Pitcher.pitched_data import PitchedData
 from modules.Pitcher.pitcher import get_pitched_data_with_high_confidence
 from modules.Speech_Recognition.TranscribedData import TranscribedData
+from modules.Midi.midi_creator import MidiSegment
 
 
 @dataclass
@@ -58,9 +59,7 @@ PLOTTED_NOTES = create_plot_notes(NOTES, OCTAVES)
 def plot(
         pitched_data: PitchedData,
         output_path: str,
-        transcribed_data: list[TranscribedData] = None,
-        ultrastar_class: UltrastarTxtValue = None,
-        midi_notes: list[str] = None,
+        midi_segments: list[MidiSegment] = None,
         title: str = None,
 ) -> None:
     """Plot transcribed data"""
@@ -121,7 +120,7 @@ def plot(
 
     set_figure_dimensions(xmax - xmin, y_upper_bound - y_lower_bound)
 
-    plot_words(transcribed_data, ultrastar_class, midi_notes)
+    plot_words(midi_segments)
 
     if title is not None:
         plt.title(label=title)
@@ -238,16 +237,11 @@ def plot_word(midi_note: str, start, end, word):
     plt.text(start + width / 4, numpy.log10([note_frequency + half_frequency_range])[0], word, rotation=90)
 
 
-def plot_words(transcribed_data: list[TranscribedData], ultrastar_class: UltrastarTxtValue, midi_notes: list[str]):
+def plot_words(midi_segments: list[MidiSegment]):
     """Draw rectangles for each word"""
-    if transcribed_data is not None and len(transcribed_data) > 0:
-        for i, data in enumerate(transcribed_data):
-            plot_word(midi_notes[i], data.start, data.end, data.word)
-
-    elif ultrastar_class is not None:
-        for i, data in enumerate(ultrastar_class.words):
-            plot_word(midi_notes[i], ultrastar_class.startTimes[i], ultrastar_class.endTimes[i],
-                      ultrastar_class.words[i])
+    if midi_segments is not None:
+        for i, midi_segment in enumerate(midi_segments):
+            plot_word(midi_segment.note, midi_segment.start, midi_segment.end, midi_segment.word)
 
 
 def snake(s):

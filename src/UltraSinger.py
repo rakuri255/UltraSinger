@@ -43,11 +43,14 @@ from modules.console_colors import (
     red_highlighted,
     green_highlighted,
 )
-from modules.Midi import midi_creator
 from modules.Midi.midi_creator import (
     convert_frequencies_to_notes,
     create_midi_notes_from_pitched_data,
+    convert_midi_notes_to_ultrastar_notes,
     most_frequent,
+    MidiSegment,
+    convert_ultrastar_to_midi_instrument,
+    instruments_to_midi
 )
 from modules.Pitcher.pitcher import (
     get_frequencies_with_high_confidence,
@@ -75,23 +78,6 @@ from modules.musicbrainz_client import get_music_infos
 settings = Settings()
 SYLLABLE_SEGMENT_SIZE = 0.1
 SYLLABLE_SEGMENT_MAX_GAP_FOR_MERGE = 0.1
-
-
-def convert_midi_notes_to_ultrastar_notes(midi_notes: list[str]) -> list[int]:
-    """Convert midi notes to ultrastar notes"""
-    print(f"{ULTRASINGER_HEAD} Creating Ultrastar notes from midi data")
-
-    ultrastar_note_numbers = []
-    for i in enumerate(midi_notes):
-        pos = i[0]
-        note_number_librosa = librosa.note_to_midi(midi_notes[pos])
-        pitch = ultrastar_converter.midi_note_to_ultrastar_note(note_number_librosa)
-        ultrastar_note_numbers.append(pitch)
-        # todo: Progress?
-        # print(
-        #    f"Note: {midi_notes[i]} midi_note: {str(note_number_librosa)} pitch: {str(pitch)}"
-        # )
-    return ultrastar_note_numbers
 
 
 def pitch_each_chunk_with_crepe(directory: str) -> list[str]:
@@ -513,9 +499,8 @@ def run() -> tuple[str, Score, Score]:
         )
 
     # Pitch the audio
-    midi_notes, pitched_data, ultrastar_note_numbers = pitch_audio(
-        transcribed_data, ultrastar_class, cache_path
-    )
+    midi_segments, pitched_data, ultrastar_note_numbers, transcribed_data = pitch_audio(
+        is_audio, transcribed_data, ultrastar_class
 
     transcribed_data, midi_notes, ultrastar_note_numbers = merge_syllable_segments(
         transcribed_data, midi_notes, ultrastar_note_numbers
@@ -526,7 +511,7 @@ def run() -> tuple[str, Score, Score]:
         vocals_path = os.path.join(audio_separation_path, "vocals.wav")
         plot_spectrogram(vocals_path, song_output, "vocals.wav")
         plot_spectrogram(settings.processing_audio_path, song_output, "processing audio")
-        plot(pitched_data, song_output, transcribed_data, ultrastar_class, midi_notes)
+        plot(pitched_data, song_output, midi_segments)
 
     # Write Ultrastar txt
     if not settings.ignore_audio:
@@ -940,17 +925,17 @@ def create_midi_file(
     print(f"{ULTRASINGER_HEAD} Creating Midi with {blue_highlighted('pretty_midi')}")
 
     voice_instrument = [
-        midi_creator.convert_ultrastar_to_midi_instrument(ultrastar_class)
+        convert_ultrastar_to_midi_instrument(ultrastar_class)
     ]
     midi_output = os.path.join(song_output, f"{basename_without_ext}.mid")
-    midi_creator.instruments_to_midi(voice_instrument, real_bpm, midi_output)
+    instruments_to_midi(voice_instrument, real_bpm, midi_output)
 
 
 def pitch_audio(
     transcribed_data: list[TranscribedData],
     ultrastar_class: UltrastarTxtValue,
     cache_path: str,
-) -> tuple[list[str], PitchedData, list[int]]:
+) -> tuple[list[MidiSegment], PitchedData, list[int], list[TranscribedData]]:
     """Pitch audio"""
     # todo: chunk pitching as option?
     # midi_notes = pitch_each_chunk_with_crepe(chunk_folder_name)
@@ -984,20 +969,24 @@ def pitch_audio(
     if not settings.ignore_audio:
         start_times = []
         end_times = []
-        for i, data in enumerate(transcribed_data):
-            start_times.append(data.start)
-            end_times.append(data.end)
-        midi_notes = create_midi_notes_from_pitched_data(
-            start_times, end_times, pitched_data
-        )
+        words = []
+        for i, midi_segment in enumerate(transcribed_data):
+            start_times.append(midi_segment.start)
+            end_times.append(midi_segment.end)
+            words.append(midi_segment.word)
+        midi_segments = create_midi_notes_from_pitched_data(start_times, end_times, words, pitched_data)
+
     else:
-        midi_notes = create_midi_notes_from_pitched_data(
-            ultrastar_class.startTimes, ultrastar_class.endTimes, pitched_data
+        midi_segments = create_midi_notes_from_pitched_data(
+            ultrastar_class.startTimes, ultrastar_class.endTimes, ultrastar_class.words, pitched_data
         )
+    ultrastar_note_numbers = convert_midi_notes_to_ultrastar_notes(midi_segments)
 
-    ultrastar_note_numbers = convert_midi_notes_to_ultrastar_notes(midi_notes)
+    new_transcribed_data = []
+    for i, midi_segment in enumerate(midi_segments):
+        new_transcribed_data.append(TranscribedData({"word": midi_segment.word, "start": midi_segment.start, "end": midi_segment.end, "is_hyphen": None, "confidence": 1}))
 
-    return midi_notes, pitched_data, ultrastar_note_numbers
+    return midi_segments, pitched_data, ultrastar_note_numbers, new_transcribed_data
 
 
 def create_audio_chunks(
