@@ -345,7 +345,7 @@ def split_syllables_into_segments(
 
 
 def merge_syllable_segments(
-    transcribed_data: list[TranscribedData], midi_notes: list[str], us_notes=list[int]
+    transcribed_data: list[TranscribedData], midi_segments: list[MidiSegment], us_notes=list[int]
 ) -> tuple[list[TranscribedData], list[str], list[int]]:
     """Merge sub-segments of a syllable where the pitch is the same"""
     new_data = []
@@ -358,13 +358,13 @@ def merge_syllable_segments(
         if (
             str(data.word).startswith("~")
             and previous_data is not None
-            and midi_notes[i] == midi_notes[i - 1]
+            and midi_segments[i].note == midi_segments[i - 1].note
             and data.start - previous_data.end <= SYLLABLE_SEGMENT_MAX_GAP_FOR_MERGE
         ):
             new_data[-1].end = data.end
         else:
             new_data.append(data)
-            new_midi_notes.append(midi_notes[i])
+            new_midi_notes.append(midi_segments[i].note)
             new_us_notes.append(us_notes[i])
         previous_data = data
     return new_data, new_midi_notes, new_us_notes
@@ -500,10 +500,10 @@ def run() -> tuple[str, Score, Score]:
 
     # Pitch the audio
     midi_segments, pitched_data, ultrastar_note_numbers, transcribed_data = pitch_audio(
-        is_audio, transcribed_data, ultrastar_class
+        transcribed_data, ultrastar_class, cache_path)
 
     transcribed_data, midi_notes, ultrastar_note_numbers = merge_syllable_segments(
-        transcribed_data, midi_notes, ultrastar_note_numbers
+        transcribed_data, midi_segments, ultrastar_note_numbers
     )
 
     # Create plot
