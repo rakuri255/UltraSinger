@@ -19,9 +19,11 @@ class UltrastarTxtTag(str, Enum):
     GENRE = 'GENRE'  # Multi-language support since v1.1.0
     YEAR = 'YEAR'  # Multi-language support since v1.1.0
     COVER = 'COVER'  # Path to cover. Should end with `*[CO].jpg`
+    BACKGROUND = 'BACKGROUND'  # Path to background. Is shown when there is no video. Should end with `*[BG].jpg`
     CREATOR = 'CREATOR'  # Multi-language support since v1.1.0
     COMMENT = 'COMMENT'
     VIDEO = 'VIDEO'
+    VIDEOGAP = 'VIDEOGAP'
     FILE_END = 'E'
     LINEBREAK = '-'
 
@@ -32,8 +34,6 @@ class UltrastarTxtTag(str, Enum):
     TAGS = 'TAGS'  # Tags for the song. Can be used for filtering
 
     # Unused 0.2.0
-    BACKGROUND = 'BACKGROUND'  # Path to background. Is shown when there is no video. Should end with `*[BG].jpg`
-    VIDEOGAP = 'VIDEOGAP'
     EDITION = 'EDITION'  # Multi-language support since v1.1.0
     START = 'START'
     END = 'END'
@@ -84,13 +84,15 @@ class UltrastarTxtValue:
     mp3 = ""
     audio = ""
     video = None
-    gap = ""
+    videoGap = None
+    gap = "0"
     bpm = ""
     language = None
     cover = None
     vocals = None
     instrumental = None
     tags = None
+    background = None
     creator = "UltraSinger [GitHub]"
     comment = "UltraSinger [GitHub]"
     startBeat = []
