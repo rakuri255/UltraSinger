@@ -6,12 +6,14 @@ from collections import Counter
 import librosa
 import numpy as np
 import pretty_midi
+from dataclasses import dataclass
 
 from modules.Pitcher.pitcher import get_frequencies_with_high_confidence
 from modules.Ultrastar.ultrastar_converter import (
     get_end_time_from_ultrastar,
     get_start_time_from_ultrastar,
     ultrastar_note_to_midi_note,
+    midi_note_to_ultrastar_note
 )
 from modules.console_colors import (
     ULTRASINGER_HEAD,
@@ -81,28 +83,33 @@ def find_nearest_index(array: list[float], value: float) -> int:
     return idx
 
 
-def create_midi_notes_from_pitched_data(start_times: list[float], end_times: list[float], pitched_data: PitchedData) -> list[str]:
+@dataclass
+class MidiSegment:
+  note: str
+  start: float
+  end: float
+  word: str
+
+
+def create_midi_notes_from_pitched_data(start_times: list[float], end_times: list[float], words: list[str], pitched_data: PitchedData) -> list[MidiSegment]:
     """Create midi notes from pitched data"""
     print(f"{ULTRASINGER_HEAD} Creating midi notes from pitched data")
 
-    midi_notes = []
+    new_segments = []
 
-    for i in enumerate(start_times):
-        pos = i[0]
-        start_time = start_times[pos]
-        end_time = end_times[pos]
+    for index, start_time in enumerate(start_times):
+        end_time = end_times[index]
+        word = str(words[index])
 
-        note = create_midi_note_from_pitched_data(
-            start_time, end_time, pitched_data
-        )
+        midi_segment = create_midi_note_from_pitched_data(start_time, end_time, pitched_data, word)
+        new_segments.append(midi_segment)
 
-        midi_notes.append(note)
         # todo: Progress?
         # print(filename + " f: " + str(mean))
-    return midi_notes
+    return new_segments
 
 
-def create_midi_note_from_pitched_data(start_time: float, end_time: float, pitched_data: PitchedData) -> str:
+def create_midi_note_from_pitched_data(start_time: float, end_time: float, pitched_data: PitchedData, word: str) -> MidiSegment:
     """Create midi note from pitched data"""
 
     start = find_nearest_index(pitched_data.times, start_time)
@@ -121,4 +128,21 @@ def create_midi_note_from_pitched_data(start_time: float, end_time: float, pitch
 
     note = most_frequent(notes)[0][0]
 
-    return note
+    return MidiSegment(note, start_time, end_time, word)
+
+def convert_midi_notes_to_ultrastar_notes(midi_segments: list[MidiSegment]) -> list[int]:
+    """Convert midi notes to ultrastar notes"""
+    print(f"{ULTRASINGER_HEAD} Creating Ultrastar notes from midi data")
+
+    ultrastar_note_numbers = []
+    for i, data in enumerate(midi_segments):
+        note_number_librosa = librosa.note_to_midi(data.note)
+        pitch = midi_note_to_ultrastar_note(
+            note_number_librosa
+        )
+        ultrastar_note_numbers.append(pitch)
+        # todo: Progress?
+        # print(
+        #    f"Note: {midi_notes[i]} midi_note: {str(note_number_librosa)} pitch: {str(pitch)}"
+        # )
+    return ultrastar_note_numbers

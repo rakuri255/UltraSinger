@@ -4,7 +4,9 @@
 class TranscribedData:
     """Transcribed data from json file"""
 
-    def __init__(self, transcribed_json):
+    def __init__(self, transcribed_json = None):
+        if transcribed_json is None:
+            return
         # Vosk = conf, Whisper = confidence
         self.conf = transcribed_json.get(
             "conf", transcribed_json.get("confidence", None)
