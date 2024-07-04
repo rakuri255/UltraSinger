@@ -1,3 +1,10 @@
+from dataclasses import dataclass
+
+from dataclasses_json import dataclass_json
+
+
+@dataclass_json
+@dataclass
 class Settings:
     APP_VERSION = "0.0.11-dev4"
 
@@ -7,6 +14,8 @@ class Settings:
     hyphenation = True
     use_separated_vocal = True
     create_karaoke = True
+    ignore_audio = False
+    input_file_is_ultrastar_txt = False
     keep_cache = False
 
     input_file_path = ""
@@ -37,3 +46,12 @@ class Settings:
     force_cpu = False
     force_whisper_cpu = False
     force_crepe_cpu = False
+
+    # UltraSinger Evaluation Configuration
+    test_songs_input_folder = None
+    cache_override_path = None
+    skip_cache_vocal_separation = False
+    skip_cache_denoise_vocal_audio = False
+    skip_cache_transcription = False
+    skip_cache_pitch_detection = False
+    calculate_score = True

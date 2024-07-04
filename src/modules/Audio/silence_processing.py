@@ -63,7 +63,7 @@ def remove_silence(silence_parts_list: list[tuple[float, float]], transcribed_da
                     split_word = "~ "
                     is_word_end = True
 
-                split_data = TranscribedData({"conf": data.conf, "word": split_word, "end": split_end, "start": silence_end, "is_word_end": is_word_end})
+                split_data = TranscribedData({"confidence": data.confidence, "word": split_word, "end": split_end, "start": silence_end, "is_word_end": is_word_end})
 
                 if not was_split:
                     data.end = silence_start
