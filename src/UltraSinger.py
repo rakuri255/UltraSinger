@@ -60,6 +60,7 @@ from Settings import Settings
 from modules.Speech_Recognition.TranscribedData import TranscribedData
 from modules.plot import plot, plot_spectrogram
 from modules.musicbrainz_client import get_music_infos
+from modules.sheet import create_sheet
 
 settings = Settings()
 
@@ -295,7 +296,7 @@ def run() -> None:
         (
             basename_without_ext,
             real_bpm,
-            song_output,
+            settings.song_output,
             ultrastar_audio_input_path,
             ultrastar_class,
         ) = parse_ultrastar_txt()
@@ -305,7 +306,7 @@ def run() -> None:
         )
         (
             basename_without_ext,
-            song_output,
+            settings.song_output,
             ultrastar_audio_input_path,
             (title, artist, year, genre)
         ) = download_from_youtube()
@@ -315,33 +316,33 @@ def run() -> None:
         )
         (
             basename_without_ext,
-            song_output,
+            settings.song_output,
             ultrastar_audio_input_path,
             (title, artist, year, genre)
         ) = infos_from_audio_input_file()
 
-    cache_path = os.path.join(song_output, "cache")
+    settings.cache_path = os.path.join(settings.song_output, "cache")
     settings.processing_audio_path = os.path.join(
-        cache_path, basename_without_ext + ".wav"
+        settings.cache_path, basename_without_ext + ".wav"
     )
-    os_helper.create_folder(cache_path)
+    os_helper.create_folder(settings.cache_path)
 
     # Separate vocal from audio
     audio_separation_path = separate_vocal_from_audio(
-        basename_without_ext, cache_path, ultrastar_audio_input_path
+        basename_without_ext, settings.cache_path, ultrastar_audio_input_path
     )
     vocals_path = os.path.join(audio_separation_path, "vocals.wav")
     instrumental_path = os.path.join(audio_separation_path, "no_vocals.wav")
 
     # Move instrumental and vocals
     if settings.create_karaoke and version.parse(settings.format_version) < version.parse("1.1.0"):
-        karaoke_output_path = os.path.join(song_output, basename_without_ext + " [Karaoke].mp3")
+        karaoke_output_path = os.path.join(settings.song_output, basename_without_ext + " [Karaoke].mp3")
         convert_wav_to_mp3(instrumental_path, karaoke_output_path)
 
     if version.parse(settings.format_version) >= version.parse("1.1.0"):
-        instrumental_output_path = os.path.join(song_output, basename_without_ext + " [Instrumental].mp3")
+        instrumental_output_path = os.path.join(settings.song_output, basename_without_ext + " [Instrumental].mp3")
         convert_wav_to_mp3(instrumental_path, instrumental_output_path)
-        vocals_output_path = os.path.join(song_output, basename_without_ext + " [Vocals].mp3")
+        vocals_output_path = os.path.join(settings.song_output, basename_without_ext + " [Vocals].mp3")
         convert_wav_to_mp3(vocals_path, vocals_output_path)
 
     if settings.use_separated_vocal:
@@ -351,19 +352,19 @@ def run() -> None:
 
     # Denoise vocal audio
     denoised_output_path = os.path.join(
-        cache_path, basename_without_ext + "_denoised.wav"
+        settings.cache_path, basename_without_ext + "_denoised.wav"
     )
     denoise_vocal_audio(input_path, denoised_output_path)
 
     # Convert to mono audio
     mono_output_path = os.path.join(
-        cache_path, basename_without_ext + "_mono.wav"
+        settings.cache_path, basename_without_ext + "_mono.wav"
     )
     convert_audio_to_mono_wav(denoised_output_path, mono_output_path)
 
     # Mute silence sections
     mute_output_path = os.path.join(
-        cache_path, basename_without_ext + "_mute.wav"
+        settings.cache_path, basename_without_ext + "_mute.wav"
     )
     mute_no_singing_parts(mono_output_path, mute_output_path)
 
@@ -396,7 +397,7 @@ def run() -> None:
     # Create audio chunks
     if settings.create_audio_chunks:
         create_audio_chunks(
-            cache_path,
+            settings.cache_path,
             is_audio,
             transcribed_data,
             ultrastar_audio_input_path,
@@ -411,15 +412,15 @@ def run() -> None:
     # Create plot
     if settings.create_plot:
         vocals_path = os.path.join(audio_separation_path, "vocals.wav")
-        plot_spectrogram(vocals_path, song_output, "vocals.wav")
-        plot_spectrogram(settings.processing_audio_path, song_output, "processing audio")
-        plot(pitched_data, song_output, midi_segments)
+        plot_spectrogram(vocals_path, settings.song_output, "vocals.wav")
+        plot_spectrogram(settings.processing_audio_path, settings.song_output, "processing audio")
+        plot(pitched_data, settings.song_output, midi_segments)
 
     # Write Ultrastar txt
     if is_audio:
         real_bpm, ultrastar_file_output = create_ultrastar_txt_from_automation(
             basename_without_ext,
-            song_output,
+            settings.song_output,
             transcribed_data,
             ultrastar_audio_input_path,
             ultrastar_note_numbers,
@@ -431,7 +432,7 @@ def run() -> None:
         )
     else:
         ultrastar_file_output = create_ultrastar_txt_from_ultrastar_data(
-            song_output, ultrastar_class, ultrastar_note_numbers
+            settings.song_output, ultrastar_class, ultrastar_note_numbers
         )
 
     # Calc Points
@@ -446,11 +447,14 @@ def run() -> None:
 
     # Midi
     if settings.create_midi:
-        create_midi_file(real_bpm, song_output, ultrastar_class, basename_without_ext)
+        create_midi_file(real_bpm, settings.song_output, ultrastar_class, basename_without_ext)
+
+    # Sheet music
+    create_sheet(midi_segments, settings, basename_without_ext, artist, title, real_bpm)
 
     # Cleanup
     if not settings.keep_cache:
-        remove_cache_folder(cache_path)
+        remove_cache_folder(settings.cache_path)
 
     # Print Support
     print_support()
@@ -711,8 +715,8 @@ def infos_from_audio_input_file() -> tuple[str, str, str, tuple[str, str, str, s
         extension = os.path.splitext(basename)[1]
         basename = f"{basename_without_ext}{extension}"
 
-    song_output = os.path.join(settings.output_file_path, basename_without_ext)
-    song_output = get_unused_song_output_dir(song_output)
+    settings.song_output = os.path.join(settings.output_file_path, basename_without_ext)
+    song_output = get_unused_song_output_dir(settings.song_output)
     os_helper.create_folder(song_output)
     os_helper.copy(settings.input_file_path, song_output)
     os_helper.rename(os.path.join(song_output, os.path.basename(settings.input_file_path)), os.path.join(song_output, basename))
