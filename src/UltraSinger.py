@@ -214,6 +214,7 @@ def print_help() -> None:
     --keep_cache            True|False >> ((default) is False)
     --plot                  True|False >> ((default) is False)
     --format_version        0.3.0|1.0.0|1.1.0 >> ((default) is 1.0.0)
+    --musescore_path        path to MuseScore executable
     
     [device]
     --force_cpu             True|False >> ((default) is False)  All steps will be forced to cpu
@@ -715,8 +716,8 @@ def infos_from_audio_input_file() -> tuple[str, str, str, tuple[str, str, str, s
         extension = os.path.splitext(basename)[1]
         basename = f"{basename_without_ext}{extension}"
 
-    settings.song_output = os.path.join(settings.output_file_path, basename_without_ext)
-    song_output = get_unused_song_output_dir(settings.song_output)
+    song_output = os.path.join(settings.output_file_path, basename_without_ext)
+    song_output = get_unused_song_output_dir(song_output)
     os_helper.create_folder(song_output)
     os_helper.copy(settings.input_file_path, song_output)
     os_helper.rename(os.path.join(song_output, os.path.basename(settings.input_file_path)), os.path.join(song_output, basename))
@@ -945,6 +946,8 @@ def init_settings(argv: list[str]) -> None:
             settings.format_version = arg
         elif opt in ("--keep_cache"):
             settings.keep_cache = arg
+        elif opt in ("--musescore_path"):
+            settings.musescore_path = arg
     if settings.output_file_path == "":
         if settings.input_file_path.startswith("https:"):
             dirname = os.getcwd()
@@ -978,7 +981,8 @@ def arg_options():
         "force_whisper_cpu=",
         "force_crepe_cpu=",
         "format_version=",
-        "keep_cache"
+        "keep_cache",
+        "musescore_path="
     ]
     return long, short
 

@@ -36,10 +36,9 @@ def create_sheet(midi_segments: MidiSegment,
                  filename: str,
                  artist: str,
                  title: str,
-                 bpm: float,
-                 musescore_path: str = None):
+                 bpm: float,):
     print(f"{ULTRASINGER_HEAD} Creating music sheet with {blue_highlighted('MuseScore')}")
-    success = set_environment_variables(musescore_path)
+    success = set_environment_variables(settings.musescore_path)
     if not success:
         return
     s = stream.Stream()
@@ -55,10 +54,13 @@ def round_to_nearest_quarter(number: float) -> float:
 def find_musescore_version_in_path(path) -> int:
     pattern = r"MuseScore\s+(\d+)"
     match = None
-    for i, data in enumerate(os.listdir(path)):
-        match = re.findall(pattern, data)
-        if match:
-            break
+    try:
+        for i, data in enumerate(os.listdir(path)):
+            match = re.findall(pattern, data)
+            if match:
+                break
+    except FileNotFoundError:
+        return -1
 
     if match:
         try:
@@ -87,9 +89,6 @@ def set_environment_variables(musescorePath=None) -> bool:
 def export_stream_to_pdf(stream, pdf_path):
     print(f"{ULTRASINGER_HEAD} Creating sheet PDF -> {pdf_path}")
     stream.write('musicxml.pdf', fp=pdf_path)
-
-
-
 
 def replace_unsupported_accidentals(note_name):
     accidental_replacements = {

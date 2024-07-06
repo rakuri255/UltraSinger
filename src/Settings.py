@@ -9,6 +9,7 @@ class Settings:
     create_karaoke = True
     keep_cache = False
 
+    # Process data Paths
     input_file_path = ""
     output_file_path = ""
     processing_audio_path = ""
@@ -39,3 +40,6 @@ class Settings:
     force_cpu = False
     force_whisper_cpu = False
     force_crepe_cpu = False
+
+    # MuseScore
+    musescore_path = None
