@@ -392,7 +392,7 @@ def run() -> tuple[str, Score, Score]:
     transcribed_data = None
     language = settings.language
     if not settings.ignore_audio:
-        transcription_result = transcribe_audio(cache_path)
+        transcription_result = transcribe_audio(settings.cache_path)
         if language is None:
             language = transcription_result.detected_language
 
