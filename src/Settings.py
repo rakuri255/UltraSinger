@@ -1,5 +1,5 @@
 class Settings:
-    APP_VERSION = "0.0.11-dev4"
+    APP_VERSION = "0.0.11-dev5"
 
     create_midi = True
     create_plot = False
@@ -9,9 +9,12 @@ class Settings:
     create_karaoke = True
     keep_cache = False
 
+    # Process data Paths
     input_file_path = ""
     output_file_path = ""
     processing_audio_path = ""
+    cache_path = ""
+    song_output = ""
 
     language = None
     format_version = "1.0.0"
@@ -37,3 +40,6 @@ class Settings:
     force_cpu = False
     force_whisper_cpu = False
     force_crepe_cpu = False
+
+    # MuseScore
+    musescore_path = None

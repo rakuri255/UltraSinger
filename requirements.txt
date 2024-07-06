@@ -24,3 +24,4 @@ pylint~=3.2.3
 pytest~=8.2.2
 protobuf==3.20.*
 packaging~=24.1
+music21~=9.1.0
