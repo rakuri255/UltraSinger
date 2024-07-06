@@ -905,9 +905,13 @@ def pitch_audio(
 
     new_transcribed_data = []
     for i, midi_segment in enumerate(midi_segments):
-        new_transcribed_data.append(TranscribedData(
-            {"word": midi_segment.word, "start": midi_segment.start, "end": midi_segment.end, "is_hyphen": None,
-             "confidence": 1}))
+        transcribed_midi_data = TranscribedData()
+        transcribed_midi_data.word = midi_segment.word
+        transcribed_midi_data.start = midi_segment.start
+        transcribed_midi_data.end = midi_segment.end
+        transcribed_midi_data.is_hyphen = None
+        transcribed_midi_data.confidence = 1
+        new_transcribed_data.append(transcribed_midi_data)
 
     return midi_segments, pitched_data, ultrastar_note_numbers, new_transcribed_data
 
