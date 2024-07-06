@@ -42,7 +42,8 @@ This will help me a lot to keep this project alive and improve it.
   - [❤️ Support](#️-support)
   - [Table of Contents](#table-of-contents)
   - [💻 How to use this source code](#-how-to-use-this-source-code)
-    - [With Console (Windows)](#with-console-windows)
+    - [Installation](#installation)
+    - [Run](#run)
   - [📖 How to use the App](#-how-to-use-the-app)
     - [🎶 Input](#-input)
       - [Audio (full automatic)](#audio-full-automatic)
@@ -55,11 +56,13 @@ This will help me a lot to keep this project alive and improve it.
       - [✍️ Hyphenation](#️-hyphenation)
     - [👂 Pitcher](#-pitcher)
     - [👄 Separation](#-separation)
-    - [Format version](#format-version)
+    - [Sheet Music](#sheet-music)
+    - [Format Version](#format-version)
     - [🏆 Ultrastar Score Calculation](#-ultrastar-score-calculation)
     - [📟 Use GPU](#-use-gpu)
       - [Considerations for Windows users](#considerations-for-windows-users)
       - [Info](#info)
+      - [Docker](#docker)
 
 ## 💻 How to use this source code
 
@@ -128,6 +131,7 @@ _Not all options working now!_
     --keep_cache            True|False >> ((default) is False)
     --plot                  True|False >> ((default) is False)
     --format_version        0.3.0|1.0.0|1.1.0 >> ((default) is 1.0.0)
+    --musescore_path        path to MuseScore executable
 
     [device]
     --force_cpu             True|False >> ((default) is False)  All steps will be forced to cpu
@@ -213,6 +217,15 @@ you have the option to disable this function; in which case the original audio f
 
 ```commandline
 -i XYZ --disable_separation True
+```
+
+### Sheet Music
+
+For Sheet Music generation you need to have `MuseScore` installed on your system.
+Or provide the path to the `MuseScore` executable.
+
+```commandline
+-i XYZ --musescore_path "C:/Program Files/MuseScore 4/bin/MuseScore4.exe"
 ```
 
 ### Format Version
