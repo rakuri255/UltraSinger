@@ -901,8 +901,10 @@ def pitch_audio(
             ultrastar_class.startTimes, ultrastar_class.endTimes, ultrastar_class.words, pitched_data
         )
 
+    # fixme: should be in UltraStar
     ultrastar_note_numbers = convert_midi_notes_to_ultrastar_notes(midi_segments)
 
+    # fixme: TrnscribedData in pitch_audio??
     new_transcribed_data = []
     for i, midi_segment in enumerate(midi_segments):
         transcribed_midi_data = TranscribedData()

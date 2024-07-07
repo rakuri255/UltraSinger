@@ -126,8 +126,10 @@ def calculate_score(pitched_data: PitchedData, ultrastar_class: UltrastarTxtValu
         for part in range(parts):
             start = start_time + step_size * part
             end = start + step_size
+
             if end_time < end or part == parts - 1:
                 end = end_time
+
             midi_segment = create_midi_note_from_pitched_data(
                 start, end, pitched_data, word
             )
