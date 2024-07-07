@@ -21,42 +21,12 @@ class SilenceProcessingTest(unittest.TestCase):
 
         silence_parts_list = [(2.0, 9.0)]
         transcribed_data = [
-            TranscribedData({
-                "conf": 0.95,
-                "word": "Before silence ",
-                "end": 2.0,
-                "start": 1.0
-            }),
-            TranscribedData({
-                "conf": 0.95,
-                "word": "End is in silence ",
-                "end": 5.0,
-                "start": 1.0
-            }),
-            TranscribedData({
-                "conf": 0.95,
-                "word": "Is in silence ",
-                "end": 4.0,
-                "start": 3.0
-            }),
-            TranscribedData({
-                "conf": 0.95,
-                "word": "Start is in silence ",
-                "end": 10.0,
-                "start": 5.0
-            }),
-            TranscribedData({
-                "conf": 0.95,
-                "word": "After silence ",
-                "end": 10.0,
-                "start": 9.0
-            }),
-            TranscribedData({
-                "conf": 0.95,
-                "word": "Silence is inside ",
-                "end": 12.0,
-                "start": 1.0
-            }),
+            TranscribedData(word="Before silence ", confidence=0.95, start=1.0, end=2.0),
+            TranscribedData(word="End is in silence ", confidence=0.95, start=1.0, end=5.0),
+            TranscribedData(word="Is in silence ", confidence=0.95, start=3.0, end=4.0),
+            TranscribedData(word="Start is in silence ", confidence=0.95, start=5.0, end=10.0),
+            TranscribedData(word="After silence ", confidence=0.95, start=9.0, end=10.0),
+            TranscribedData(word="Silence is inside ", confidence=0.95, start=1.0, end=12.0),
         ]
 
         # Act
@@ -106,12 +76,7 @@ class SilenceProcessingTest(unittest.TestCase):
 
         silence_parts_list = [(2.0, 3.0), (4.0, 5.0), (6.0, 7.0), (8.0, 9.0)]
         transcribed_data = [
-            TranscribedData({
-                "conf": 0.95,
-                "word": "Silence is inside ",
-                "end": 12.0,
-                "start": 1.0
-            }),
+            TranscribedData(word="Silence is inside ", confidence=0.95, start=1.0, end=12.0),
         ]
 
         # Act
@@ -154,12 +119,7 @@ class SilenceProcessingTest(unittest.TestCase):
 
         silence_parts_list = [(2.0, 3.0), (4.0, 5.0), (6.0, 7.0), (8.0, 9.0)]
         transcribed_data = [
-            TranscribedData({
-                "conf": 0.95,
-                "word": "Silence is inside ",
-                "end": 9.0,
-                "start": 1.0
-            }),
+            TranscribedData(word="Silence is inside ", confidence=0.95, start=1.0, end=9.0),
         ]
 
         # Act
@@ -196,24 +156,9 @@ class SilenceProcessingTest(unittest.TestCase):
 
         silence_parts_list = [(2.0, 2.1), (3.09, 3.1), (4.0, 4.09), (5.0, 5.09), (6.0, 6.09), (7.0, 7.09)]
         transcribed_data = [
-            TranscribedData({
-                "conf": 0.95,
-                "word": "Remove split ",
-                "end": 2.19,
-                "start": 1.0
-            }),
-            TranscribedData({
-                "conf": 0.95,
-                "word": "Is split ",
-                "end": 4.1,
-                "start": 3.0
-            }),
-            TranscribedData({
-                "conf": 0.95,
-                "word": "Is split2 ",
-                "end": 7.1,
-                "start": 5.0
-            }),
+            TranscribedData(word="Remove split ", confidence=0.95, start=1.0, end=2.19),
+            TranscribedData(word="Is split ", confidence=0.95, start=3.0, end=4.1),
+            TranscribedData(word="Is split2 ", confidence=0.95, start=5.0, end=7.1),
         ]
 
         # Act

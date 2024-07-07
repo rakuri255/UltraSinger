@@ -30,13 +30,13 @@ class ConvertToTranscribedDataTest(unittest.TestCase):
 
         # Words should have space at the end
         expected_output = [
-            TranscribedData.from_dict({"word": "UltraSinger ", "start": 1.23, "end": 2.34, "is_hyphen": None, "confidence": 0.95}),
-            TranscribedData.from_dict({"word": "is ", "start": 2.34, "end": 3.45, "is_hyphen": None, "confidence": 0.9}),
-            TranscribedData.from_dict({"word": "cool! ", "start": 3.45, "end": 4.56, "is_hyphen": None, "confidence": 0.85}),
-            TranscribedData.from_dict({"word": "And ", "start": 4.56, "end": 5.67, "is_hyphen": None, "confidence": 0.95}),
-            TranscribedData.from_dict({"word": "will ", "start": 5.67, "end": 6.78, "is_hyphen": None, "confidence": 0.9}),
-            TranscribedData.from_dict({"word": "be ", "start": 6.78, "end": 7.89, "is_hyphen": None, "confidence": 0.85}),
-            TranscribedData.from_dict({"word": "better! ", "start": 7.89, "end": 9.01, "is_hyphen": None, "confidence": 0.8}),
+            TranscribedData(word="UltraSinger ", start=1.23, end=2.34, is_hyphen=False, confidence=0.95),
+            TranscribedData(word="is ", start=2.34, end=3.45, is_hyphen=False, confidence=0.9),
+            TranscribedData(word="cool! ", start=3.45, end=4.56, is_hyphen=False, confidence=0.85),
+            TranscribedData(word="And ", start=4.56, end=5.67, is_hyphen=False, confidence=0.95),
+            TranscribedData(word="will ", start=5.67, end=6.78, is_hyphen=False, confidence=0.9),
+            TranscribedData(word="be ", start=6.78, end=7.89, is_hyphen=False, confidence=0.85),
+            TranscribedData(word="better! ", start=7.89, end=9.01, is_hyphen=False, confidence=0.8),
         ]
 
         # Act
