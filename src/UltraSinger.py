@@ -819,7 +819,7 @@ def parse_ultrastar_txt() -> tuple[str, float, str, str, UltrastarTxtValue]:
     )
     ultrastar_mp3_name = ultrastar_class.mp3
 
-    basename_without_ext = f"{ultrastar_class.artist} - {ultrastar_class.title}"
+    basename_without_ext = f"{ultrastar_class.artist.strip()} - {ultrastar_class.title.strip()}"
     dirname = os.path.dirname(settings.input_file_path)
     ultrastar_audio_input_path = os.path.join(dirname, ultrastar_mp3_name)
     song_output = os.path.join(

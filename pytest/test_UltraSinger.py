@@ -47,7 +47,7 @@ class TestUltraSinger(unittest.TestCase):
         result = parse_ultrastar_txt()
 
         # Assert
-        self.assertEqual(result, ("  Test Artist   -   Test Title  ",
+        self.assertEqual(result, ("Test Artist - Test Title",
                                   120.0,
                                   os.path.join("path", "to", "output", "Test Artist - Test Title"),
                                   os.path.join("path", "to", "input", "test.mp3"),
