@@ -15,16 +15,13 @@ class Settings:
     use_separated_vocal = True
     create_karaoke = True
     ignore_audio = False
-    input_file_is_ultrastar_txt = False
+    input_file_is_ultrastar_txt = False # todo: to process_data
     keep_cache = False
 
     # Process data Paths
     input_file_path = ""
     output_file_path = ""
-    processing_audio_path = ""
-    cache_path = ""
-    song_output = ""
-
+    
     language = None
     format_version = "1.0.0"
 

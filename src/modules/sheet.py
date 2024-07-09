@@ -5,7 +5,7 @@ from music21 import stream, note, duration, environment, metadata, tempo
 from modules.Midi.midi_creator import MidiSegment
 from modules.console_colors import ULTRASINGER_HEAD, red_highlighted, blue_highlighted
 from modules.os_helper import move
-
+from modules.ProcessData import MediaInfo
 
 def add_metadata_to_stream(stream, artist: str, title: str, bpm: int):
     stream.metadata = metadata.Metadata()
@@ -34,15 +34,14 @@ def add_midi_segments_to_stream(stream, midi_segments: MidiSegment):
 def create_sheet(midi_segments: MidiSegment,
                  settings,
                  filename: str,
-                 artist: str,
-                 title: str,
+                 media_info: MediaInfo,
                  bpm: float,):
     print(f"{ULTRASINGER_HEAD} Creating music sheet with {blue_highlighted('MuseScore')}")
     success = set_environment_variables(settings.musescore_path)
     if not success:
         return
     s = stream.Stream()
-    add_metadata_to_stream(s, artist, title, int(bpm))
+    add_metadata_to_stream(s, media_info.artist, media_info.title, int(bpm))
     add_midi_segments_to_stream(s, midi_segments)
     export_stream_to_pdf(s, os.path.join(settings.song_output, f"{filename}.pdf"))
     move(os.path.join(settings.song_output, f"{filename}.musicxml"), os.path.join(settings.cache_path, f"{filename}.musicxml"))
