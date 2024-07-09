@@ -4,11 +4,10 @@ import re
 import langcodes
 from packaging import version
 
-from modules.console_colors import ULTRASINGER_HEAD
+from modules.console_colors import ULTRASINGER_HEAD, blue_highlighted
 from modules.Ultrastar.ultrastar_converter import (
     real_bpm_to_ultrastar_bpm,
     second_to_beat,
-    beat_to_second,
 )
 from modules.Ultrastar.ultrastar_txt import UltrastarTxtValue, UltrastarTxtTag, UltrastarTxtNoteTypeTag, \
     FILE_ENCODING
@@ -75,9 +74,8 @@ def create_ultrastar_txt_from_automation(
 ) -> None:
     """Creates an Ultrastar txt file from the automation data"""
 
-    print(
-        f"{ULTRASINGER_HEAD} Creating {ultrastar_file_output} from transcription."
-    )
+    print(f"{ULTRASINGER_HEAD} Creating UltraStar file {ultrastar_file_output}")
+    print(f"{ULTRASINGER_HEAD} Using UltraStar {blue_highlighted(f'Format Version {ultrastar_class.version}')}")
 
     ultrastar_bpm = real_bpm_to_ultrastar_bpm(real_bpm)
     multiplication = get_multiplier(ultrastar_bpm)

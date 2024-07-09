@@ -2,6 +2,7 @@
 Date: 2024.07.07
 - Changes:
   - Reduce Memory usage by clearing cache in whisper
+  - Added lyrics to midi file
   - Some bug fixes and improved error handling and logs
 
 # Version: 0.0.11

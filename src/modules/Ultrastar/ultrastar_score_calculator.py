@@ -19,7 +19,7 @@ from modules.Ultrastar.ultrastar_converter import (
     get_start_time_from_ultrastar,
     ultrastar_note_to_midi_note,
 )
-from modules.Ultrastar.ultrastar_txt import UltrastarTxtValue
+from modules.Ultrastar.ultrastar_txt import UltrastarTxtValue, UltrastarTxtNoteTypeTag
 from modules.Pitcher.pitched_data import PitchedData
 
 MAX_SONG_SCORE = 10000
@@ -40,13 +40,13 @@ class Points:
 def add_point(note_type: str, points: Points) -> Points:
     """Add calculated points to the points object."""
 
-    if note_type == ":":
+    if note_type == UltrastarTxtNoteTypeTag.NORMAL:
         points.notes += 1
-    elif note_type == "*":
+    elif note_type == UltrastarTxtNoteTypeTag.GOLDEN:
         points.golden_notes += 2
-    elif note_type == "R":
+    elif note_type == UltrastarTxtNoteTypeTag.RAP:
         points.rap += 1
-    elif note_type == "G":
+    elif note_type == UltrastarTxtNoteTypeTag.RAP_GOLDEN:
         points.golden_rap += 2
     return points
 
@@ -97,15 +97,13 @@ def calculate_score(pitched_data: PitchedData, ultrastar_class: UltrastarTxtValu
     simple_points = Points()
     accurate_points = Points()
 
-    reachable_line_bonus_per_word = MAX_SONG_LINE_BONUS / len(
-        ultrastar_class.words
-    )
+    reachable_line_bonus_per_word = MAX_SONG_LINE_BONUS / len(ultrastar_class.UltrastarNoteLines)
 
-    for i, word in enumerate(ultrastar_class.words):
-        if ultrastar_class.words == "":
+    for i, note_line in enumerate(ultrastar_class.UltrastarNoteLines):
+        if note_line.word == "":
             continue
 
-        if ultrastar_class.noteType[i] == "F":
+        if note_line.noteType == UltrastarTxtNoteTypeTag.FREESTYLE:
             continue
 
         start_time = get_start_time_from_ultrastar(ultrastar_class, i)
@@ -118,9 +116,7 @@ def calculate_score(pitched_data: PitchedData, ultrastar_class: UltrastarTxtValu
         accurate_part_line_bonus_points = 0
         simple_part_line_bonus_points = 0
 
-        ultrastar_midi_note = ultrastar_note_to_midi_note(
-            int(ultrastar_class.pitches[i])
-        )
+        ultrastar_midi_note = ultrastar_note_to_midi_note(int(note_line.pitch))
         ultrastar_note = librosa.midi_to_note(ultrastar_midi_note)
 
         for part in range(parts):
@@ -130,22 +126,16 @@ def calculate_score(pitched_data: PitchedData, ultrastar_class: UltrastarTxtValu
             if end_time < end or part == parts - 1:
                 end = end_time
 
-            midi_segment = create_midi_note_from_pitched_data(
-                start, end, pitched_data, word
-            )
+            midi_segment = create_midi_note_from_pitched_data(start, end, pitched_data, note_line.word)
 
             if midi_segment.note[:-1] == ultrastar_note[:-1]:
                 # Ignore octave high
-                simple_points = add_point(
-                    ultrastar_class.noteType[i], simple_points
-                )
+                simple_points = add_point(note_line.noteType, simple_points)
                 simple_part_line_bonus_points += 1
 
             if midi_segment.note == ultrastar_note:
                 # Octave high must be the same
-                accurate_points = add_point(
-                    ultrastar_class.noteType[i], accurate_points
-                )
+                accurate_points = add_point(note_line.noteType, accurate_points)
                 accurate_part_line_bonus_points += 1
 
             accurate_points.parts += 1

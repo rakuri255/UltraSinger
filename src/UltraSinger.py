@@ -851,7 +851,7 @@ def create_midi_file(
         convert_ultrastar_to_midi_instrument(ultrastar_class)
     ]
     midi_output = os.path.join(song_output, f"{basename_without_ext}.mid")
-    instruments_to_midi(voice_instrument, real_bpm, midi_output)
+    instruments_to_midi(voice_instrument, real_bpm, midi_output, ultrastar_class.UltrastarNoteLines)
 
 
 def pitch_audio(
@@ -884,22 +884,22 @@ def pitch_audio(
             json = file.read()
             pitched_data = PitchedData.from_json(json)
 
+    start_times = []
+    end_times = []
+    words = []
     if not settings.ignore_audio:
-        start_times = []
-        end_times = []
-        words = []
+
         for i, midi_segment in enumerate(transcribed_data):
             start_times.append(midi_segment.start)
             end_times.append(midi_segment.end)
             words.append(midi_segment.word)
-        midi_segments = create_midi_notes_from_pitched_data(
-            start_times, end_times, words, pitched_data
-        )
-
     else:
-        midi_segments = create_midi_notes_from_pitched_data(
-            ultrastar_class.startTimes, ultrastar_class.endTimes, ultrastar_class.words, pitched_data
-        )
+        for i, note_lines in enumerate(ultrastar_class.UltrastarNoteLines):
+            start_times.append(note_lines.startTime)
+            end_times.append(note_lines.endTime)
+            words.append(note_lines.word)
+
+    midi_segments = create_midi_notes_from_pitched_data(start_times, end_times, words, pitched_data)
 
     # fixme: should be in UltraStar
     ultrastar_note_numbers = convert_midi_notes_to_ultrastar_notes(midi_segments)

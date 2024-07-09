@@ -10,16 +10,13 @@ from dataclasses import dataclass
 
 from modules.Pitcher.pitcher import get_frequencies_with_high_confidence
 from modules.Ultrastar.ultrastar_converter import (
-    get_end_time_from_ultrastar,
-    get_start_time_from_ultrastar,
-    ultrastar_note_to_midi_note,
-    midi_note_to_ultrastar_note
+    midi_note_to_ultrastar_note,
+    ultrastar_note_to_midi_note
 )
 from modules.console_colors import (
     ULTRASINGER_HEAD,
-    red_highlighted,
 )
-from modules.Ultrastar.ultrastar_txt import UltrastarTxtValue
+from modules.Ultrastar.ultrastar_txt import UltrastarTxtValue, UltrastarNoteLine
 from modules.Pitcher.pitched_data import PitchedData
 
 
@@ -28,27 +25,24 @@ def convert_ultrastar_to_midi_instrument(ultrastar_class: UltrastarTxtValue) -> 
 
     print(f"{ULTRASINGER_HEAD} Creating midi instrument from Ultrastar txt")
 
-    instrument = pretty_midi.Instrument(program=0)
+    instrument = pretty_midi.Instrument(program=0, name="Vocals")
     velocity = 100
 
-    for i in enumerate(ultrastar_class.words):
-        pos = i[0]
-        start_time = get_start_time_from_ultrastar(ultrastar_class, pos)
-        end_time = get_end_time_from_ultrastar(ultrastar_class, pos)
-        pitch = ultrastar_note_to_midi_note(int(ultrastar_class.pitches[pos]))
-
-        note = pretty_midi.Note(velocity, pitch, start_time, end_time)
+    for i, note_line in enumerate(ultrastar_class.UltrastarNoteLines):
+        note = pretty_midi.Note(velocity, ultrastar_note_to_midi_note(note_line.pitch), note_line.startTime, note_line.endTime)
         instrument.notes.append(note)
 
     return instrument
 
 
-def instruments_to_midi(instruments: list[object], bpm: float, midi_output: str) -> None:
+def instruments_to_midi(instruments: list[object], bpm: float, midi_output: str, ultrastar_note_line: UltrastarNoteLine) -> None:
     """Write instruments to midi file"""
 
     print(f"{ULTRASINGER_HEAD} Creating midi file -> {midi_output}")
 
     midi_data = pretty_midi.PrettyMIDI(initial_tempo=bpm)
+    for i, note_line in enumerate(ultrastar_note_line):
+        midi_data.lyrics.append(pretty_midi.Lyric(text=note_line.word, time=note_line.startTime))
     for instrument in instruments:
         midi_data.instruments.append(instrument)
     midi_data.write(midi_output)

@@ -2,14 +2,16 @@
 
 from modules.console_colors import ULTRASINGER_HEAD
 from modules.Ultrastar.ultrastar_converter import (
-    get_end_time_from_ultrastar,
-    get_start_time_from_ultrastar,
+    get_end_time,
+    get_start_time,
 )
 from modules.Ultrastar.ultrastar_txt import (
     UltrastarTxtValue,
     UltrastarTxtTag,
     UltrastarTxtNoteTypeTag,
     FILE_ENCODING,
+    UltrastarNoteLine,
+    get_note_type_from_string
 )
 
 
@@ -65,20 +67,16 @@ def parse_ultrastar_txt(input_file: str) -> UltrastarTxtValue:
             # [3] pitch
             # [4] word
 
-            ultrastar_class.noteType.append(parts[0])
-            ultrastar_class.startBeat.append(parts[1])
-            ultrastar_class.durations.append(parts[2])
-            ultrastar_class.pitches.append(parts[3])
-            ultrastar_class.words.append(parts[4] if len(parts) > 4 else "")
+            ultrastar_note_line = UltrastarNoteLine(noteType=get_note_type_from_string(parts[0]),
+                              startBeat=float(parts[1]),
+                              duration=float(parts[2]),
+                              pitch=int(parts[3]),
+                              word=parts[4] if len(parts) > 4 else "",
+                            startTime=get_start_time(ultrastar_class.gap, ultrastar_class.bpm, float(parts[1])),
+                            endTime=get_end_time(ultrastar_class.gap, ultrastar_class.bpm, float(parts[1]), float(parts[2])))
 
-            # do always as last
-            pos = len(ultrastar_class.startBeat) - 1
-            ultrastar_class.startTimes.append(
-                get_start_time_from_ultrastar(ultrastar_class, pos)
-            )
-            ultrastar_class.endTimes.append(
-                get_end_time_from_ultrastar(ultrastar_class, pos)
-            )
+            ultrastar_class.UltrastarNoteLines.append(ultrastar_note_line)
+
             # todo: Progress?
 
     return ultrastar_class
