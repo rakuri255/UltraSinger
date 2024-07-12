@@ -250,8 +250,9 @@ def hyphenate_each_word(language: str, transcribed_data: list[TranscribedData]) 
             hyphenated_word.append(
                 hyphenation(transcribed_data[pos].word, hyphenator)
             )
-    except:
+    except Exception as e:
         print(f"{ULTRASINGER_HEAD} {red_highlighted('Error in hyphenation for language ')} {blue_highlighted(language)}{red_highlighted(', maybe you want to disable it?')}")
+        print(f"\t{red_highlighted(f'->{e}')}")
         return None
 
     return hyphenated_word
