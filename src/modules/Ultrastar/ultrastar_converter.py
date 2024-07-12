@@ -1,7 +1,7 @@
 """Ultrastar Converter"""
-
+import librosa
 from modules.Ultrastar.ultrastar_txt import UltrastarTxtValue
-
+from modules.Midi.MidiSegment import MidiSegment
 def real_bpm_to_ultrastar_bpm(real_bpm: float) -> float:
     """Converts real BPM to UltraStar BPM"""
     # The UltraStar BPM info is a fourth beat of the real BPM
@@ -82,3 +82,18 @@ def get_end_time(gap: str, ultrastar_bpm: str, startBeat: float, duration: float
         + gap
     )
     return end_time
+
+def ultrastar_to_midi_segments(ultrastar_txt: UltrastarTxtValue) -> list[MidiSegment]:
+    """Converts an Ultrastar txt to Midi segments"""
+    midi_segments = []
+    for i, data in enumerate(ultrastar_txt.UltrastarNoteLines):
+        start_time = get_start_time_from_ultrastar(ultrastar_txt, i)
+        end_time = get_end_time_from_ultrastar(ultrastar_txt, i)
+        midi_segments.append(
+            MidiSegment(librosa.midi_to_note(ultrastar_note_to_midi_note(data.pitch)),
+                start_time,
+                end_time,
+                data.word,
+            )
+        )
+    return midi_segments

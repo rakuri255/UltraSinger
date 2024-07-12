@@ -20,7 +20,7 @@ class Settings:
 
     # Process data Paths
     input_file_path = ""
-    output_file_path = ""
+    output_folder_path = ""
     
     language = None
     format_version = "1.0.0"

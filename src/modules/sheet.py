@@ -2,7 +2,7 @@ import os.path
 import re
 
 from music21 import stream, note, duration, environment, metadata, tempo
-from modules.Midi.midi_creator import MidiSegment
+from modules.Midi.MidiSegment import MidiSegment
 from modules.console_colors import ULTRASINGER_HEAD, red_highlighted, blue_highlighted
 from modules.os_helper import move
 from modules.ProcessData import MediaInfo
@@ -15,7 +15,7 @@ def add_metadata_to_stream(stream, artist: str, title: str, bpm: int):
     stream.insert(0, metronome_mark)
 
 
-def add_midi_segments_to_stream(stream, midi_segments: MidiSegment):
+def add_midi_segments_to_stream(stream, midi_segments: list[MidiSegment]):
     for segment in midi_segments:
         # Convert the note name to a music21 note
         m21_note = note.Note(replace_unsupported_accidentals(segment.note))
@@ -31,7 +31,7 @@ def add_midi_segments_to_stream(stream, midi_segments: MidiSegment):
         stream.append(m21_note)
 
 
-def create_sheet(midi_segments: MidiSegment,
+def create_sheet(midi_segments: list[MidiSegment],
                  settings,
                  filename: str,
                  media_info: MediaInfo,

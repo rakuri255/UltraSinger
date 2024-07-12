@@ -41,7 +41,7 @@ def download_youtube_audio(url: str, clear_filename: str, output_path: str):
     start_download(ydl_opts, url)
 
 
-def download_youtube_thumbnail(url: str, clear_filename: str, output_path: str):
+def download_youtube_thumbnail(url: str, clear_filename: str, output_path: str) -> str:
     """Download thumbnail from YouTube"""
 
     print(f"{ULTRASINGER_HEAD} Downloading thumbnail")
@@ -50,10 +50,11 @@ def download_youtube_thumbnail(url: str, clear_filename: str, output_path: str):
         "writethumbnail": True,
     }
 
-    download_and_convert_thumbnail(ydl_opts, url, clear_filename, output_path)
+    thumbnail_url = download_and_convert_thumbnail(ydl_opts, url, clear_filename, output_path)
+    return thumbnail_url
 
 
-def download_and_convert_thumbnail(ydl_opts, url: str, clear_filename: str, output_path: str) -> None:
+def download_and_convert_thumbnail(ydl_opts, url: str, clear_filename: str, output_path: str) -> str:
     """Download and convert thumbnail from YouTube"""
 
     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
@@ -67,6 +68,9 @@ def download_and_convert_thumbnail(ydl_opts, url: str, clear_filename: str, outp
             image_path = os.path.join(output_path, clear_filename + " [CO].jpg")
             image.save(image_path, "JPEG")
             crop_image_to_square(image_path)
+            return thumbnail_url
+        else:
+            return ""
 
 
 def download_youtube_video(url: str, clear_filename: str, output_path: str) -> None:

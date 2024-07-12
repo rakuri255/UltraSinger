@@ -13,7 +13,7 @@ from modules.console_colors import ULTRASINGER_HEAD
 from modules.Pitcher.pitched_data import PitchedData
 from modules.Pitcher.pitcher import get_pitched_data_with_high_confidence
 from modules.Speech_Recognition.TranscribedData import TranscribedData
-from modules.Midi.midi_creator import MidiSegment
+from modules.Midi.MidiSegment import MidiSegment
 
 
 @dataclass

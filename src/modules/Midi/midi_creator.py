@@ -6,8 +6,8 @@ from collections import Counter
 import librosa
 import numpy as np
 import pretty_midi
-from dataclasses import dataclass
 
+from modules.Midi.MidiSegment import MidiSegment
 from modules.Pitcher.pitcher import get_frequencies_with_high_confidence
 from modules.Ultrastar.ultrastar_converter import (
     midi_note_to_ultrastar_note,
@@ -20,6 +20,21 @@ from modules.Ultrastar.ultrastar_txt import UltrastarTxtValue, UltrastarNoteLine
 from modules.Pitcher.pitched_data import PitchedData
 
 
+def create_midi_instrument(midi_segments: list[MidiSegment]) -> object:
+    """Converts an Ultrastar data to a midi instrument"""
+
+    print(f"{ULTRASINGER_HEAD} Creating midi instrument")
+
+    instrument = pretty_midi.Instrument(program=0, name="Vocals")
+    velocity = 100
+
+    for i, midi_segment in enumerate(midi_segments):
+        note = pretty_midi.Note(velocity, midi_segment.note, midi_segment.start, midi_segment.end)
+        instrument.notes.append(note)
+
+    return instrument
+
+# Todo: delete?
 def convert_ultrastar_to_midi_instrument(ultrastar_class: UltrastarTxtValue) -> object:
     """Converts an Ultrastar data to a midi instrument"""
 
@@ -35,14 +50,14 @@ def convert_ultrastar_to_midi_instrument(ultrastar_class: UltrastarTxtValue) -> 
     return instrument
 
 
-def instruments_to_midi(instruments: list[object], bpm: float, midi_output: str, ultrastar_note_line: UltrastarNoteLine) -> None:
+def instruments_to_midi(instruments: list[object], bpm: float, midi_output: str, midi_segments: list[MidiSegment]) -> None:
     """Write instruments to midi file"""
 
     print(f"{ULTRASINGER_HEAD} Creating midi file -> {midi_output}")
 
     midi_data = pretty_midi.PrettyMIDI(initial_tempo=bpm)
-    for i, note_line in enumerate(ultrastar_note_line):
-        midi_data.lyrics.append(pretty_midi.Lyric(text=note_line.word, time=note_line.startTime))
+    for i, midi_segment in enumerate(midi_segments):
+        midi_data.lyrics.append(pretty_midi.Lyric(text=midi_segment.word, time=midi_segment.start))
     for instrument in instruments:
         midi_data.instruments.append(instrument)
     midi_data.write(midi_output)
@@ -77,15 +92,8 @@ def find_nearest_index(array: list[float], value: float) -> int:
     return idx
 
 
-@dataclass
-class MidiSegment:
-  note: str
-  start: float
-  end: float
-  word: str
-
-
-def create_midi_notes_from_pitched_data(start_times: list[float], end_times: list[float], words: list[str], pitched_data: PitchedData) -> list[MidiSegment]:
+def create_midi_notes_from_pitched_data(start_times: list[float], end_times: list[float], words: list[str], pitched_data: PitchedData) -> list[
+    MidiSegment]:
     """Create midi notes from pitched data"""
     print(f"{ULTRASINGER_HEAD} Creating midi notes from pitched data")
 
