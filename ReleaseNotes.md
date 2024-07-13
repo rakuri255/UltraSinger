@@ -1,3 +1,8 @@
+# Version: 0.0.12
+Date: 2024.07.13
+- Changes:
+  - Fix hypen language download
+
 # Version: 0.0.11
 Date: 2024.06.02
 - Changes:
