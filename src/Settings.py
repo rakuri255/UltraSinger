@@ -6,7 +6,7 @@ from dataclasses_json import dataclass_json
 @dataclass_json
 @dataclass
 class Settings:
-    APP_VERSION = "0.0.12-dev1"
+    APP_VERSION = "0.0.12-dev2"
 
     create_midi = True
     create_plot = False
