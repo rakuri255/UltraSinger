@@ -98,6 +98,7 @@ def calculate_score(pitched_data: PitchedData, ultrastar_class: UltrastarTxtValu
     accurate_points = Points()
 
     reachable_line_bonus_per_word = MAX_SONG_LINE_BONUS / len(ultrastar_class.UltrastarNoteLines)
+    step_size = 0.09  # Todo: Whats is the step size of the game? Its not 1/bps -> one beat in seconds s = 60/bpm
 
     for i, note_line in enumerate(ultrastar_class.UltrastarNoteLines):
         if note_line.word == "":
@@ -109,7 +110,6 @@ def calculate_score(pitched_data: PitchedData, ultrastar_class: UltrastarTxtValu
         start_time = get_start_time_from_ultrastar(ultrastar_class, i)
         end_time = get_end_time_from_ultrastar(ultrastar_class, i)
         duration = end_time - start_time
-        step_size = 0.09  # Todo: Whats is the step size of the game? Its not 1/bps -> one beat in seconds s = 60/bpm
         parts = int(duration / step_size)
         parts = 1 if parts == 0 else parts
 

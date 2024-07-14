@@ -25,9 +25,6 @@ class Settings:
     language = None
     format_version = "1.0.0"
 
-    # Transcribe
-    audio_chunk_folder_name = "audio-chunks"
-
     # Whisper
     transcriber = "whisper"  # whisper
     whisper_model = "large-v2"  # Multilingual model tiny|base|small|medium|large-v1|large-v2

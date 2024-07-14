@@ -3,7 +3,7 @@
 import unittest
 from packaging import version
 from unittest.mock import patch, mock_open
-from src.modules.Ultrastar.ultrastar_writer import create_ultrastar_txt_from_automation, deviation
+from src.modules.Ultrastar.ultrastar_writer import create_ultrastar_txt, deviation
 from src.modules.Speech_Recognition.TranscribedData import TranscribedData
 from src.modules.Ultrastar.ultrastar_txt import UltrastarTxtValue, UltrastarTxtTag
 
@@ -166,7 +166,7 @@ class TestCreateUltrastarTxt(unittest.TestCase):
     @staticmethod
     def act(bpm, default_ultrastar_class, note_numbers, transcribed_data, ultrastar_file_output):
         with patch("builtins.open", mock_open()) as mock_file:
-            create_ultrastar_txt_from_automation(
+            create_ultrastar_txt(
                 transcribed_data, note_numbers, ultrastar_file_output,
                 default_ultrastar_class, bpm
             )

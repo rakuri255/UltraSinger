@@ -3,7 +3,7 @@
 import unittest
 import os
 from unittest.mock import patch, MagicMock
-from src.UltraSinger import format_separated_string
+from modules.Ultrastar.ultrastar_writer import format_separated_string
 from src.UltraSinger import extract_year
 from src.UltraSinger import parse_ultrastar_txt
 from src import UltraSinger

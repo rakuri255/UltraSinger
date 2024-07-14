@@ -3,10 +3,12 @@
 import string
 
 from hyphen import Hyphenator, dictools
+from tqdm import tqdm
 
+from modules.Speech_Recognition.TranscribedData import TranscribedData
 from modules.console_colors import (
     ULTRASINGER_HEAD,
-    blue_highlighted,
+    blue_highlighted, red_highlighted,
 )
 
 def language_check(language="en") -> str | None:
@@ -52,7 +54,7 @@ def contains_punctuation(word: str) -> bool:
     return any(elem in word for elem in string.punctuation)
 
 
-def clean_word(word: str):
+def __clean_word(word: str):
     """Remove punctuation from word"""
     cleaned_string = ""
     removed_indices = []
@@ -66,7 +68,7 @@ def clean_word(word: str):
     return cleaned_string, removed_indices, removed_symbols
 
 
-def insert_removed_symbols(separated_array, removed_indices, symbols):
+def __insert_removed_symbols(separated_array, removed_indices, symbols):
     """Insert symbols into the syllables"""
     result = []
     symbol_index = 0
@@ -94,7 +96,7 @@ def insert_removed_symbols(separated_array, removed_indices, symbols):
     return result
 
 
-def create_hyphenator(lang_region: str) -> Hyphenator:
+def __create_hyphenator(lang_region: str) -> Hyphenator:
     """Create hyphenator"""
     hyphenator = Hyphenator(lang_region)
     return hyphenator
@@ -103,7 +105,7 @@ def create_hyphenator(lang_region: str) -> Hyphenator:
 def hyphenation(word: str, hyphenator: Hyphenator) -> list[str] | None:
     """Hyphenate word"""
 
-    cleaned_string, removed_indices, removed_symbols = clean_word(word)
+    cleaned_string, removed_indices, removed_symbols = __clean_word(word)
 
     # Hyphenation of word longer than 100 characters throws exception
     if len(cleaned_string) > 100:
@@ -116,8 +118,36 @@ def hyphenation(word: str, hyphenator: Hyphenator) -> list[str] | None:
         hyphen = []
         for i in range(length):
             hyphen.append(syllabus[i])
-        hyphen = insert_removed_symbols(hyphen, removed_indices, removed_symbols)
+        hyphen = __insert_removed_symbols(hyphen, removed_indices, removed_symbols)
     else:
         hyphen = None
 
     return hyphen
+
+
+def hyphenate_each_word(
+        language: str, transcribed_data: list[TranscribedData]
+) -> list[list[str]] | None:
+    """Hyphenate each word in the transcribed data."""
+    lang_region = language_check(language)
+    if lang_region is None:
+        print(
+            f"{ULTRASINGER_HEAD} {red_highlighted('Error in hyphenation for language ')} {blue_highlighted(language)}{red_highlighted(', maybe you want to disable it?')}"
+        )
+        return None
+
+    hyphenated_word = []
+    try:
+        hyphenator = __create_hyphenator(lang_region)
+        for i in tqdm(enumerate(transcribed_data)):
+            pos = i[0]
+            hyphenated_word.append(
+                hyphenation(transcribed_data[pos].word, hyphenator)
+            )
+    except Exception as e:
+        print(
+            f"{ULTRASINGER_HEAD} {red_highlighted('Error in hyphenation for language ')} {blue_highlighted(language)}{red_highlighted(', maybe you want to disable it?')}")
+        print(f"\t{red_highlighted(f'->{e}')}")
+        return None
+
+    return hyphenated_word

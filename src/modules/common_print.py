@@ -1,3 +1,5 @@
+"""Common Prints"""
+
 from modules.console_colors import ULTRASINGER_HEAD, gold_highlighted, light_blue_highlighted
 
 
@@ -73,3 +75,11 @@ def print_support() -> None:
     print(
         f"{ULTRASINGER_HEAD} {gold_highlighted('This will help a lot to keep this project alive and improved.')}"
     )
+
+
+def print_version(app_version: str) -> None:
+    """Print version text"""
+    print()
+    print(f"{ULTRASINGER_HEAD} {gold_highlighted('*****************************')}")
+    print(f"{ULTRASINGER_HEAD} {gold_highlighted('UltraSinger Version:')} {light_blue_highlighted(app_version)}")
+    print(f"{ULTRASINGER_HEAD} {gold_highlighted('*****************************')}")

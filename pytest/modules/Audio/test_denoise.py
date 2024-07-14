@@ -2,7 +2,7 @@
 
 import os
 import unittest
-from src.modules.Audio.denoise import ffmpeg_reduce_noise
+from src.modules.Audio.denoise import denoise_vocal_audio
 import pytest
 
 
@@ -17,7 +17,7 @@ class DenoiseTest(unittest.TestCase):
         test_output = test_dir + "/test_output"
 
         # Act
-        ffmpeg_reduce_noise(test_file_abs_path, test_output + "/output_" + test_file_name)
+        denoise_vocal_audio(test_file_abs_path, test_output + "/output_" + test_file_name)
 
 
 if __name__ == "__main__":

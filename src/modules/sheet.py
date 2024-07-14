@@ -32,19 +32,20 @@ def add_midi_segments_to_stream(stream, midi_segments: list[MidiSegment]):
 
 
 def create_sheet(midi_segments: list[MidiSegment],
-                 settings,
+                 output_folder_path: str,
+                 cache_folder_path: str,
+                 musescore_path: str,
                  filename: str,
-                 media_info: MediaInfo,
-                 bpm: float,):
+                 media_info: MediaInfo):
     print(f"{ULTRASINGER_HEAD} Creating music sheet with {blue_highlighted('MuseScore')}")
-    success = set_environment_variables(settings.musescore_path)
+    success = set_environment_variables(musescore_path)
     if not success:
         return
     s = stream.Stream()
-    add_metadata_to_stream(s, media_info.artist, media_info.title, int(bpm))
+    add_metadata_to_stream(s, media_info.artist, media_info.title, int(media_info.bpm))
     add_midi_segments_to_stream(s, midi_segments)
-    export_stream_to_pdf(s, os.path.join(settings.song_output, f"{filename}.pdf"))
-    move(os.path.join(settings.song_output, f"{filename}.musicxml"), os.path.join(settings.cache_path, f"{filename}.musicxml"))
+    export_stream_to_pdf(s, os.path.join(output_folder_path, f"{filename}.pdf"))
+    move(os.path.join(output_folder_path, f"{filename}.musicxml"), os.path.join(cache_folder_path, f"{filename}.musicxml"))
 
 def round_to_nearest_quarter(number: float) -> float:
     return round(number * 4) / 4
