@@ -207,7 +207,8 @@ def InitProcessData():
         process_data.basename = basename
         process_data.process_data_paths.audio_output_file_path = audio_file_path
         # todo: ignore transcribe
-        settings.ignore_audio = True
+        if settings.ignore_audio is None:
+            settings.ignore_audio = True
 
     elif settings.input_file_path.startswith("https:"):
         # Youtube

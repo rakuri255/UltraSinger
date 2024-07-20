@@ -20,7 +20,7 @@ class Settings:
     hyphenation: bool = True
     use_separated_vocal: bool = True
     create_karaoke: bool = True
-    ignore_audio: bool = False
+    ignore_audio: Optional[bool] = None
     input_file_is_ultrastar_txt: bool = False # todo: to process_data
     keep_cache: bool = False
 
