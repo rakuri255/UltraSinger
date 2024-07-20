@@ -218,7 +218,7 @@ def InitProcessData():
             settings.output_folder_path,
             process_data.process_data_paths.audio_output_file_path,
             process_data.media_info,
-        ) = download_from_youtube()
+        ) = download_from_youtube(settings.input_file_path, settings.output_folder_path)
     else:
         # Audio File
         print(f"{ULTRASINGER_HEAD} {gold_highlighted('full automatic mode')}")

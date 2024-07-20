@@ -122,7 +122,7 @@ def download_from_youtube(input_file_path: str, output_folder_path: str) -> tupl
         input_file_path, basename_without_ext, song_output
     )
     audio_file_path = os.path.join(song_output, basename)
-    real_bpm = get_bpm_from_file(input_file_path)
+    real_bpm = get_bpm_from_file(audio_file_path)
     return (
         basename_without_ext,
         song_output,
