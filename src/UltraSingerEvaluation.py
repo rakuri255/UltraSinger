@@ -21,10 +21,11 @@ from modules.console_colors import ULTRASINGER_HEAD, red_highlighted
 
 test_input_folder = os.path.normpath(os.path.abspath(__file__ + "/../../test_input"))
 test_output_folder = os.path.normpath(os.path.abspath(__file__ + "/../../test_output"))
+
 test_start_time = datetime.now()
-test_run_folder = os.path.join(
-    test_output_folder, test_start_time.strftime("%Y-%m-%d_%H-%M-%S")
-)
+
+test_run_name = test_start_time.strftime("%Y-%m-%d_%H-%M-%S")
+test_run_folder = os.path.join(test_output_folder, test_run_name)
 test_run_songs_folder = os.path.join(test_run_folder, "songs")
 
 
@@ -65,7 +66,7 @@ def main() -> None:
 
     print(f"{ULTRASINGER_HEAD} Running evaluation for {len(test_songs)} songs")
 
-    test_run = TestRun(base_settings, test_start_time)
+    test_run = TestRun(test_run_name, base_settings, test_start_time)
     for index, test_song in enumerate(test_songs):
         print(f"{ULTRASINGER_HEAD} ========================")
         print(

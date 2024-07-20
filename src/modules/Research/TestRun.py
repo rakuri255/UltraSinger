@@ -27,6 +27,7 @@ class TestedSong:
 class TestRun:
     """Test run"""
 
+    name: str
     settings: Settings = None
     start_time: datetime.datetime = None
     end_time: datetime.datetime = None

@@ -82,7 +82,10 @@ def main() -> None:
 
         records = pandas.DataFrame.from_records(tested_songs_dicts)
         pandas.options.display.max_columns = records.shape[1]
+        pandas.set_option('display.expand_frame_repr', False)
         describe_result = records.describe(percentiles=[0.25, 0.5, 0.75, 0.95, 0.99])
+
+        print("Test run:", test_run.name)
         print(describe_result)
 
     print("Done")
