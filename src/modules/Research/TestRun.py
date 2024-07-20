@@ -1,9 +1,9 @@
 import datetime
+
+from Settings import Settings
 from dataclasses import dataclass, field
 
 from dataclasses_json import dataclass_json
-
-from Settings import Settings
 
 
 @dataclass_json
@@ -27,7 +27,7 @@ class TestedSong:
 class TestRun:
     """Test run"""
 
-    settings: Settings
+    settings: Settings = None
     start_time: datetime.datetime = None
     end_time: datetime.datetime = None
     tested_songs: list[TestedSong] = field(default_factory=lambda: [])

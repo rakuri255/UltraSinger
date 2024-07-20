@@ -9,8 +9,8 @@ import importlib.util
 import pandas
 
 import UltraSinger
-from Settings import Settings
 from modules.DeviceDetection.device_detection import check_gpu_support
+from Settings import Settings
 from modules.Research.TestRun import TestRun, TestedSong
 from modules.Research.TestSong import TestSong
 from modules.Ultrastar import ultrastar_parser
