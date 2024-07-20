@@ -9,7 +9,7 @@ import Levenshtein
 
 from packaging import version
 
-from modules import os_helper
+from modules import os_helper, timer
 from modules.Audio.denoise import denoise_vocal_audio
 from modules.Audio.separation import separate_vocal_from_audio
 from modules.Audio.vocal_chunks import (

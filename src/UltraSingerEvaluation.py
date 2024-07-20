@@ -9,6 +9,7 @@ import importlib.util
 import pandas
 
 import UltraSinger
+from modules import timer
 from modules.DeviceDetection.device_detection import check_gpu_support
 from Settings import Settings
 from modules.Research.TestRun import TestRun, TestedSong
@@ -72,6 +73,8 @@ def main() -> None:
         print(
             f"{ULTRASINGER_HEAD} {index+1}/{len(test_songs)}: {os.path.basename(test_song.input_txt)}"
         )
+
+        timer.log(f"{index+1}/{len(test_songs)}: {os.path.basename(test_song.input_txt)}")
 
         # prepare cache directory
         song_cache_path = os.path.join(test_song.input_folder, "cache")
