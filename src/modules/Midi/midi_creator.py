@@ -106,20 +106,20 @@ def find_nearest_index(array: list[float], value: float) -> int:
 def create_midi_notes_from_pitched_data(start_times: list[float], end_times: list[float], words: list[str], pitched_data: PitchedData) -> list[
     MidiSegment]:
     """Create midi notes from pitched data"""
-    print(f"{ULTRASINGER_HEAD} Creating midi notes from pitched data")
+    print(f"{ULTRASINGER_HEAD} Creating midi_segments")
 
-    new_segments = []
+    midi_segments = []
 
     for index, start_time in enumerate(start_times):
         end_time = end_times[index]
         word = str(words[index])
 
         midi_segment = create_midi_note_from_pitched_data(start_time, end_time, pitched_data, word)
-        new_segments.append(midi_segment)
+        midi_segments.append(midi_segment)
 
         # todo: Progress?
         # print(filename + " f: " + str(mean))
-    return new_segments
+    return midi_segments
 
 
 def create_midi_note_from_pitched_data(start_time: float, end_time: float, pitched_data: PitchedData, word: str) -> MidiSegment:

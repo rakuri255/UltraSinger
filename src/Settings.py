@@ -2,6 +2,9 @@ from dataclasses import dataclass
 
 from dataclasses_json import dataclass_json
 
+from modules.Audio.separation import DemucsModel
+from modules.Speech_Recognition.Whisper import WhisperModel
+
 
 @dataclass_json
 @dataclass
@@ -25,9 +28,12 @@ class Settings:
     language = None
     format_version = "1.0.0"
 
+    # Demucs
+    demucs_model = DemucsModel.HTDEMUCS  # htdemucs|htdemucs_ft|htdemucs_6s|hdemucs_mmi|mdx|mdx_extra|mdx_q|mdx_extra_q|SIG
+
     # Whisper
     transcriber = "whisper"  # whisper
-    whisper_model = "large-v2"  # Multilingual model tiny|base|small|medium|large-v1|large-v2
+    whisper_model = WhisperModel.LARGE_V2  # Multilingual model tiny|base|small|medium|large-v1|large-v2|large-v3
     # English-only model tiny.en|base.en|small.en|medium.en
     whisper_align_model = None   # Model for other languages from huggingface.co e.g -> "gigant/romanian-wav2vec2"
     whisper_batch_size = 16   # reduce if low on GPU mem

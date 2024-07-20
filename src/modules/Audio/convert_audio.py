@@ -16,7 +16,7 @@ def convert_audio_to_mono_wav(input_file_path: str, output_file_path: str) -> No
 
 def convert_wav_to_mp3(input_file_path: str, output_file_path: str) -> None:
     """Convert wav to mp3"""
-    print(f"{ULTRASINGER_HEAD} Converting wav to mp3")
+    print(f"{ULTRASINGER_HEAD} Converting wav to mp3. -> {output_file_path}")
 
     sound = AudioSegment.from_wav(input_file_path)
     sound.export(output_file_path, format="mp3")
