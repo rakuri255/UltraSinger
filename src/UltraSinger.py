@@ -540,10 +540,10 @@ def run() -> tuple[str, Score, Score]:
             pitched_data, ultrastar_class, ultrastar_file_output
         )
 
-    # Add calculated score to Ultrastar txt #Todo: Missing Karaoke
-    ultrastar_writer.add_score_to_ultrastar_txt(
-        ultrastar_file_output, simple_score
-    )
+        # Add calculated score to Ultrastar txt #Todo: Missing Karaoke
+        ultrastar_writer.add_score_to_ultrastar_txt(
+            ultrastar_file_output, simple_score
+        )
 
     # Midi
     if settings.create_midi:
@@ -984,7 +984,7 @@ def pitch_audio(
 
     new_transcribed_data = []
     for i, midi_segment in enumerate(midi_segments):
-        new_transcribed_data.append(TranscribedData({"word": midi_segment.word, "start": midi_segment.start, "end": midi_segment.end, "is_hyphen": None, "confidence": 1}))
+        new_transcribed_data.append(TranscribedData(word=midi_segment.word, start=midi_segment.start, end=midi_segment.end, is_hyphen=None, confidence=1))
 
     return midi_segments, pitched_data, ultrastar_note_numbers, new_transcribed_data
 

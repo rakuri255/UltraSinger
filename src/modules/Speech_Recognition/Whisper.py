@@ -38,8 +38,14 @@ def transcribe_with_whisper(
 
     try:
         torch.cuda.empty_cache()
+        asr_options = {
+            "max_new_tokens": None,
+            "clip_timestamps": None,
+            "hallucination_silence_threshold": None
+        }
+
         loaded_whisper_model = whisperx.load_model(
-            model, language=language, device=device, compute_type=compute_type
+            model, asr_options=asr_options, language=language, device=device, compute_type=compute_type
         )
     except ValueError as value_error:
         if (

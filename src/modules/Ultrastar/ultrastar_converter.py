@@ -59,7 +59,7 @@ def get_start_time_from_ultrastar(
 ) -> float:
     """Calculates the start time from the Ultrastar txt"""
 
-    gap = int(float(ultrastar_class.gap.replace(",", ".")) / 1000)
+    gap = float(ultrastar_class.gap.replace(",", ".")) / 1000
     real_bpm = ultrastar_bpm_to_real_bpm(float(ultrastar_class.bpm.replace(",", ".")))
     start_time = beat_to_second(int(ultrastar_class.startBeat[pos]), real_bpm) + gap
     return start_time
@@ -68,7 +68,7 @@ def get_start_time_from_ultrastar(
 def get_end_time_from_ultrastar(ultrastar_class: UltrastarTxtValue, pos: int) -> float:
     """Calculates the end time from the Ultrastar txt"""
 
-    gap = int(float(ultrastar_class.gap.replace(",", ".")) / 1000)
+    gap = float(ultrastar_class.gap.replace(",", ".")) / 1000
     real_bpm = ultrastar_bpm_to_real_bpm(float(ultrastar_class.bpm.replace(",", ".")))
     end_time = (
         beat_to_second(
@@ -83,7 +83,7 @@ def get_end_time_from_ultrastar(ultrastar_class: UltrastarTxtValue, pos: int) ->
 def map_to_datapoints(
     ultrastar_class: UltrastarTxtValue, step_size: int = 10
 ) -> list[int]:
-    gap = int(float(ultrastar_class.gap.replace(",", ".")))
+    gap = float(ultrastar_class.gap.replace(",", "."))
 
     data = []
 
@@ -92,8 +92,8 @@ def map_to_datapoints(
         if ultrastar_class.noteType[pos] == "F":
             continue
 
-        start_time = int(get_start_time_from_ultrastar(ultrastar_class, pos) * 1000) + gap
-        end_time = int(get_end_time_from_ultrastar(ultrastar_class, pos) * 1000) + gap
+        start_time = int(get_start_time_from_ultrastar(ultrastar_class, pos) * 1000 + gap)
+        end_time = int(get_end_time_from_ultrastar(ultrastar_class, pos) * 1000 + gap)
 
         start_nearest_step = (start_time + step_size - 1) // step_size * step_size
         end_nearest_step = (end_time + step_size - 1) // step_size * step_size
