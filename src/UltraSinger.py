@@ -289,9 +289,9 @@ def CreateUltraStarTxt(process_data: ProcessData):
             process_data, ultrastar_file_output
         )
 
-    # Add calculated score to Ultrastar txt
+        # Add calculated score to Ultrastar txt
     #Todo: Missing Karaoke
-    ultrastar_writer.add_score_to_ultrastar_txt(ultrastar_file_output, simple_score)
+        ultrastar_writer.add_score_to_ultrastar_txt(ultrastar_file_output, simple_score)
     return accurate_score, simple_score, ultrastar_file_output
 
 
