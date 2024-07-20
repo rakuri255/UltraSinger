@@ -7,6 +7,7 @@ from modules.Midi.MidiSegment import MidiSegment
 import numpy
 
 NO_PITCH = -1000
+FREESTYLE = -1001
 
 
 def real_bpm_to_ultrastar_bpm(real_bpm: float) -> float:
@@ -153,7 +154,12 @@ def map_to_datapoints(
         data += [NO_PITCH] * gap_steps_count
 
         pitch_steps_count = duration // step_size
-        data += [int(note_line.pitch)] * pitch_steps_count
+
+        if note_line.noteType == UltrastarTxtNoteTypeTag.FREESTYLE:
+            data += [FREESTYLE] * pitch_steps_count
+        else:
+            data += [int(note_line.pitch)] * pitch_steps_count
+
         previous_step = end_nearest_step
 
     return data
@@ -186,7 +192,7 @@ def compare_pitches(input_ultrastar_class, output_ultrastar_class) -> tuple[floa
         if input_pitch == NO_PITCH and output_pitch == NO_PITCH:
             continue
 
-        if input_pitch == output_pitch:
+        if input_pitch == output_pitch or (input_pitch == FREESTYLE and output_pitch != NO_PITCH):
             matches += 1
         elif input_pitch == NO_PITCH:
             pitch_where_should_be_no_pitch += 1
