@@ -5,15 +5,14 @@ import langcodes
 from packaging import version
 
 from modules.console_colors import ULTRASINGER_HEAD
-from modules.Ultrastar.ultrastar_converter import (
+from modules.Ultrastar.coverter.ultrastar_converter import (
     real_bpm_to_ultrastar_bpm,
-    second_to_beat,
-)
+    second_to_beat, )
+from modules.Ultrastar.coverter.ultrastar_midi_converter import convert_midi_note_to_ultrastar_note
 from modules.Ultrastar.ultrastar_txt import UltrastarTxtValue, UltrastarTxtTag, UltrastarTxtNoteTypeTag, \
     FILE_ENCODING
 from modules.Ultrastar.ultrastar_score_calculator import Score
 from modules.Midi.MidiSegment import MidiSegment
-from modules.Midi.midi_creator import convert_midi_note_to_ultrastar_note
 
 
 def get_thirtytwo_note_second(real_bpm: float):

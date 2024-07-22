@@ -1,7 +1,10 @@
 """Ultrastar txt parser"""
+import os
 
-from modules.console_colors import ULTRASINGER_HEAD
-from modules.Ultrastar.ultrastar_converter import (
+from modules import os_helper
+
+from modules.console_colors import ULTRASINGER_HEAD, red_highlighted
+from modules.Ultrastar.coverter.ultrastar_converter import (
     get_end_time,
     get_start_time,
 )
@@ -13,9 +16,10 @@ from modules.Ultrastar.ultrastar_txt import (
     UltrastarNoteLine,
     get_note_type_from_string
 )
+from modules.os_helper import get_unused_song_output_dir
 
 
-def parse_ultrastar_txt(input_file: str) -> UltrastarTxtValue:
+def parse(input_file: str) -> UltrastarTxtValue:
     """Parse ultrastar txt file to UltrastarTxt class"""
     print(f"{ULTRASINGER_HEAD} Parse ultrastar txt -> {input_file}")
 
@@ -80,3 +84,38 @@ def parse_ultrastar_txt(input_file: str) -> UltrastarTxtValue:
             # todo: Progress?
 
     return ultrastar_class
+
+
+def parse_ultrastar_txt(input_file_path: str, output_folder_path: str) -> tuple[str, str, str, UltrastarTxtValue]:
+    """Parse Ultrastar txt"""
+    ultrastar_class = parse(input_file_path)
+
+    if ultrastar_class.mp3:
+        ultrastar_mp3_name = ultrastar_class.mp3
+    elif ultrastar_class.audio:
+        ultrastar_mp3_name = ultrastar_class.audio
+    else:
+        print(
+            f"{ULTRASINGER_HEAD} {red_highlighted('Error!')} The provided text file does not have a reference to "
+            f"an audio file."
+        )
+        exit(1)
+
+    song_output = os.path.join(
+        output_folder_path,
+        ultrastar_class.artist.strip() + " - " + ultrastar_class.title.strip(),
+    )
+
+    # todo: get_unused_song_output_dir should be in the runner
+    song_output = get_unused_song_output_dir(str(song_output))
+    os_helper.create_folder(song_output)
+
+    dirname = os.path.dirname(input_file_path)
+    audio_file_path = os.path.join(dirname, ultrastar_mp3_name)
+    basename_without_ext = f"{ultrastar_class.artist.strip()} - {ultrastar_class.title.strip()}"
+    return (
+        basename_without_ext,
+        song_output,
+        str(audio_file_path),
+        ultrastar_class,
+    )

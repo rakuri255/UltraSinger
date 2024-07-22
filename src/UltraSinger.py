@@ -1,7 +1,6 @@
 """UltraSinger uses AI to automatically create UltraStar song files"""
 
 import copy
-import re
 import getopt
 import os
 import sys
@@ -22,7 +21,7 @@ from modules.Audio.convert_audio import convert_audio_to_mono_wav, convert_wav_t
 from modules.Audio.youtube import (
     download_from_youtube,
 )
-from modules.Ultrastar.ultrastar_writer import format_separated_string
+
 from modules.console_colors import (
     ULTRASINGER_HEAD,
     blue_highlighted,
@@ -31,39 +30,42 @@ from modules.console_colors import (
     green_highlighted,
 )
 from modules.Midi.midi_creator import (
-    convert_midi_notes_to_ultrastar_notes,
     create_midi_segments_from_transcribed_data,
     create_repitched_midi_segments_from_ultrastar_txt,
     create_midi_file,
-
 )
+
 from modules.Pitcher.pitcher import (
     get_pitch_with_crepe_file,
 )
+from modules.Pitcher.pitched_data import PitchedData
 from modules.Speech_Recognition.TranscriptionResult import TranscriptionResult
 from modules.Speech_Recognition.hyphenation import (
     hyphenate_each_word,
 )
 from modules.Speech_Recognition.Whisper import transcribe_with_whisper
 from modules.Ultrastar import (
-    ultrastar_score_calculator,
     ultrastar_writer,
-    ultrastar_parser,
 )
-from modules.Ultrastar.ultrastar_score_calculator import Score
-from modules.Ultrastar.ultrastar_txt import FILE_ENCODING
+from modules.Speech_Recognition.TranscribedData import TranscribedData
+from modules.Ultrastar.ultrastar_score_calculator import Score, calculate_score_points
+from modules.Ultrastar.ultrastar_txt import FILE_ENCODING, FormatVersion
+from modules.Ultrastar.coverter.ultrastar_txt_converter import from_ultrastar_txt, \
+    create_ultrastar_txt_from_midi_segments, create_ultrastar_txt_from_automation
+from modules.Ultrastar.ultrastar_parser import parse_ultrastar_txt
 from modules.common_print import print_support, print_help, print_version
 from modules.os_helper import check_file_exists, get_unused_song_output_dir
 from modules.plot import create_plots
 from modules.musicbrainz_client import get_music_infos
 from modules.sheet import create_sheet
-from modules.ProcessData import *
+from modules.ProcessData import ProcessData, ProcessDataPaths, MediaInfo
 from modules.DeviceDetection.device_detection import check_gpu_support
 from modules.Audio.bpm import get_bpm_from_file
 
 from Settings import Settings
 
 settings = Settings()
+
 
 def add_hyphen_to_data(
         transcribed_data: list[TranscribedData], hyphen_words: list[list[str]]
@@ -96,6 +98,7 @@ def add_hyphen_to_data(
                 new_data.append(dup)
 
     return new_data
+
 
 # Todo: Unused
 def correct_words(recognized_words, word_list_file):
@@ -151,9 +154,11 @@ def run() -> tuple[str, Score, Score]:
 
     # Create Midi_Segments
     if not settings.ignore_audio:
-        process_data.midi_segments = create_midi_segments_from_transcribed_data(process_data.transcribed_data, process_data.pitched_data)
+        process_data.midi_segments = create_midi_segments_from_transcribed_data(process_data.transcribed_data,
+                                                                                process_data.pitched_data)
     else:
-        process_data.midi_segments = create_repitched_midi_segments_from_ultrastar_txt(process_data.pitched_data, process_data.parsed_file)
+        process_data.midi_segments = create_repitched_midi_segments_from_ultrastar_txt(process_data.pitched_data,
+                                                                                       process_data.parsed_file)
 
     # Create plot
     if settings.create_plot:
@@ -202,7 +207,7 @@ def InitProcessData():
             settings.output_folder_path,
             audio_file_path,
             ultrastar_class,
-        ) = parse_ultrastar_txt()
+        ) = parse_ultrastar_txt(settings.input_file_path, settings.output_folder_path)
         process_data = from_ultrastar_txt(ultrastar_class)
         process_data.basename = basename
         process_data.process_data_paths.audio_output_file_path = audio_file_path
@@ -257,11 +262,11 @@ def TranscribeAudio(process_data):
 
 def CreateUltraStarTxt(process_data: ProcessData):
     # Move instrumental and vocals
-    if settings.create_karaoke and version.parse(settings.format_version) < version.parse("1.1.0"):
+    if settings.create_karaoke and version.parse(settings.format_version.value) < version.parse(FormatVersion.V1_1_0.value):
         karaoke_output_path = os.path.join(settings.output_folder_path, process_data.basename + " [Karaoke].mp3")
         convert_wav_to_mp3(process_data.process_data_paths.instrumental_audio_file_path, karaoke_output_path)
 
-    if version.parse(settings.format_version) >= version.parse("1.1.0"):
+    if version.parse(settings.format_version.value) >= version.parse(FormatVersion.V1_1_0.value):
         instrumental_output_path = os.path.join(settings.output_folder_path,
                                                 process_data.basename + " [Instrumental].mp3")
         convert_wav_to_mp3(process_data.process_data_paths.instrumental_audio_file_path, instrumental_output_path)
@@ -274,20 +279,21 @@ def CreateUltraStarTxt(process_data: ProcessData):
             process_data.basename,
             settings.output_folder_path,
             process_data.midi_segments,
-            process_data.media_info
+            process_data.media_info,
+            settings.format_version,
+            settings.create_karaoke,
+            settings.APP_VERSION
         )
     else:
-        ultrastar_file_output = create_ultrastar_txt_from_ultrastar_data(
-            settings.output_folder_path, process_data.media_info.title, process_data.midi_segments
+        ultrastar_file_output = create_ultrastar_txt_from_midi_segments(
+            settings.output_folder_path, settings.input_file_path, process_data.media_info.title, process_data.midi_segments
         )
 
     # Calc Points
     simple_score = None
     accurate_score = None
     if settings.calculate_score:
-        ultrastar_class, simple_score, accurate_score = calculate_score_points(
-            process_data, ultrastar_file_output
-        )
+        simple_score, accurate_score = calculate_score_points(process_data, ultrastar_file_output)
 
     # Add calculated score to Ultrastar txt
     #Todo: Missing Karaoke
@@ -372,121 +378,6 @@ def transcribe_audio(cache_folder_path: str, processing_audio_path: str) -> Tran
     return transcription_result
 
 
-def calculate_score_points(
-        processed_data: ProcessData,
-        ultrastar_file_output: str,
-):
-    """Calculate score points"""
-    if not settings.ignore_audio:
-        ultrastar_txt = ultrastar_parser.parse_ultrastar_txt(ultrastar_file_output)
-        (
-            simple_score,
-            accurate_score,
-        ) = ultrastar_score_calculator.calculate_score(processed_data.pitched_data, ultrastar_txt)
-        ultrastar_score_calculator.print_score_calculation(simple_score, accurate_score)
-    else:
-        print(
-            f"{ULTRASINGER_HEAD} {blue_highlighted('Score of original Ultrastar txt')}"
-        )
-        (
-            simple_score,
-            accurate_score,
-        ) = ultrastar_score_calculator.calculate_score(processed_data.pitched_data, processed_data.parsed_file)
-        ultrastar_score_calculator.print_score_calculation(simple_score, accurate_score)
-        print(
-            f"{ULTRASINGER_HEAD} {blue_highlighted('Score of re-pitched Ultrastar txt')}"
-        )
-        ultrastar_txt = ultrastar_parser.parse_ultrastar_txt(ultrastar_file_output)
-        (
-            simple_score,
-            accurate_score,
-        ) = ultrastar_score_calculator.calculate_score(processed_data.pitched_data, ultrastar_txt)
-        ultrastar_score_calculator.print_score_calculation(simple_score, accurate_score)
-    return ultrastar_txt, simple_score, accurate_score
-
-
-def create_ultrastar_txt_from_ultrastar_data(
-        song_output: str,
-        title: str,
-        midi_segments: list[MidiSegment],
-) -> str:
-    """Create Ultrastar txt from Ultrastar data"""
-    output_repitched_ultrastar = os.path.join(
-        song_output, title + ".txt"
-    )
-    ultrastar_note_numbers = convert_midi_notes_to_ultrastar_notes(midi_segments)
-
-    ultrastar_writer.create_repitched_txt_from_ultrastar_data(
-        settings.input_file_path,
-        ultrastar_note_numbers,
-        output_repitched_ultrastar,
-    )
-    return output_repitched_ultrastar
-
-
-def create_ultrastar_txt_from_automation(
-        basename: str,
-        song_output: str,
-        midi_segments: list[MidiSegment],
-        media_info: MediaInfo
-):
-    """Create Ultrastar txt from automation"""
-    print(f"{ULTRASINGER_HEAD} Using UltraStar {blue_highlighted(f'Format Version {settings.format_version}')}")
-
-    ultrastar_txt = UltrastarTxtValue()
-    ultrastar_txt.version = settings.format_version
-    ultrastar_txt.mp3 = basename + ".mp3"
-    ultrastar_txt.audio = basename + ".mp3"
-    ultrastar_txt.vocals = basename + " [Vocals].mp3"
-    ultrastar_txt.instrumental = basename + " [Instrumental].mp3"
-    ultrastar_txt.video = basename + ".mp4"
-    ultrastar_txt.language = media_info.language
-    cover = basename + " [CO].jpg"
-    ultrastar_txt.cover = (
-        cover if os_helper.check_file_exists(os.path.join(song_output, cover)) else None
-    )
-    ultrastar_txt.creator = f"{ultrastar_txt.creator} {Settings.APP_VERSION}"
-    ultrastar_txt.comment = f"{ultrastar_txt.comment} {Settings.APP_VERSION}"
-
-    # Additional data
-    ultrastar_txt.title = media_info.title
-    ultrastar_txt.artist = media_info.artist
-    if media_info.year is not None:
-        ultrastar_txt.year = extract_year(media_info.year)
-    if media_info.genre is not None:
-        ultrastar_txt.genre = format_separated_string(media_info.genre)
-
-    ultrastar_file_output = os.path.join(song_output, basename + ".txt")
-    ultrastar_writer.create_ultrastar_txt(
-        midi_segments,
-        ultrastar_file_output,
-        ultrastar_txt,
-        media_info.bpm,
-    )
-    if settings.create_karaoke and version.parse(settings.format_version) < version.parse("1.1.0"):
-        title = basename + " [Karaoke]"
-        ultrastar_txt.title = title
-        ultrastar_txt.mp3 = title + ".mp3"
-        karaoke_output_path = os.path.join(song_output, title)
-        karaoke_txt_output_path = karaoke_output_path + ".txt"
-        ultrastar_writer.create_ultrastar_txt(
-            midi_segments,
-            karaoke_txt_output_path,
-            ultrastar_txt,
-            media_info.bpm,
-        )
-    return ultrastar_file_output
-
-
-# Todo: Isnt it MusicBrainz? + Sanitize when parsing UltraStar?
-def extract_year(date: str) -> str:
-    match = re.search(r'\b\d{4}\b', date)
-    if match:
-        return match.group(0)
-    else:
-        return date
-
-
 def infos_from_audio_input_file() -> tuple[str, str, str, MediaInfo]:
     """Infos from audio input file"""
     basename = os.path.basename(settings.input_file_path)
@@ -514,55 +405,22 @@ def infos_from_audio_input_file() -> tuple[str, str, str, MediaInfo]:
         extension = os.path.splitext(basename)[1]
         basename = f"{basename_without_ext}{extension}"
 
-    song_output = os.path.join(settings.output_folder_path, basename_without_ext)
-    song_output = get_unused_song_output_dir(song_output)
-    os_helper.create_folder(song_output)
-    os_helper.copy(settings.input_file_path, song_output)
+    song_folder_output_path = os.path.join(settings.output_folder_path, basename_without_ext)
+    song_folder_output_path = get_unused_song_output_dir(song_folder_output_path)
+    os_helper.create_folder(song_folder_output_path)
+    os_helper.copy(settings.input_file_path, song_folder_output_path)
     os_helper.rename(
-        os.path.join(song_output, os.path.basename(settings.input_file_path)),
-        os.path.join(song_output, basename),
+        os.path.join(song_folder_output_path, os.path.basename(settings.input_file_path)),
+        os.path.join(song_folder_output_path, basename),
     )
     # Todo: Read ID3 tags
-    ultrastar_audio_input_path = os.path.join(song_output, basename)
+    ultrastar_audio_input_path = os.path.join(song_folder_output_path, basename)
     real_bpm = get_bpm_from_file(settings.input_file_path)
     return (
         basename_without_ext,
-        song_output,
+        song_folder_output_path,
         ultrastar_audio_input_path,
         MediaInfo(artist=artist, title=title, year=year_info, genre=genre_info, bpm=real_bpm),
-    )
-
-
-def parse_ultrastar_txt() -> tuple[str, str, str, UltrastarTxtValue]:
-    """Parse Ultrastar txt"""
-    ultrastar_class = ultrastar_parser.parse_ultrastar_txt(settings.input_file_path)
-
-    if ultrastar_class.mp3:
-        ultrastar_mp3_name = ultrastar_class.mp3
-    elif ultrastar_class.audio:
-        ultrastar_mp3_name = ultrastar_class.audio
-    else:
-        print(
-            f"{ULTRASINGER_HEAD} {red_highlighted('Error!')} The provided text file does not have a reference to "
-            f"an audio file."
-        )
-        exit(1)
-
-    dirname = os.path.dirname(settings.input_file_path)
-    song_output = os.path.join(
-        settings.output_folder_path,
-        ultrastar_class.artist.strip() + " - " + ultrastar_class.title.strip(),
-    )
-    song_output = get_unused_song_output_dir(str(song_output))
-    os_helper.create_folder(song_output)
-
-    basename_without_ext = f"{ultrastar_class.artist.strip()} - {ultrastar_class.title.strip()}"
-    audio_file_path = os.path.join(dirname, ultrastar_mp3_name)
-    return (
-        basename_without_ext,
-        song_output,
-        str(audio_file_path),
-        ultrastar_class,
     )
 
 
@@ -607,7 +465,7 @@ def remove_cache_folder(cache_folder_path: str) -> None:
     os_helper.remove_folder(cache_folder_path)
 
 
-def init_settings(argv: list[str]) -> None:
+def init_settings(argv: list[str]) -> Settings:
     """Init settings"""
     long, short = arg_options()
     opts, args = getopt.getopt(argv, short, long)
@@ -660,12 +518,17 @@ def init_settings(argv: list[str]) -> None:
         elif opt in ("--force_crepe_cpu"):
             settings.force_crepe_cpu = eval(arg.title())
         elif opt in ("--format_version"):
-            if arg != '0.3.0' and arg != '1.0.0' and arg != '1.1.0':
+            if arg == FormatVersion.V0_3_0.value:
+                settings.format_version = FormatVersion.V0_3_0
+            elif arg == FormatVersion.V1_0_0.value:
+                settings.format_version = FormatVersion.V1_0_0
+            elif arg == FormatVersion.V1_1_0.value:
+                settings.format_version = FormatVersion.V1_1_0
+            else:
                 print(
                     f"{ULTRASINGER_HEAD} {red_highlighted('Error: Format version')} {blue_highlighted(arg)} {red_highlighted('is not supported.')}"
                 )
                 sys.exit(1)
-            settings.format_version = arg
         elif opt in ("--keep_cache"):
             settings.keep_cache = arg
         elif opt in ("--musescore_path"):

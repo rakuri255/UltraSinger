@@ -4,8 +4,7 @@ import unittest
 import os
 from unittest.mock import patch, MagicMock
 from modules.Ultrastar.ultrastar_writer import format_separated_string
-from src.UltraSinger import extract_year
-from src.UltraSinger import parse_ultrastar_txt
+from modules.Ultrastar.ultrastar_parser import parse_ultrastar_txt
 from src import UltraSinger
 
 class TestUltraSinger(unittest.TestCase):
@@ -18,11 +17,11 @@ class TestUltraSinger(unittest.TestCase):
         self.assertEqual(format_separated_string('rock, pop, rock-pop, '), 'Rock, Pop, Rock-Pop')
 
     def test_extract_year(self):
-        years = {extract_year("2023-12-31"), extract_year("2023-12-31 23:59:59"), extract_year("2023/12/31"),
-                 extract_year("2023\\12\\31"), extract_year("2023.12.31"), extract_year("2023 12 31"),
-                 extract_year("12-31-2023"), extract_year("12/31/2023"), extract_year("12\\31\\2023"),
-                 extract_year("12.31.2023"), extract_year("12 31 2023"), extract_year("12-2023"),
-                 extract_year("12/2023"), extract_year("2023")}
+        years = {__extract_year("2023-12-31"), __extract_year("2023-12-31 23:59:59"), __extract_year("2023/12/31"),
+                 __extract_year("2023\\12\\31"), __extract_year("2023.12.31"), __extract_year("2023 12 31"),
+                 __extract_year("12-31-2023"), __extract_year("12/31/2023"), __extract_year("12\\31\\2023"),
+                 __extract_year("12.31.2023"), __extract_year("12 31 2023"), __extract_year("12-2023"),
+                 __extract_year("12/2023"), __extract_year("2023")}
 
         for year in years:
             self.assertEqual(year, "2023")

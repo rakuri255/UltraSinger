@@ -5,6 +5,9 @@ from dataclasses_json import dataclass_json
 
 import librosa
 
+from modules.ProcessData import ProcessData
+from modules.Ultrastar import ultrastar_parser
+
 from modules.console_colors import (
     ULTRASINGER_HEAD,
     blue_highlighted,
@@ -14,7 +17,7 @@ from modules.console_colors import (
     underlined,
 )
 from modules.Midi.midi_creator import create_midi_note_from_pitched_data
-from modules.Ultrastar.ultrastar_converter import (
+from modules.Ultrastar.coverter.ultrastar_converter import (
     get_end_time_from_ultrastar,
     get_start_time_from_ultrastar,
     ultrastar_note_to_midi_note,
@@ -162,3 +165,31 @@ def print_score_calculation(simple_points: Score, accurate_points: Score) -> Non
         f"{ULTRASINGER_HEAD} {underlined('Accurate (octave high matches)')} points:"
     )
     print_score(accurate_points)
+
+
+def calculate_score_points_from_txt(pitched_data: PitchedData,
+                                    ultrastar_txt: UltrastarTxtValue) -> tuple[Score, Score]:
+    (
+        simple_score,
+        accurate_score,
+    ) = calculate_score(pitched_data, ultrastar_txt)
+    print_score_calculation(simple_score, accurate_score)
+    return simple_score, accurate_score
+
+
+def calculate_score_points(
+        processed_data: ProcessData,
+        ultrastar_file_output_path: str,
+        ignore_audio: bool = False,
+) -> tuple[Score, Score]:
+    """Calculate score points"""
+    if not ignore_audio:
+        ultrastar_txt = ultrastar_parser.parse(ultrastar_file_output_path)
+        (simple_score, accurate_score) = calculate_score_points_from_txt(processed_data.pitched_data, ultrastar_txt)
+    else:
+        print(f"{ULTRASINGER_HEAD} {blue_highlighted('Score of original Ultrastar txt')}")
+        (_, _) = calculate_score_points_from_txt(processed_data.pitched_data, processed_data.parsed_file)
+        print(f"{ULTRASINGER_HEAD} {blue_highlighted('Score of re-pitched Ultrastar txt')}")
+        ultrastar_txt = ultrastar_parser.parse(ultrastar_file_output_path)
+        (simple_score, accurate_score) = calculate_score_points_from_txt(processed_data.pitched_data, ultrastar_txt)
+    return simple_score, accurate_score

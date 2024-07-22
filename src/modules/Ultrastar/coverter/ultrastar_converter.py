@@ -1,7 +1,7 @@
 """Ultrastar Converter"""
-import librosa
+import re
+
 from modules.Ultrastar.ultrastar_txt import UltrastarTxtValue
-from modules.Midi.MidiSegment import MidiSegment
 
 
 def real_bpm_to_ultrastar_bpm(real_bpm: float) -> float:
@@ -100,17 +100,12 @@ def __convert_bpm(ultrastar_bpm: str) -> float:
     return real_bpm
 
 
-def ultrastar_to_midi_segments(ultrastar_txt: UltrastarTxtValue) -> list[MidiSegment]:
-    """Converts an Ultrastar txt to Midi segments"""
-    midi_segments = []
-    for i, data in enumerate(ultrastar_txt.UltrastarNoteLines):
-        start_time = get_start_time_from_ultrastar(ultrastar_txt, i)
-        end_time = get_end_time_from_ultrastar(ultrastar_txt, i)
-        midi_segments.append(
-            MidiSegment(librosa.midi_to_note(ultrastar_note_to_midi_note(data.pitch)),
-                        start_time,
-                        end_time,
-                        data.word,
-                        )
-        )
-    return midi_segments
+# Todo: Isnt it MusicBrainz? + Sanitize when parsing UltraStar?
+def __extract_year(date: str) -> str:
+    match = re.search(r'\b\d{4}\b', date)
+    if match:
+        return match.group(0)
+    else:
+        return date
+
+

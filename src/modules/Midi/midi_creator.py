@@ -11,10 +11,6 @@ import unidecode
 
 from modules.Midi.MidiSegment import MidiSegment
 from modules.Speech_Recognition.TranscribedData import TranscribedData
-from modules.Ultrastar.ultrastar_converter import (
-    midi_note_to_ultrastar_note,
-    ultrastar_note_to_midi_note
-)
 from modules.console_colors import (
     ULTRASINGER_HEAD, blue_highlighted,
 )
@@ -36,22 +32,6 @@ def create_midi_instrument(midi_segments: list[MidiSegment]) -> object:
         instrument.notes.append(note)
 
     return instrument
-
-# Todo: delete?
-def convert_ultrastar_to_midi_instrument(ultrastar_class: UltrastarTxtValue) -> object:
-    """Converts an Ultrastar data to a midi instrument"""
-
-    print(f"{ULTRASINGER_HEAD} Creating midi instrument from Ultrastar txt")
-
-    instrument = pretty_midi.Instrument(program=0, name="Vocals")
-    velocity = 100
-
-    for i, note_line in enumerate(ultrastar_class.UltrastarNoteLines):
-        note = pretty_midi.Note(velocity, ultrastar_note_to_midi_note(note_line.pitch), note_line.startTime, note_line.endTime)
-        instrument.notes.append(note)
-
-    return instrument
-
 
 def sanitize_for_midi(text):
     """
@@ -142,27 +122,6 @@ def create_midi_note_from_pitched_data(start_time: float, end_time: float, pitch
     note = most_frequent(notes)[0][0]
 
     return MidiSegment(note, start_time, end_time, word)
-
-def convert_midi_notes_to_ultrastar_notes(midi_segments: list[MidiSegment]) -> list[int]:
-    """Convert midi notes to ultrastar notes"""
-    print(f"{ULTRASINGER_HEAD} Creating Ultrastar notes from midi data")
-
-    ultrastar_note_numbers = []
-    for i, midi_segment in enumerate(midi_segments):
-        ultrastar_note = convert_midi_note_to_ultrastar_note(midi_segment)
-        ultrastar_note_numbers.append(ultrastar_note)
-        # todo: Progress?
-        # print(
-        #    f"Note: {midi_notes[i]} midi_note: {str(note_number_librosa)} pitch: {str(pitch)}"
-        # )
-    return ultrastar_note_numbers
-
-def convert_midi_note_to_ultrastar_note(midi_segment: MidiSegment) -> int:
-    """Convert midi notes to ultrastar notes"""
-
-    note_number_librosa = librosa.note_to_midi(midi_segment.note)
-    ultrastar_note = midi_note_to_ultrastar_note(note_number_librosa)
-    return ultrastar_note
 
 
 def create_midi_segments_from_transcribed_data(transcribed_data: list[TranscribedData], pitched_data: PitchedData) -> list[MidiSegment]:
