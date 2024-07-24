@@ -1,11 +1,12 @@
 import os
+import re
 
 from packaging import version
 
 from modules import os_helper
 from modules.Midi.MidiSegment import MidiSegment
 from modules.ProcessData import ProcessData, MediaInfo
-from modules.Ultrastar.coverter.ultrastar_converter import ultrastar_bpm_to_real_bpm, __extract_year
+from modules.Ultrastar.coverter.ultrastar_converter import ultrastar_bpm_to_real_bpm
 from modules.Ultrastar.coverter.ultrastar_midi_converter import ultrastar_to_midi_segments, \
     convert_midi_notes_to_ultrastar_notes
 from modules.Ultrastar.ultrastar_txt import UltrastarTxtValue, FormatVersion
@@ -82,7 +83,7 @@ def create_ultrastar_txt_from_automation(
     ultrastar_txt.title = media_info.title
     ultrastar_txt.artist = media_info.artist
     if media_info.year is not None:
-        ultrastar_txt.year = __extract_year(media_info.year)
+        ultrastar_txt.year = extract_year(media_info.year)
     if media_info.genre is not None:
         ultrastar_txt.genre = format_separated_string(media_info.genre)
 
@@ -106,3 +107,12 @@ def create_ultrastar_txt_from_automation(
             media_info.bpm,
         )
     return ultrastar_file_output_path
+
+
+# Todo: Isnt it MusicBrainz? + Sanitize when parsing UltraStar?
+def extract_year(date: str) -> str:
+    match = re.search(r'\b\d{4}\b', date)
+    if match:
+        return match.group(0)
+    else:
+        return date

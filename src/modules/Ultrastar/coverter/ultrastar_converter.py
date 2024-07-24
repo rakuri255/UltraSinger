@@ -1,5 +1,4 @@
 """Ultrastar Converter"""
-import re
 
 from modules.Ultrastar.ultrastar_txt import UltrastarTxtValue
 
@@ -98,14 +97,3 @@ def __convert_gap(gap: str) -> float:
 def __convert_bpm(ultrastar_bpm: str) -> float:
     real_bpm = ultrastar_bpm_to_real_bpm(float(ultrastar_bpm.replace(",", ".")))
     return real_bpm
-
-
-# Todo: Isnt it MusicBrainz? + Sanitize when parsing UltraStar?
-def __extract_year(date: str) -> str:
-    match = re.search(r'\b\d{4}\b', date)
-    if match:
-        return match.group(0)
-    else:
-        return date
-
-
