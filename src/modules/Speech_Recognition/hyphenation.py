@@ -9,71 +9,6 @@ from modules.console_colors import (
     blue_highlighted,
 )
 
-# PyHyphen tries to retrieve dictionaries for download 'https://cgit.freedesktop.org/libreoffice/dictionaries/plain/'
-# Updated PyHyphen dictools Languages, so they can be installed
-LANGUAGES = [
-"af_ZA",
-"an_ES",
-"ar",
-"be_BY",
-"bg_BG",
-"bn_BD",
-"bo",
-"br_FR",
-"bs_BA",
-"ca",
-"ckb",
-"cs_CZ",
-"da_DK",
-"de",
-"el_GR",
-"en",
-"eo",
-"es",
-"et_EE",
-"fa_IR",
-"fr_FR",
-"gd_GB",
-"gl",
-"gu_IN",
-"gug",
-"he_IL",
-"hi_IN",
-"hr_HR",
-"hu_HU",
-"id",
-"is",
-"it_IT",
-"kmr_Latn",
-"ko_KR",
-"lo_LA",
-"lt_LT",
-"lv_LV",
-"mn_MN",
-"ne_NP",
-"nl_NL",
-"no",
-"oc_FR",
-"pl_PL",
-"pt_BR",
-"pt_PT",
-"ro",
-"ru_RU",
-"si_LK",
-"sk_SK",
-"sl_SI",
-"sq_AL",
-"sr",
-"sv_SE",
-"sw_TZ",
-"te_IN",
-"th_TH",
-"tr_TR",
-"uk_UA",
-"vi",
-"zu_ZA",
-]
-
 def language_check(language="en") -> str | None:
     """Check if language is supported"""
 
@@ -89,7 +24,7 @@ def language_check(language="en") -> str | None:
             lang_region = installed_region_keys[0]
         else:
             # Take downloadable language key
-            downloadable_key = [i for i in LANGUAGES if i.startswith(language)]
+            downloadable_key = [i for i in dictools.LANGUAGES if i.startswith(language)]
             downloadable_folder_key = [i for i in downloadable_key if i == language]
             if downloadable_folder_key:
                 lang_region = downloadable_key[0]

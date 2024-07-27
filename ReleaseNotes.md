@@ -3,6 +3,7 @@ Date: 2024.07.07
 - Changes:
   - Reduce Memory usage by clearing cache in whisper
   - Some bug fixes and improved error handling and logs
+  - Fix hypen language download
 
 # Version: 0.0.11
 Date: 2024.07.06

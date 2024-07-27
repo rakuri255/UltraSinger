@@ -11,13 +11,14 @@ numpy~=1.26.4
 Pillow~=10.3.0
 pretty_midi~=0.2.10
 pydub~=0.25.1
-PyHyphen~=4.0.3
+#PyHyphen~=4.0.3
+PyHyphen-Reloaded~=4.0.5
 python_Levenshtein~=0.25.1
 scipy~=1.13.1
 tensorflow<2.11
 tqdm~=4.66.4
 #whisperx~=3.1.1
-yt_dlp~=2024.5.27
+yt_dlp~=2024.7.9
 isort~=5.13.2
 black~=24.4.2
 pylint~=3.2.3
