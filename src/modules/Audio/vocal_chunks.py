@@ -11,7 +11,7 @@ from modules.Speech_Recognition.TranscribedData import TranscribedData
 from modules.console_colors import ULTRASINGER_HEAD
 from modules.csv_handler import export_transcribed_data_to_csv
 from modules.os_helper import create_folder
-from modules.Ultrastar.ultrastar_converter import (
+from modules.Ultrastar.coverter.ultrastar_converter import (
     get_end_time_from_ultrastar,
     get_start_time_from_ultrastar,
 )

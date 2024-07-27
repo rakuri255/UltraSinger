@@ -2,7 +2,6 @@ from dataclasses import dataclass, field
 from modules.Speech_Recognition.TranscribedData import TranscribedData
 from modules.Pitcher.pitched_data import PitchedData
 from modules.Ultrastar.ultrastar_txt import UltrastarTxtValue
-from modules.Ultrastar import ultrastar_converter
 from modules.Midi.MidiSegment import MidiSegment
 from typing import Optional, List
 
@@ -38,20 +37,3 @@ class ProcessData:
     parsed_file: Optional[UltrastarTxtValue] = None
 
 
-def from_ultrastar_txt(ultrastar_txt: UltrastarTxtValue) -> ProcessData:
-    """Converts an Ultrastar txt to ProcessData"""
-    process_data = ProcessData()
-    process_data.parsed_file = ultrastar_txt
-    # todo: is this the real bpm? or calculate it from file?
-    real_bpm = ultrastar_converter.ultrastar_bpm_to_real_bpm(float(ultrastar_txt.bpm.replace(",", ".")))
-    process_data.media_info = MediaInfo(
-        title=ultrastar_txt.title,
-        artist=ultrastar_txt.artist,
-        year=ultrastar_txt.year,
-        genre=ultrastar_txt.genre,
-        language=ultrastar_txt.language,
-        bpm=real_bpm
-    )
-    process_data.midi_segments = ultrastar_converter.ultrastar_to_midi_segments(ultrastar_txt)
-
-    return process_data

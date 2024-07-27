@@ -5,14 +5,13 @@ from dataclasses_json import dataclass_json
 
 from modules.Audio.separation import DemucsModel
 from modules.Speech_Recognition.Whisper import WhisperModel
+from modules.Ultrastar.ultrastar_txt import FormatVersion
 
 
 @dataclass_json
 @dataclass
 class Settings:
-    APP_VERSION = "0.0.12-dev2"
-
-    APP_VERSION: str = "0.0.12-dev1"
+    APP_VERSION: str = "0.0.12-dev2"
 
     create_midi: bool = True
     create_plot: bool = False
@@ -29,7 +28,7 @@ class Settings:
     output_folder_path: str = ""
 
     language: Optional[str] = None
-    format_version: str = "1.0.0"
+    format_version: str = FormatVersion.V1_0_0
 
     # Demucs
     demucs_model: str = DemucsModel.HTDEMUCS  # htdemucs|htdemucs_ft|htdemucs_6s|hdemucs_mmi|mdx|mdx_extra|mdx_q|mdx_extra_q|SIG

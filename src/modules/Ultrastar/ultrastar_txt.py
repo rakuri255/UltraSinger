@@ -125,3 +125,12 @@ class UltrastarTxtValue:
     creator = "UltraSinger [GitHub]"
     comment = "UltraSinger [GitHub]"
     UltrastarNoteLines: List[UltrastarNoteLine] = field(default_factory=list)
+
+
+class FormatVersion(Enum):
+    V0_2_0 = "0.2.0"
+    V0_3_0 = "0.3.0"
+    V1_0_0 = "1.0.0"
+    V1_1_0 = "1.1.0"
+    V1_2_0 = "1.2.0" # Not released yet
+    V2_0_0 = "2.0.0" # Not released yet
