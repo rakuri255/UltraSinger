@@ -15,8 +15,7 @@ from Settings import Settings
 from modules.Research.TestRun import TestRun, TestedSong
 from modules.Research.TestSong import TestSong
 from modules.Ultrastar import ultrastar_parser
-from modules.Ultrastar.ultrastar_converter import compare_pitches
-from modules.Ultrastar.ultrastar_parser import parse_ultrastar_txt
+from modules.Ultrastar.coverter.ultrastar_converter import compare_pitches
 from modules.Ultrastar.ultrastar_txt import UltrastarTxtValue, FILE_ENCODING
 from modules.console_colors import ULTRASINGER_HEAD, red_highlighted
 
@@ -71,10 +70,10 @@ def main() -> None:
     for index, test_song in enumerate(test_songs):
         print(f"{ULTRASINGER_HEAD} ========================")
         print(
-            f"{ULTRASINGER_HEAD} {index+1}/{len(test_songs)}: {os.path.basename(test_song.input_txt)}"
+            f"{ULTRASINGER_HEAD} {index + 1}/{len(test_songs)}: {os.path.basename(test_song.input_txt)}"
         )
 
-        timer.log(f"{index+1}/{len(test_songs)}: {os.path.basename(test_song.input_txt)}")
+        timer.log(f"{index + 1}/{len(test_songs)}: {os.path.basename(test_song.input_txt)}")
 
         # prepare cache directory
         song_cache_path = os.path.join(test_song.input_folder, "cache")
@@ -96,7 +95,6 @@ def main() -> None:
             traceback.print_exc()
             continue
 
-
         output_folder_name = f"{test_song.input_ultrastar_class.artist} - {test_song.input_ultrastar_class.title}"
         output_folder = os.path.join(test_run_songs_folder, output_folder_name)
 
@@ -107,7 +105,7 @@ def main() -> None:
             test_run.tested_songs.append(tested_song)
             continue
 
-        ultrastar_class = parse_ultrastar_txt(output_txt)
+        ultrastar_class = ultrastar_parser.parse(output_txt)
         (
             input_match_ratio,
             output_match_ratio,
@@ -134,20 +132,20 @@ def main() -> None:
 
 
 def find_ultrastar_song(
-    song_folder, require_audio: bool = True
+        song_folder, require_audio: bool = True
 ) -> tuple[str, UltrastarTxtValue]:
     if os.path.isdir(song_folder):
         for song_folder_item in os.listdir(song_folder):
             if (
-                song_folder_item.endswith(".txt")
-                and song_folder_item != "license.txt"
-                and not song_folder_item.endswith("[Karaoke].txt")
-                and not song_folder_item.endswith("[MULTI].txt")
-                and not song_folder_item.endswith("[DUET].txt")
-                and not song_folder_item.endswith("instrumental.txt")
+                    song_folder_item.endswith(".txt")
+                    and song_folder_item != "license.txt"
+                    and not song_folder_item.endswith("[Karaoke].txt")
+                    and not song_folder_item.endswith("[MULTI].txt")
+                    and not song_folder_item.endswith("[DUET].txt")
+                    and not song_folder_item.endswith("instrumental.txt")
             ):
                 txt_file = os.path.join(song_folder, song_folder_item)
-                ultrastar_class = ultrastar_parser.parse_ultrastar_txt(txt_file)
+                ultrastar_class = ultrastar_parser.parse(txt_file)
 
                 if ultrastar_class.mp3 != "" or not require_audio:
                     return txt_file, ultrastar_class
