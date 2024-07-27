@@ -104,3 +104,4 @@ evaluation
 - automate comparison in [UltraSingerMetaEvaluation.py](..%2Fsrc%2FUltraSingerMetaEvaluation.py) instead of just printing each run's measurements
 - currently only pitch accuracy is being measured, text accuracy should be measured as well
 - the cached file's configuration is part of their filename, this will quickly become unmanageable, a better way to store this information should be found
+- the tool could verify that there are no changes according to git and store the latest commit hash for a test run ([TestRun.py](..%2Fsrc%2Fmodules%2FEvaluation%2FTestRun.py))

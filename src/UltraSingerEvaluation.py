@@ -12,8 +12,8 @@ import UltraSinger
 from modules import timer
 from modules.DeviceDetection.device_detection import check_gpu_support
 from Settings import Settings
-from modules.Research.TestRun import TestRun, TestedSong
-from modules.Research.TestSong import TestSong
+from modules.Evaluation.TestRun import TestRun, TestedSong
+from modules.Evaluation.TestSong import TestSong
 from modules.Ultrastar import ultrastar_parser
 from modules.Ultrastar.converter.ultrastar_converter import compare_pitches
 from modules.Ultrastar.ultrastar_txt import UltrastarTxtValue, FILE_ENCODING

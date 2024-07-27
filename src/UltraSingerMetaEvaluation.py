@@ -4,7 +4,7 @@ from typing import List
 
 import pandas
 
-from modules.Research.TestRun import TestRun
+from modules.Evaluation.TestRun import TestRun
 from modules.console_colors import ULTRASINGER_HEAD, red_highlighted
 
 test_input_folder = os.path.normpath(os.path.abspath(__file__ + "/../../test_input"))
