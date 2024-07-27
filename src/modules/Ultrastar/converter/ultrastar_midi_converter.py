@@ -2,7 +2,7 @@ import librosa
 import pretty_midi
 
 from modules.Midi.MidiSegment import MidiSegment
-from modules.Ultrastar.coverter.ultrastar_converter import midi_note_to_ultrastar_note, ultrastar_note_to_midi_note, \
+from modules.Ultrastar.converter.ultrastar_converter import midi_note_to_ultrastar_note, ultrastar_note_to_midi_note, \
     get_start_time_from_ultrastar, get_end_time_from_ultrastar
 from modules.Ultrastar.ultrastar_txt import UltrastarTxtValue
 from modules.console_colors import ULTRASINGER_HEAD

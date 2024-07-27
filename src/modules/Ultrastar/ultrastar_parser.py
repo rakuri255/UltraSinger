@@ -4,7 +4,7 @@ import os
 from modules import os_helper
 
 from modules.console_colors import ULTRASINGER_HEAD, red_highlighted
-from modules.Ultrastar.coverter.ultrastar_converter import (
+from modules.Ultrastar.converter.ultrastar_converter import (
     get_end_time,
     get_start_time,
 )
