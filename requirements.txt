@@ -410,7 +410,7 @@ pyparsing==3.1.2
     # via matplotlib
 pyreadline3==3.4.1
     # via humanfriendly
-pytest==8.3.1
+pytest==8.3.2
     # via -r requirements.in
 python-dateutil==2.9.0.post0
     # via
@@ -439,7 +439,7 @@ pyyaml==6.0.1
     #   transformers
 rapidfuzz==3.9.4
     # via levenshtein
-regex==2024.5.15
+regex==2024.7.24
     # via
     #   nltk
     #   transformers
@@ -657,7 +657,7 @@ wrapt==1.16.0
     # via tensorflow
 yarl==1.9.4
     # via aiohttp
-yt-dlp==2024.7.16
+yt-dlp==2024.7.25
     # via -r requirements.in
 
 # The following packages are considered to be unsafe in a requirements file:
