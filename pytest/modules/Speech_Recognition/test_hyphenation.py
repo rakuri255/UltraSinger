@@ -3,7 +3,7 @@
 import unittest
 from unittest.mock import patch
 from src.modules.Speech_Recognition.hyphenation import hyphenation, language_check
-from hyphen import Hyphenator
+from hyphen import Hyphenator, dictools
 
 
 class TestHypenation(unittest.TestCase):
@@ -11,6 +11,13 @@ class TestHypenation(unittest.TestCase):
     def test_hypenation(self):
         """Test case for hyphenation function."""
 
+        # prepare test
+        installed = dictools.list_installed()
+        for lang in installed:
+            dictools.uninstall(lang)
+
+        assert hyphenation("darkness", Hyphenator("en")) == ["dark", "ness"]
+        assert hyphenation("Hombre", Hyphenator("es")) == ["Hom", "bre"]
         assert hyphenation("begegnen", Hyphenator("de_DE")) == ["be", "geg", "nen"]
         assert hyphenation(".b,e~g'eg*nen, ", Hyphenator("de_DE")) == [".b,e", "~g'eg", "*nen, "]
         assert hyphenation("Abend, ", Hyphenator("de_AT")) == None

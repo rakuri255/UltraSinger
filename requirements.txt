@@ -402,7 +402,7 @@ pydub==0.25.1
     # via -r requirements.in
 pygments==2.18.0
     # via rich
-pyhyphen-reloaded==4.0.5
+pyhyphen-reloaded==4.0.6
     # via -r requirements.in
 pylint==3.2.6
     # via -r requirements.in
