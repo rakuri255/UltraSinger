@@ -19,8 +19,8 @@ from modules.Ultrastar.converter.ultrastar_converter import compare_pitches
 from modules.Ultrastar.ultrastar_txt import UltrastarTxtValue, FILE_ENCODING
 from modules.console_colors import ULTRASINGER_HEAD, red_highlighted
 
-test_input_folder = os.path.normpath(os.path.abspath(__file__ + "/../../test_input"))
-test_output_folder = os.path.normpath(os.path.abspath(__file__ + "/../../test_output"))
+default_test_input_folder = os.path.normpath(os.path.abspath(__file__ + "/../../evaluation/input"))
+test_output_folder = os.path.normpath(os.path.abspath(__file__ + "/../../evaluation/output"))
 
 test_start_time = datetime.now()
 
@@ -31,13 +31,15 @@ test_run_songs_folder = os.path.join(test_run_folder, "songs")
 
 def main() -> None:
     """Main function"""
-    Path(test_input_folder).mkdir(parents=True, exist_ok=True)
     Path(test_output_folder).mkdir(parents=True, exist_ok=True)
     Path(test_run_folder).mkdir(parents=True)
     Path(test_run_songs_folder).mkdir(parents=True)
 
     base_settings = initialize_settings()
     base_settings.output_folder_path = test_run_songs_folder
+
+    if base_settings.test_songs_input_folder is None:
+        base_settings.test_songs_input_folder = os.path.join(default_test_input_folder, "songs")
 
     base_settings.test_songs_input_folder = os.path.normpath(
         base_settings.test_songs_input_folder
@@ -68,7 +70,7 @@ def main() -> None:
 
     test_run = TestRun(test_run_name, base_settings, test_start_time)
     for index, test_song in enumerate(test_songs):
-        print(f"{ULTRASINGER_HEAD} ========================")
+        print(f"\n{ULTRASINGER_HEAD} ========================")
         print(
             f"{ULTRASINGER_HEAD} {index + 1}/{len(test_songs)}: {os.path.basename(test_song.input_txt)}"
         )
@@ -158,8 +160,9 @@ def find_ultrastar_song(
 def initialize_settings():
     s = Settings()
     user_config_file = os.path.normpath(
-        os.path.join(test_input_folder, "config/local.py")
+        os.path.join(default_test_input_folder, "config/local.py")
     )
+
     if os.path.isfile(user_config_file):
         print(
             f"{ULTRASINGER_HEAD} Using custom settings found under {user_config_file}"
