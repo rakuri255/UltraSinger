@@ -1,3 +1,19 @@
+[build-system]
+requires = ["setuptools", "setuptools-scm"]
+build-backend = "setuptools.build_meta"
+
+[project]
+requires-python = "3.10"
+name = "UltraSinger"
+dynamic = ["dependencies", "optional-dependencies"]
+
+[tool.setuptools.dynamic]
+dependencies = { file = ["requirements.in"] }
+optional-dependencies.test = { file = ["requirements-test.txt"] }
+
+[project.optional-dependencies]
+dev = ["pytest"]
+
 [tool.isort]
 profile = "black"
 [tool.pytest.ini_options]

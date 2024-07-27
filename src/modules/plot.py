@@ -8,12 +8,11 @@ import numpy
 from matplotlib import pyplot as plt
 from matplotlib.patches import Rectangle
 
-from modules.Ultrastar.ultrastar_txt import UltrastarTxtValue
+from modules.ProcessData import ProcessData
 from modules.console_colors import ULTRASINGER_HEAD
 from modules.Pitcher.pitched_data import PitchedData
 from modules.Pitcher.pitcher import get_pitched_data_with_high_confidence
-from modules.Speech_Recognition.TranscribedData import TranscribedData
-from modules.Midi.midi_creator import MidiSegment
+from modules.Midi.MidiSegment import MidiSegment
 
 
 @dataclass
@@ -31,14 +30,14 @@ OCTAVES = [0, 1, 2, 3, 4, 5, 6, 7, 8]
 X_TICK_SIZE = 5
 
 
-def get_frequency_range(midi_note: str) -> float:
+def __get_frequency_range(midi_note: str) -> float:
     """Get frequency range"""
     midi = librosa.note_to_midi(midi_note)
     frequency_range = librosa.midi_to_hz(midi + 1) - librosa.midi_to_hz(midi)
     return frequency_range
 
 
-def create_plot_notes(notes: list[str], octaves: list[int]) -> list[PlottedNote]:
+def __create_plot_notes(notes: list[str], octaves: list[int]) -> list[PlottedNote]:
     """Create list of notes for plot y axis"""
     plotted_notes = []
     for octave in octaves:
@@ -53,7 +52,7 @@ def create_plot_notes(notes: list[str], octaves: list[int]) -> list[PlottedNote]
     return plotted_notes
 
 
-PLOTTED_NOTES = create_plot_notes(NOTES, OCTAVES)
+PLOTTED_NOTES = __create_plot_notes(NOTES, OCTAVES)
 
 
 def plot(
@@ -81,11 +80,11 @@ def plot(
     frequencies_log_10 = numpy.log10(pitched_data.frequencies)
 
     # add 'nan' where there are gaps for frequency values so the graph is only continuous where it should be
-    pitched_data_with_gaps = create_gaps(pitched_data, step_size)
+    pitched_data_with_gaps = __create_gaps(pitched_data, step_size)
     frequencies_log_10_with_gaps = numpy.log10(pitched_data_with_gaps.frequencies)
 
     # dynamically set the minimum and maximum values for x and y axes based on data
-    y_lower_bound, y_upper_bound = determine_bounds(frequencies_log_10)
+    y_lower_bound, y_upper_bound = __determine_bounds(frequencies_log_10)
     ymin = max(0, y_lower_bound - 0.05)
     ymax = y_upper_bound + 0.05
     plt.ylim(ymin, ymax)
@@ -96,7 +95,7 @@ def plot(
     plt.xlabel("Time (s)")
     plt.ylabel("log10 of Frequency (Hz)")
 
-    notes_within_range = set_axes_ticks_and_labels(pitched_data.times, ymin, ymax)
+    notes_within_range = __set_axes_ticks_and_labels(pitched_data.times, ymin, ymax)
 
     # draw horizontal lines for each note
     for note in notes_within_range:
@@ -118,9 +117,9 @@ def plot(
     )
     plt.figure(1).colorbar(scatter_path_collection, label="confidence")
 
-    set_figure_dimensions(xmax - xmin, y_upper_bound - y_lower_bound)
+    __set_figure_dimensions(xmax - xmin, y_upper_bound - y_lower_bound)
 
-    plot_words(midi_segments)
+    __plot_words(midi_segments)
 
     if title is not None:
         plt.title(label=title)
@@ -130,7 +129,7 @@ def plot(
     dpi = 200
     plt.savefig(
         os.path.join(
-            output_path, f"plot{'' if title is None else '_' + snake(title)}.svg"
+            output_path, f"plot{'' if title is None else '_' + __snake(title)}.svg"
         ),
         dpi=dpi,
     )
@@ -138,7 +137,7 @@ def plot(
     plt.cla()
 
 
-def set_axes_ticks_and_labels(confidence, ymin, ymax):
+def __set_axes_ticks_and_labels(confidence, ymin, ymax):
     """Set ticks and their labels for x and y axes"""
     notes_within_range = [
         x for x in PLOTTED_NOTES if ymin <= x.frequency_log_10 <= ymax
@@ -165,7 +164,7 @@ def set_axes_ticks_and_labels(confidence, ymin, ymax):
     return notes_within_range
 
 
-def determine_bounds(frequency_log_10: list[float]) -> tuple[float, float]:
+def __determine_bounds(frequency_log_10: list[float]) -> tuple[float, float]:
     """Determine bounds based on 1st and 99th percentile of data"""
     lower = numpy.percentile(numpy.array(frequency_log_10), 1)
     upper = numpy.percentile(numpy.array(frequency_log_10), 99)
@@ -173,7 +172,7 @@ def determine_bounds(frequency_log_10: list[float]) -> tuple[float, float]:
     return lower, upper
 
 
-def set_figure_dimensions(time_range, frequency_log_10_range):
+def __set_figure_dimensions(time_range, frequency_log_10_range):
     """Dynamically scale the figure dimensions based on the duration/frequency amplitude of the song"""
     height = frequency_log_10_range / 0.06
     width = time_range / 2
@@ -182,7 +181,7 @@ def set_figure_dimensions(time_range, frequency_log_10_range):
     plt.figure(1).set_figheight(max(4, height))
 
 
-def create_gaps(pitched_data: PitchedData, step_size: float) -> PitchedData:
+def __create_gaps(pitched_data: PitchedData, step_size: float) -> PitchedData:
     """
     Add 'nan' where there are no high confidence frequency values.
     This way the graph is only continuous where it should be.
@@ -211,9 +210,9 @@ def create_gaps(pitched_data: PitchedData, step_size: float) -> PitchedData:
     return pitched_data_with_gaps
 
 
-def plot_word(midi_note: str, start, end, word):
+def __plot_word(midi_note: str, start, end, word):
     note_frequency = librosa.note_to_hz(midi_note)
-    frequency_range = get_frequency_range(midi_note)
+    frequency_range = __get_frequency_range(midi_note)
 
     half_frequency_range = frequency_range / 2
     height = (
@@ -237,14 +236,14 @@ def plot_word(midi_note: str, start, end, word):
     plt.text(start + width / 4, numpy.log10([note_frequency + half_frequency_range])[0], word, rotation=90)
 
 
-def plot_words(midi_segments: list[MidiSegment]):
+def __plot_words(midi_segments: list[MidiSegment]):
     """Draw rectangles for each word"""
     if midi_segments is not None:
         for i, midi_segment in enumerate(midi_segments):
-            plot_word(midi_segment.note, midi_segment.start, midi_segment.end, midi_segment.word)
+            __plot_word(midi_segment.note, midi_segment.start, midi_segment.end, midi_segment.word)
 
 
-def snake(s):
+def __snake(s):
     """Turn any string into a snake case string"""
     return "_".join(
         sub(
@@ -253,11 +252,11 @@ def snake(s):
     ).lower()
 
 
-def plot_spectrogram(audio_seperation_path: str,
-                     output_path: str,
-                     title: str = "Spectrogram",
+def __plot_spectrogram(audio_seperation_path: str,
+                       output_path: str,
+                       title: str = "Spectrogram",
 
-                     ) -> None:
+                       ) -> None:
     """Plot spectrogram of data"""
 
     print(
@@ -289,9 +288,16 @@ def plot_spectrogram(audio_seperation_path: str,
     dpi = 200
     plt.savefig(
         os.path.join(
-            output_path, f"plot{'_' + snake(title)}.svg"
+            output_path, f"plot{'_' + __snake(title)}.svg"
         ),
         dpi=dpi,
     )
     plt.clf()
     plt.cla()
+
+
+def create_plots(process_data: ProcessData, output_folder_path: str) -> None:
+    __plot_spectrogram(process_data.process_data_paths.vocals_audio_file_path, output_folder_path, "vocals.wav")
+    __plot_spectrogram(process_data.process_data_paths.processing_audio_path, output_folder_path,
+                     "processing audio")
+    plot(process_data.pitched_data, output_folder_path, process_data.midi_segments)

@@ -4,6 +4,7 @@ import sys
 
 import torch
 import whisperx
+from enum import Enum
 from torch.cuda import OutOfMemoryError
 
 from modules.Speech_Recognition.TranscriptionResult import TranscriptionResult
@@ -13,12 +14,21 @@ from modules.Speech_Recognition.TranscribedData import TranscribedData, from_whi
 
 MEMORY_ERROR_MESSAGE = f"{ULTRASINGER_HEAD} {blue_highlighted('whisper')} ran out of GPU memory; reduce --whisper_batch_size or force usage of cpu with --force_cpu"
 
+class WhisperModel(Enum):
+    """Whisper model"""
+    TINY = "tiny"
+    BASE = "base"
+    SMALL = "small"
+    MEDIUM = "medium"
+    LARGE_V1 = "large-v1"
+    LARGE_V2 = "large-v2"
+    LARGE_V3 = "large-v3"
 
 def transcribe_with_whisper(
     audio_path: str,
-    model: str,
+    model: WhisperModel,
     device="cpu",
-    model_name: str = None,
+    alignment_model: str = None,
     batch_size: int = 16,
     compute_type: str = None,
     language: str = None,
@@ -28,10 +38,10 @@ def transcribe_with_whisper(
     # Info: Regardless of the audio sampling rate used in the original audio file, whisper resample the audio signal to 16kHz (via ffmpeg). So the standard input from (44.1 or 48 kHz) should work.
 
     print(
-        f"{ULTRASINGER_HEAD} Loading {blue_highlighted('whisper')} with model {blue_highlighted(model)} and {red_highlighted(device)} as worker"
+        f"{ULTRASINGER_HEAD} Loading {blue_highlighted('whisper')} with model {blue_highlighted(model.value)} and {red_highlighted(device)} as worker"
     )
-    if model_name is not None:
-        print(f"{ULTRASINGER_HEAD} using alignment model {blue_highlighted(model_name)}")
+    if alignment_model is not None:
+        print(f"{ULTRASINGER_HEAD} using alignment model {blue_highlighted(alignment_model)}")
 
     if compute_type is None:
         compute_type = "float16" if device == "cuda" else "int8"
@@ -39,7 +49,7 @@ def transcribe_with_whisper(
     try:
         torch.cuda.empty_cache()
         loaded_whisper_model = whisperx.load_model(
-            model, language=language, device=device, compute_type=compute_type
+            model.value, language=language, device=device, compute_type=compute_type
         )
 
         audio = whisperx.load_audio(audio_path)
@@ -57,7 +67,7 @@ def transcribe_with_whisper(
         # load alignment model and metadata
         try:
             model_a, metadata = whisperx.load_align_model(
-                language_code=language, device=device, model_name=model_name
+                language_code=language, device=device, model_name=alignment_model
             )
         except ValueError as ve:
             print(

@@ -5,15 +5,14 @@ import langcodes
 from packaging import version
 
 from modules.console_colors import ULTRASINGER_HEAD
-from modules.Ultrastar.ultrastar_converter import (
+from modules.Ultrastar.coverter.ultrastar_converter import (
     real_bpm_to_ultrastar_bpm,
-    second_to_beat,
-    beat_to_second,
-)
+    second_to_beat, )
+from modules.Ultrastar.coverter.ultrastar_midi_converter import convert_midi_note_to_ultrastar_note
 from modules.Ultrastar.ultrastar_txt import UltrastarTxtValue, UltrastarTxtTag, UltrastarTxtNoteTypeTag, \
     FILE_ENCODING
-from modules.Speech_Recognition.TranscribedData import TranscribedData
 from modules.Ultrastar.ultrastar_score_calculator import Score
+from modules.Midi.MidiSegment import MidiSegment
 
 
 def get_thirtytwo_note_second(real_bpm: float):
@@ -66,26 +65,22 @@ def get_language_name(language: str) -> str:
     return langcodes.Language.make(language=language).display_name()
 
 
-def create_ultrastar_txt_from_automation(
-        transcribed_data: list[TranscribedData],
-        note_numbers: list[int],
+def create_ultrastar_txt(
+        midi_segments: list[MidiSegment],
         ultrastar_file_output: str,
         ultrastar_class: UltrastarTxtValue,
-        real_bpm=120,
-) -> None:
+        real_bpm: float) -> None:
     """Creates an Ultrastar txt file from the automation data"""
 
-    print(
-        f"{ULTRASINGER_HEAD} Creating {ultrastar_file_output} from transcription."
-    )
+    print(f"{ULTRASINGER_HEAD} Creating UltraStar file {ultrastar_file_output}")
 
     ultrastar_bpm = real_bpm_to_ultrastar_bpm(real_bpm)
     multiplication = get_multiplier(ultrastar_bpm)
     ultrastar_bpm = ultrastar_bpm * get_multiplier(ultrastar_bpm)
-    silence_split_duration = calculate_silent_beat_length(transcribed_data)
+    silence_split_duration = calculate_silent_beat_length(midi_segments)
 
     with open(ultrastar_file_output, "w", encoding=FILE_ENCODING) as file:
-        gap = transcribed_data[0].start
+        gap = midi_segments[0].start
 
         if version.parse(ultrastar_class.version) >= version.parse("1.0.0"):
             file.write(f"#{UltrastarTxtTag.VERSION}:{ultrastar_class.version}\n"),
@@ -123,10 +118,10 @@ def create_ultrastar_txt_from_automation(
         previous_end_beat = 0
         separated_word_silence = []  # This is a workaround for separated words that get his ends to far away
 
-        for i, data in enumerate(transcribed_data):
-            start_time = (data.start - gap) * multiplication
+        for i, midi_segment in enumerate(midi_segments):
+            start_time = (midi_segment.start - gap) * multiplication
             end_time = (
-                               data.end - data.start
+                               midi_segment.end - midi_segment.start
                        ) * multiplication
             start_beat = round(second_to_beat(start_time, real_bpm))
             duration = round(second_to_beat(end_time, real_bpm))
@@ -136,8 +131,8 @@ def create_ultrastar_txt_from_automation(
             previous_end_beat = start_beat + duration
 
             # Calculate the silence between the words
-            if i < len(transcribed_data) - 1:
-                silence = (transcribed_data[i + 1].start - data.end)
+            if i < len(midi_segments) - 1:
+                silence = (midi_segments[i + 1].start - midi_segment.end)
             else:
                 silence = 0
 
@@ -150,23 +145,24 @@ def create_ultrastar_txt_from_automation(
             line = f"{UltrastarTxtNoteTypeTag.NORMAL} " \
                    f"{str(start_beat)} " \
                    f"{str(duration)} " \
-                   f"{str(note_numbers[i])} " \
-                   f"{data.word}\n"
+                   f"{str(convert_midi_note_to_ultrastar_note(midi_segment))} " \
+                   f"{midi_segment.word}\n"
 
             file.write(line)
 
             # detect silence between words
-            if not transcribed_data[i].is_word_end:
+            #if not transcribed_data[i].is_word_end:
+            if not midi_segment.word.endswith(" "):
                 separated_word_silence.append(silence)
                 continue
 
             if silence_split_duration != 0 and silence > silence_split_duration or any(
-                    s > silence_split_duration for s in separated_word_silence) and i != len(transcribed_data) - 1:
+                    s > silence_split_duration for s in separated_word_silence) and i != len(midi_segments) - 1:
                 # - 10
                 # '-' end of current sing part
                 # 'n1' show next at time in real beat
                 show_next = (
-                        second_to_beat(data.end - gap, real_bpm)
+                        second_to_beat(midi_segment.end - gap, real_bpm)
                         * multiplication
                 )
                 linebreak = f"{UltrastarTxtTag.LINEBREAK} " \
@@ -194,13 +190,13 @@ def deviation(silence_parts):
     return mean
 
 
-def calculate_silent_beat_length(transcribed_data: list[TranscribedData]):
+def calculate_silent_beat_length(midi_segments: list[MidiSegment]):
     print(f"{ULTRASINGER_HEAD} Calculating silence parts for linebreaks.")
 
     silent_parts = []
-    for i, data in enumerate(transcribed_data):
-        if i < len(transcribed_data) - 1:
-            silent_parts.append(transcribed_data[i + 1].start - data.end)
+    for i, data in enumerate(midi_segments):
+        if i < len(midi_segments) - 1:
+            silent_parts.append(midi_segments[i + 1].start - data.end)
 
     return deviation(silent_parts)
 
@@ -210,9 +206,7 @@ def create_repitched_txt_from_ultrastar_data(
 ) -> None:
     """Creates a repitched ultrastar txt file from the original one"""
     # todo: just add '_repitched' to input_file
-    print(
-        "{PRINT_ULTRASTAR} Creating repitched ultrastar txt -> {input_file}_repitch.txt"
-    )
+    print(f"{ULTRASINGER_HEAD} Creating repitched ultrastar txt -> {input_file}_repitch.txt")
 
     # todo: to reader
     with open(input_file, "r", encoding=FILE_ENCODING) as file:
@@ -271,3 +265,25 @@ def add_score_to_ultrastar_txt(ultrastar_file_output: str, score: Score) -> None
 
 class UltraStarWriter:
     """Docstring"""
+
+
+def format_separated_string(data: str) -> str:
+    temp = re.sub(r'[;/]', ',', data)
+    words = temp.split(',')
+    words = [s for s in words if s.strip()]
+
+    for i, word in enumerate(words):
+        if "-" not in word:
+            words[i] = word.strip().capitalize() + ', '
+        else:
+            dash_words = word.split('-')
+            capitalized_dash_words = [dash_word.strip().capitalize() for dash_word in dash_words]
+            formatted_dash_word = '-'.join(capitalized_dash_words) + ', '
+            words[i] = formatted_dash_word
+
+    formatted_string = ''.join(words)
+
+    if formatted_string.endswith(', '):
+        formatted_string = formatted_string[:-2]
+
+    return formatted_string

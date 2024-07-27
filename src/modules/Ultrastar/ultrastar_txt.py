@@ -1,6 +1,8 @@
 """Ultrastar TXT"""
 
 from enum import Enum
+from dataclasses import dataclass, field
+from typing import List
 
 FILE_ENCODING = "utf-8"
 
@@ -73,6 +75,33 @@ class UltrastarTxtNoteTypeTag(str, Enum):
     GOLDEN = '*'
 
 
+def get_note_type_from_string(note_type_str: str) -> UltrastarTxtNoteTypeTag:
+    if note_type_str == UltrastarTxtNoteTypeTag.NORMAL.value:
+        return UltrastarTxtNoteTypeTag.NORMAL
+    elif note_type_str == UltrastarTxtNoteTypeTag.RAP.value:
+        return UltrastarTxtNoteTypeTag.RAP
+    elif note_type_str == UltrastarTxtNoteTypeTag.RAP_GOLDEN.value:
+        return UltrastarTxtNoteTypeTag.RAP_GOLDEN
+    elif note_type_str == UltrastarTxtNoteTypeTag.FREESTYLE.value:
+        return UltrastarTxtNoteTypeTag.FREESTYLE
+    elif note_type_str == UltrastarTxtNoteTypeTag.GOLDEN.value:
+        return UltrastarTxtNoteTypeTag.GOLDEN
+    else:
+        raise ValueError(f"Unknown NoteType: {note_type_str}")
+
+
+@dataclass
+class UltrastarNoteLine:
+    startBeat: float
+    startTime: float
+    endTime: float
+    duration: float
+    pitch: int
+    word: str
+    noteType: UltrastarTxtNoteTypeTag  # F, R, G, *, :
+
+
+@dataclass
 class UltrastarTxtValue:
     """Vaules for Ultrastar TXT files."""
 
@@ -95,10 +124,13 @@ class UltrastarTxtValue:
     tags = None
     creator = "UltraSinger [GitHub]"
     comment = "UltraSinger [GitHub]"
-    startBeat = []
-    startTimes = []
-    endTimes = []
-    durations = []
-    pitches = []
-    words = []
-    noteType = []  # F, R, G, *, :
+    UltrastarNoteLines: List[UltrastarNoteLine] = field(default_factory=list)
+
+
+class FormatVersion(Enum):
+    V0_2_0 = "0.2.0"
+    V0_3_0 = "0.3.0"
+    V1_0_0 = "1.0.0"
+    V1_1_0 = "1.1.0"
+    V1_2_0 = "1.2.0" # Not released yet
+    V2_0_0 = "2.0.0" # Not released yet

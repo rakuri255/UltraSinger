@@ -1,4 +1,6 @@
 """Silence processing module"""
+import librosa
+import soundfile as sf
 
 from pydub import AudioSegment, silence
 
@@ -118,3 +120,24 @@ def remove_silence(silence_parts_list: list[tuple[float, float]], transcribed_da
                 # Nothing to do with this word anymore, go to next word
                 break
     return new_transcribed_data
+
+
+def mute_no_singing_parts(mono_output_path, mute_output_path):
+    print(
+        f"{ULTRASINGER_HEAD} Mute audio parts with no singing"
+    )
+    silence_sections = get_silence_sections(mono_output_path)
+    y, sr = librosa.load(mono_output_path, sr=None)
+    # Mute the parts of the audio with no singing
+    for i in silence_sections:
+        # Define the time range to mute
+
+        start_time = i[0]  # Start time in seconds
+        end_time = i[1]  # End time in seconds
+
+        # Convert time to sample indices
+        start_sample = int(start_time * sr)
+        end_sample = int(end_time * sr)
+
+        y[start_sample:end_sample] = 0
+    sf.write(mute_output_path, y, sr)
