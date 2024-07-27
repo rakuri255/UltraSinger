@@ -8,6 +8,11 @@ def blue_highlighted(text: str) -> str:
     return f"{Bcolors.blue}{text}{Bcolors.endc}"
 
 
+def green_highlighted(text: str) -> str:
+    """Returns a blue highlighted text"""
+    return f"{Bcolors.dark_green}{text}{Bcolors.endc}"
+
+
 def gold_highlighted(text: str) -> str:
     """Returns a gold highlighted text"""
     return f"{Bcolors.gold}{text}{Bcolors.endc}"
@@ -37,6 +42,7 @@ class Bcolors:
     """Colors for the console"""
 
     blue = "\033[94m"
+    dark_green = "\033[32m"
     red = "\033[91m"
     light_blue = "\033[96m"
     cyan = "\033[36m"

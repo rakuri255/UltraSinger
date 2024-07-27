@@ -20,7 +20,7 @@ def export_transcribed_data_to_csv(transcribed_data: list[TranscribedData], file
                     data.word,
                     data.start,
                     data.end,
-                    data.conf,
+                    data.confidence,
                 ]
             )
 

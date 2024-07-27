@@ -22,6 +22,8 @@ from modules.Audio.vocal_chunks import (
     export_chunks_from_ultrastar_data,
 )
 from modules.Audio.silence_processing import remove_silence_from_transcription_data, get_silence_sections
+from modules.Speech_Recognition.TranscriptionResult import TranscriptionResult
+from modules.Ultrastar.ultrastar_score_calculator import Score
 from modules.csv_handler import export_transcribed_data_to_csv
 from modules.Audio.convert_audio import convert_audio_to_mono_wav, convert_wav_to_mp3
 from modules.Audio.youtube import (
@@ -37,6 +39,7 @@ from modules.console_colors import (
     gold_highlighted,
     light_blue_highlighted,
     red_highlighted,
+    green_highlighted,
 )
 from modules.Midi.midi_creator import (
     convert_frequencies_to_notes,
@@ -52,12 +55,22 @@ from modules.Pitcher.pitcher import (
     get_pitch_with_crepe_file,
 )
 from modules.Pitcher.pitched_data import PitchedData
-from modules.Speech_Recognition.hyphenation import hyphenation, language_check, create_hyphenator
+from modules.Speech_Recognition.hyphenation import (
+    hyphenation,
+    language_check,
+    create_hyphenator,
+)
 from modules.Speech_Recognition.Whisper import transcribe_with_whisper
-from modules.Ultrastar import ultrastar_score_calculator, ultrastar_writer, ultrastar_converter, ultrastar_parser
-from modules.Ultrastar.ultrastar_txt import UltrastarTxtValue
+from modules.Ultrastar import (
+    ultrastar_score_calculator,
+    ultrastar_writer,
+    ultrastar_converter,
+    ultrastar_parser,
+)
+from modules.Ultrastar.ultrastar_txt import UltrastarTxtValue, FILE_ENCODING
 from Settings import Settings
 from modules.Speech_Recognition.TranscribedData import TranscribedData
+from modules.os_helper import check_file_exists
 from modules.plot import plot, plot_spectrogram
 from modules.musicbrainz_client import get_music_infos
 from modules.sheet import create_sheet
@@ -67,9 +80,7 @@ settings = Settings()
 
 def pitch_each_chunk_with_crepe(directory: str) -> list[str]:
     """Pitch each chunk with crepe and return midi notes"""
-    print(
-        f"{ULTRASINGER_HEAD} Pitching each chunk with {blue_highlighted('crepe')}"
-    )
+    print(f"{ULTRASINGER_HEAD} Pitching each chunk with {blue_highlighted('crepe')}")
 
     midi_notes = []
     for filename in sorted(
@@ -98,7 +109,9 @@ def pitch_each_chunk_with_crepe(directory: str) -> list[str]:
     return midi_notes
 
 
-def add_hyphen_to_data(transcribed_data: list[TranscribedData], hyphen_words: list[list[str]]):
+def add_hyphen_to_data(
+    transcribed_data: list[TranscribedData], hyphen_words: list[list[str]]
+):
     """Add hyphen to transcribed data return new data list"""
     new_data = []
 
@@ -134,9 +147,7 @@ def get_bpm_from_data(data, sampling_rate):
     onset_env = librosa.onset.onset_strength(y=data, sr=sampling_rate)
     wav_tempo = librosa.beat.tempo(onset_envelope=onset_env, sr=sampling_rate)
 
-    print(
-        f"{ULTRASINGER_HEAD} BPM is {blue_highlighted(str(round(wav_tempo[0], 2)))}"
-    )
+    print(f"{ULTRASINGER_HEAD} BPM is {blue_highlighted(str(round(wav_tempo[0], 2)))}")
     return wav_tempo[0]
 
 
@@ -228,12 +239,12 @@ def remove_unecessary_punctuations(transcribed_data: list[TranscribedData]) -> N
     """Remove unecessary punctuations from transcribed data"""
     punctuation = ".,"
     for i, data in enumerate(transcribed_data):
-        data.word = data.word.translate(
-            {ord(i): None for i in punctuation}
-        )
+        data.word = data.word.translate({ord(i): None for i in punctuation})
 
 
-def hyphenate_each_word(language: str, transcribed_data: list[TranscribedData]) -> list[list[str]] | None:
+def hyphenate_each_word(
+    language: str, transcribed_data: list[TranscribedData]
+) -> list[list[str]] | None:
     """Hyphenate each word in the transcribed data."""
     lang_region = language_check(language)
     if lang_region is None:
@@ -284,17 +295,15 @@ def print_version() -> None:
         f"{ULTRASINGER_HEAD} {gold_highlighted('*****************************')}"
     )
 
-def run() -> None:
+def run() -> tuple[str, Score, Score]:
     """The processing function of this program"""
-    is_audio = ".txt" not in settings.input_file_path
+    settings.input_file_is_ultrastar_txt = settings.input_file_path.endswith(".txt")
+
     ultrastar_class = None
     real_bpm = None
     (title, artist, year, genre) = (None, None, None, None)
 
-    if not is_audio:  # Parse Ultrastar txt
-        print(
-            f"{ULTRASINGER_HEAD} {gold_highlighted('re-pitch mode')}"
-        )
+    if settings.input_file_is_ultrastar_txt:  # Parse Ultrastar txt
         (
             basename_without_ext,
             real_bpm,
@@ -302,28 +311,35 @@ def run() -> None:
             ultrastar_audio_input_path,
             ultrastar_class,
         ) = parse_ultrastar_txt()
+
+        if not ultrastar_class.mp3:
+            print(
+                f"{ULTRASINGER_HEAD} {red_highlighted('Error!')} The provided text file does not have a reference to "
+                f"an audio file."
+            )
+            exit(1)
     elif settings.input_file_path.startswith("https:"):  # Youtube
-        print(
-            f"{ULTRASINGER_HEAD} {gold_highlighted('full automatic mode')}"
-        )
+        print(f"{ULTRASINGER_HEAD} {gold_highlighted('full automatic mode')}")
         (
             basename_without_ext,
             settings.song_output,
             ultrastar_audio_input_path,
-            (title, artist, year, genre)
+            (title, artist, year, genre),
         ) = download_from_youtube()
     else:  # Audio File
-        print(
-            f"{ULTRASINGER_HEAD} {gold_highlighted('full automatic mode')}"
-        )
+        print(f"{ULTRASINGER_HEAD} {gold_highlighted('full automatic mode')}")
         (
             basename_without_ext,
             settings.song_output,
             ultrastar_audio_input_path,
-            (title, artist, year, genre)
+            (title, artist, year, genre),
         ) = infos_from_audio_input_file()
 
-    settings.cache_path = os.path.join(settings.song_output, "cache")
+    settings.cache_path = (
+        os.path.join(settings.song_output, "cache")
+        if settings.cache_override_path is None
+        else settings.cache_override_path
+    )
     settings.processing_audio_path = os.path.join(
         settings.cache_path, basename_without_ext + ".wav"
     )
@@ -376,11 +392,12 @@ def run() -> None:
     # Audio transcription
     transcribed_data = None
     language = settings.language
-    if is_audio:
-        detected_language, transcribed_data = transcribe_audio()
+    if not settings.ignore_audio:
+        transcription_result = transcribe_audio(settings.cache_path)
         if language is None:
-            language = detected_language
+            language = transcription_result.detected_language
 
+        transcribed_data = transcription_result.transcribed_data
         remove_unecessary_punctuations(transcribed_data)
 
         if settings.hyphenation:
@@ -400,7 +417,6 @@ def run() -> None:
     if settings.create_audio_chunks:
         create_audio_chunks(
             settings.cache_path,
-            is_audio,
             transcribed_data,
             ultrastar_audio_input_path,
             ultrastar_class,
@@ -408,7 +424,7 @@ def run() -> None:
 
     # Pitch the audio
     midi_segments, pitched_data, ultrastar_note_numbers, transcribed_data = pitch_audio(
-        is_audio, transcribed_data, ultrastar_class
+        transcribed_data, ultrastar_class, settings.cache_path
     )
 
     # Create plot
@@ -419,7 +435,7 @@ def run() -> None:
         plot(pitched_data, settings.song_output, midi_segments)
 
     # Write Ultrastar txt
-    if is_audio:
+    if not settings.ignore_audio:
         real_bpm, ultrastar_file_output = create_ultrastar_txt_from_automation(
             basename_without_ext,
             settings.song_output,
@@ -437,15 +453,16 @@ def run() -> None:
             settings.song_output, ultrastar_class, ultrastar_note_numbers
         )
 
-    # Calc Points
-    ultrastar_class, simple_score, accurate_score = calculate_score_points(
-        is_audio, pitched_data, ultrastar_class, ultrastar_file_output
-    )
+    simple_score = None
+    accurate_score = None
+    if settings.calculate_score:
+        # Calc Points
+        ultrastar_class, simple_score, accurate_score = calculate_score_points(
+            pitched_data, ultrastar_class, ultrastar_file_output
+        )
 
     # Add calculated score to Ultrastar txt #Todo: Missing Karaoke
-    ultrastar_writer.add_score_to_ultrastar_txt(
-        ultrastar_file_output, simple_score
-    )
+    ultrastar_writer.add_score_to_ultrastar_txt(ultrastar_file_output, simple_score)
 
     # Midi
     if settings.create_midi:
@@ -460,6 +477,7 @@ def run() -> None:
 
     # Print Support
     print_support()
+    return ultrastar_file_output, simple_score, accurate_score
 
 
 def mute_no_singing_parts(mono_output_path, mute_output_path):
@@ -499,58 +517,85 @@ def get_unused_song_output_dir(path: str) -> str:
             print(
                 f"{ULTRASINGER_HEAD} {red_highlighted('Error: Could not create output folder! (999) is the maximum number of tries.')}"
             )
-            sys.exit(1)
+            raise ValueError("Could not create output folder! (999) is the maximum number of tries.")
     return path
 
 
-def transcribe_audio() -> (str, list[TranscribedData]):
+def transcribe_audio(cache_path: str) -> TranscriptionResult:
     """Transcribe audio with AI"""
+    transcription_result = None
     if settings.transcriber == "whisper":
-        device = "cpu" if settings.force_whisper_cpu else settings.pytorch_device
-        transcribed_data, detected_language = transcribe_with_whisper(
-            settings.processing_audio_path,
-            settings.whisper_model,
-            device,
-            settings.whisper_align_model,
-            settings.whisper_batch_size,
-            settings.whisper_compute_type,
-            settings.language,
-        )
+        transcription_config = f"{settings.transcriber}_{settings.whisper_model}_{settings.pytorch_device}_{settings.whisper_align_model}_{settings.whisper_align_model}_{settings.whisper_batch_size}_{settings.whisper_compute_type}_{settings.language}"
+        transcription_path = os.path.join(cache_path, f"{transcription_config}.json")
+        cached_transcription_available = check_file_exists(transcription_path)
+        if settings.skip_cache_transcription or not cached_transcription_available:
+            transcription_result = transcribe_with_whisper(
+                settings.processing_audio_path,
+                settings.whisper_model,
+                settings.pytorch_device,
+                settings.whisper_align_model,
+                settings.whisper_batch_size,
+                settings.whisper_compute_type,
+                settings.language,
+            )
+            with open(transcription_path, "w", encoding=FILE_ENCODING) as file:
+                file.write(transcription_result.to_json())
+        else:
+            print(f"{ULTRASINGER_HEAD} {green_highlighted('cache')} reusing cached transcribed data")
+            with open(transcription_path) as file:
+                json = file.read()
+                transcription_result = TranscriptionResult.from_json(json)
     else:
         raise NotImplementedError
-    return detected_language, transcribed_data
+    return transcription_result
 
 
 def separate_vocal_from_audio(
-        basename_without_ext: str, cache_path: str, ultrastar_audio_input_path: str
+    basename_without_ext: str, cache_path: str, ultrastar_audio_input_path: str
 ) -> str:
     """Separate vocal from audio"""
+    demucs_output_folder = os.path.splitext(
+        os.path.basename(ultrastar_audio_input_path)
+    )[0]
     audio_separation_path = os.path.join(
-        cache_path, "separated", "htdemucs", basename_without_ext
+        cache_path, "separated", "htdemucs", demucs_output_folder
     )
 
+    vocals_path = os.path.join(audio_separation_path, "vocals.wav")
+    instrumental_path = os.path.join(audio_separation_path, "no_vocals.wav")
     if settings.use_separated_vocal or settings.create_karaoke:
-        separate_audio(ultrastar_audio_input_path, cache_path, settings.pytorch_device)
+        cache_available = check_file_exists(vocals_path) and check_file_exists(
+            instrumental_path
+        )
+        if settings.skip_cache_vocal_separation or not cache_available:
+            separate_audio(
+                ultrastar_audio_input_path, cache_path, settings.pytorch_device
+            )
+        else:
+            print(f"{ULTRASINGER_HEAD} {green_highlighted('cache')} reusing cached separated vocals")
+
+    if settings.use_separated_vocal:
+        input_path = vocals_path
+    else:
+        input_path = ultrastar_audio_input_path
+
+    convert_audio_to_mono_wav(input_path, settings.processing_audio_path)
 
     return audio_separation_path
 
 def calculate_score_points(
-    is_audio: bool, pitched_data: PitchedData, ultrastar_class: UltrastarTxtValue, ultrastar_file_output: str
+    pitched_data: PitchedData,
+    ultrastar_class: UltrastarTxtValue,
+    ultrastar_file_output: str,
 ):
     """Calculate score points"""
-    if is_audio:
-        ultrastar_class = ultrastar_parser.parse_ultrastar_txt(
-            ultrastar_file_output
-        )
+    if not settings.ignore_audio:
+        ultrastar_class = ultrastar_parser.parse_ultrastar_txt(ultrastar_file_output)
         (
             simple_score,
             accurate_score,
-        ) = ultrastar_score_calculator.calculate_score(
-            pitched_data, ultrastar_class
-        )
-        ultrastar_score_calculator.print_score_calculation(
-            simple_score, accurate_score
-        )
+        ) = ultrastar_score_calculator.calculate_score(pitched_data, ultrastar_class)
+        ultrastar_score_calculator.print_score_calculation(simple_score, accurate_score)
     else:
         print(
             f"{ULTRASINGER_HEAD} {blue_highlighted('Score of original Ultrastar txt')}"
@@ -558,32 +603,24 @@ def calculate_score_points(
         (
             simple_score,
             accurate_score,
-        ) = ultrastar_score_calculator.calculate_score(
-            pitched_data, ultrastar_class
-        )
-        ultrastar_score_calculator.print_score_calculation(
-            simple_score, accurate_score
-        )
+        ) = ultrastar_score_calculator.calculate_score(pitched_data, ultrastar_class)
+        ultrastar_score_calculator.print_score_calculation(simple_score, accurate_score)
         print(
             f"{ULTRASINGER_HEAD} {blue_highlighted('Score of re-pitched Ultrastar txt')}"
         )
-        ultrastar_class = ultrastar_parser.parse_ultrastar_txt(
-            ultrastar_file_output
-        )
+        ultrastar_class = ultrastar_parser.parse_ultrastar_txt(ultrastar_file_output)
         (
             simple_score,
             accurate_score,
-        ) = ultrastar_score_calculator.calculate_score(
-            pitched_data, ultrastar_class
-        )
-        ultrastar_score_calculator.print_score_calculation(
-            simple_score, accurate_score
-        )
+        ) = ultrastar_score_calculator.calculate_score(pitched_data, ultrastar_class)
+        ultrastar_score_calculator.print_score_calculation(simple_score, accurate_score)
     return ultrastar_class, simple_score, accurate_score
 
 
 def create_ultrastar_txt_from_ultrastar_data(
-    song_output: str, ultrastar_class: UltrastarTxtValue, ultrastar_note_numbers: list[int]
+    song_output: str,
+    ultrastar_class: UltrastarTxtValue,
+    ultrastar_note_numbers: list[int],
 ) -> str:
     """Create Ultrastar txt from Ultrastar data"""
     output_repitched_ultrastar = os.path.join(
@@ -622,9 +659,7 @@ def create_ultrastar_txt_from_automation(
     ultrastar_header.language = language
     cover = basename_without_ext + " [CO].jpg"
     ultrastar_header.cover = (
-        cover
-        if os_helper.check_file_exists(os.path.join(song_output, cover))
-        else None
+        cover if os_helper.check_file_exists(os.path.join(song_output, cover)) else None
     )
     ultrastar_header.creator = f"{ultrastar_header.creator} {Settings.APP_VERSION}"
     ultrastar_header.comment = f"{ultrastar_header.comment} {Settings.APP_VERSION}"
@@ -640,9 +675,7 @@ def create_ultrastar_txt_from_automation(
         ultrastar_header.genre = format_separated_string(genre)
 
     real_bpm = get_bpm_from_file(ultrastar_audio_input_path)
-    ultrastar_file_output = os.path.join(
-        song_output, basename_without_ext + ".txt"
-    )
+    ultrastar_file_output = os.path.join(song_output, basename_without_ext + ".txt")
     ultrastar_writer.create_ultrastar_txt_from_automation(
         transcribed_data,
         ultrastar_note_numbers,
@@ -721,9 +754,17 @@ def infos_from_audio_input_file() -> tuple[str, str, str, tuple[str, str, str, s
     song_output = get_unused_song_output_dir(song_output)
     os_helper.create_folder(song_output)
     os_helper.copy(settings.input_file_path, song_output)
-    os_helper.rename(os.path.join(song_output, os.path.basename(settings.input_file_path)), os.path.join(song_output, basename))
+    os_helper.rename(
+        os.path.join(song_output, os.path.basename(settings.input_file_path)),
+        os.path.join(song_output, basename),
+    )
     ultrastar_audio_input_path = os.path.join(song_output, basename)
-    return basename_without_ext, song_output, ultrastar_audio_input_path, (title, artist, year_info, genre_info)
+    return (
+        basename_without_ext,
+        song_output,
+        ultrastar_audio_input_path,
+        (title, artist, year_info, genre_info),
+    )
 
 
 FILENAME_REPLACEMENTS = (('?:"', ""), ("<", "("), (">", ")"), ("/\\|*", "-"))
@@ -744,7 +785,9 @@ def download_from_youtube() -> tuple[str, str, str, tuple[str, str, str, str]]:
     (artist, title) = get_youtube_title(settings.input_file_path)
 
     # Get additional data for song
-    (title_info, artist_info, year_info, genre_info) = get_music_infos(f"{artist} - {title}")
+    (title_info, artist_info, year_info, genre_info) = get_music_infos(
+        f"{artist} - {title}"
+    )
 
     if title_info is not None:
         title = title_info
@@ -755,29 +798,29 @@ def download_from_youtube() -> tuple[str, str, str, tuple[str, str, str, str]]:
     song_output = os.path.join(settings.output_file_path, basename_without_ext)
     song_output = get_unused_song_output_dir(song_output)
     os_helper.create_folder(song_output)
-    download_youtube_audio(
-        settings.input_file_path, basename_without_ext, song_output
-    )
-    download_youtube_video(
-        settings.input_file_path, basename_without_ext, song_output
-    )
+    download_youtube_audio(settings.input_file_path, basename_without_ext, song_output)
+    download_youtube_video(settings.input_file_path, basename_without_ext, song_output)
     download_youtube_thumbnail(
         settings.input_file_path, basename_without_ext, song_output
     )
     ultrastar_audio_input_path = os.path.join(song_output, basename)
-    return basename_without_ext, song_output, ultrastar_audio_input_path, (title, artist, year_info, genre_info)
+    return (
+        basename_without_ext,
+        song_output,
+        ultrastar_audio_input_path,
+        (title, artist, year_info, genre_info),
+    )
 
 
 def parse_ultrastar_txt() -> tuple[str, float, str, str, UltrastarTxtValue]:
     """Parse Ultrastar txt"""
-    ultrastar_class = ultrastar_parser.parse_ultrastar_txt(
-        settings.input_file_path
-    )
+    ultrastar_class = ultrastar_parser.parse_ultrastar_txt(settings.input_file_path)
     real_bpm = ultrastar_converter.ultrastar_bpm_to_real_bpm(
         float(ultrastar_class.bpm.replace(",", "."))
     )
     ultrastar_mp3_name = ultrastar_class.mp3
-    basename_without_ext = os.path.splitext(ultrastar_mp3_name)[0]
+
+    basename_without_ext = f"{ultrastar_class.artist.strip()} - {ultrastar_class.title.strip()}"
     dirname = os.path.dirname(settings.input_file_path)
     ultrastar_audio_input_path = os.path.join(dirname, ultrastar_mp3_name)
     song_output = os.path.join(
@@ -796,37 +839,53 @@ def parse_ultrastar_txt() -> tuple[str, float, str, str, UltrastarTxtValue]:
     )
 
 
-def create_midi_file(real_bpm: float,
-                     song_output: str,
-                     ultrastar_class: UltrastarTxtValue,
-                     basename_without_ext: str) -> None:
+def create_midi_file(
+    real_bpm: float,
+    song_output: str,
+    ultrastar_class: UltrastarTxtValue,
+    basename_without_ext: str,
+) -> None:
     """Create midi file"""
-    print(
-        f"{ULTRASINGER_HEAD} Creating Midi with {blue_highlighted('pretty_midi')}"
-    )
+    print(f"{ULTRASINGER_HEAD} Creating Midi with {blue_highlighted('pretty_midi')}")
 
     voice_instrument = [
         convert_ultrastar_to_midi_instrument(ultrastar_class)
     ]
     midi_output = os.path.join(song_output, f"{basename_without_ext}.mid")
-    instruments_to_midi(
-        voice_instrument, real_bpm, midi_output
-    )
+    instruments_to_midi(voice_instrument, real_bpm, midi_output)
 
 
-def pitch_audio(is_audio: bool, transcribed_data: list[TranscribedData], ultrastar_class: UltrastarTxtValue) -> tuple[
-    list[MidiSegment], PitchedData, list[int], list[TranscribedData]]:
+def pitch_audio(
+    transcribed_data: list[TranscribedData],
+    ultrastar_class: UltrastarTxtValue,
+    cache_path: str
+) -> tuple[list[MidiSegment], PitchedData, list[int], list[TranscribedData]]:
     """Pitch audio"""
     # todo: chunk pitching as option?
     # midi_notes = pitch_each_chunk_with_crepe(chunk_folder_name)
-    device = "cpu" if settings.force_crepe_cpu else settings.tensorflow_device
-    pitched_data = get_pitch_with_crepe_file(
-        settings.processing_audio_path,
-        settings.crepe_model_capacity,
-        settings.crepe_step_size,
-        device,
-    )
-    if is_audio:
+
+    pitching_config = f"crepe_{settings.ignore_audio}_{settings.crepe_model_capacity}_{settings.crepe_step_size}_{settings.tensorflow_device}"
+    pitched_data_path = os.path.join(cache_path, f"{pitching_config}.json")
+    cache_available = check_file_exists(pitched_data_path)
+
+    if settings.skip_cache_transcription or not cache_available:
+        pitched_data = get_pitch_with_crepe_file(
+            settings.processing_audio_path,
+            settings.crepe_model_capacity,
+            settings.crepe_step_size,
+            settings.tensorflow_device,
+        )
+
+        pitched_data_json = pitched_data.to_json()
+        with open(pitched_data_path, "w", encoding=FILE_ENCODING) as file:
+            file.write(pitched_data_json)
+    else:
+        print(f"{ULTRASINGER_HEAD} {green_highlighted('cache')} reusing cached pitch data")
+        with open(pitched_data_path) as file:
+            json = file.read()
+            pitched_data = PitchedData.from_json(json)
+
+    if not settings.ignore_audio:
         start_times = []
         end_times = []
         words = []
@@ -834,34 +893,37 @@ def pitch_audio(is_audio: bool, transcribed_data: list[TranscribedData], ultrast
             start_times.append(midi_segment.start)
             end_times.append(midi_segment.end)
             words.append(midi_segment.word)
-        midi_segments = create_midi_notes_from_pitched_data(start_times, end_times, words, pitched_data)
+        midi_segments = create_midi_notes_from_pitched_data(
+            start_times, end_times, words, pitched_data
+        )
 
     else:
         midi_segments = create_midi_notes_from_pitched_data(
             ultrastar_class.startTimes, ultrastar_class.endTimes, ultrastar_class.words, pitched_data
         )
+
+    # fixme: should be in UltraStar
     ultrastar_note_numbers = convert_midi_notes_to_ultrastar_notes(midi_segments)
 
+    # fixme: TrnscribedData in pitch_audio??
     new_transcribed_data = []
     for i, midi_segment in enumerate(midi_segments):
-        new_transcribed_data.append(TranscribedData({"word": midi_segment.word, "start": midi_segment.start, "end": midi_segment.end, "is_hyphen": None, "confidence": 1}))
+        transcribed_midi_data = TranscribedData(word= midi_segment.word, start= midi_segment.start, end= midi_segment.end, is_hyphen= None, confidence= 1)
+        new_transcribed_data.append(transcribed_midi_data)
 
     return midi_segments, pitched_data, ultrastar_note_numbers, new_transcribed_data
 
 
 def create_audio_chunks(
     cache_path: str,
-    is_audio: bool,
     transcribed_data: list[TranscribedData],
     ultrastar_audio_input_path: str,
     ultrastar_class: UltrastarTxtValue
 ) -> None:
     """Create audio chunks"""
-    audio_chunks_path = os.path.join(
-        cache_path, settings.audio_chunk_folder_name
-    )
+    audio_chunks_path = os.path.join(cache_path, settings.audio_chunk_folder_name)
     os_helper.create_folder(audio_chunks_path)
-    if is_audio:  # and csv
+    if not settings.ignore_audio:  # and csv
         csv_filename = os.path.join(audio_chunks_path, "_chunks.csv")
         export_chunks_from_transcribed_data(
             settings.processing_audio_path, transcribed_data, audio_chunks_path
@@ -874,7 +936,11 @@ def create_audio_chunks(
 
 def denoise_vocal_audio(input_path: str, output_path: str) -> None:
     """Denoise vocal audio"""
-    ffmpeg_reduce_noise(input_path, output_path)
+    cache_available = check_file_exists(output_path)
+    if settings.skip_cache_denoise_vocal_audio or not cache_available:
+        ffmpeg_reduce_noise(input_path, output_path)
+    else:
+        print(f"{ULTRASINGER_HEAD} {green_highlighted('cache')} reusing cached denoised audio")
 
 
 def main(argv: list[str]) -> None:
@@ -930,6 +996,8 @@ def init_settings(argv: list[str]) -> None:
             settings.create_karaoke = not arg
         elif opt in ("--create_audio_chunks"):
             settings.create_audio_chunks = arg
+        elif opt in ("--ignore_audio"):
+            settings.ignore_audio = arg in ["True", "true"]
         elif opt in ("--force_cpu"):
             settings.force_cpu = arg
             if settings.force_cpu:
@@ -978,6 +1046,7 @@ def arg_options():
         "disable_separation=",
         "disable_karaoke=",
         "create_audio_chunks=",
+        "ignore_audio=",
         "force_cpu=",
         "force_whisper_cpu=",
         "force_crepe_cpu=",

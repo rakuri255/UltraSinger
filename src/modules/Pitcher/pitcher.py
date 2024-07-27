@@ -30,6 +30,10 @@ def get_pitch_with_crepe(
     times, frequencies, confidence, activation = crepe.predict(
         audio, sample_rate, model_capacity, step_size=step_size, viterbi=True
     )
+
+    # convert to native float for serialization
+    confidence = [float(x) for x in confidence]
+
     return PitchedData(times, frequencies, confidence)
 
 
