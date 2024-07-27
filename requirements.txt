@@ -55,13 +55,6 @@ click==8.1.7
     #   typer
 cloudpickle==3.0.0
     # via submitit
-colorama==0.4.6
-    # via
-    #   click
-    #   colorlog
-    #   pylint
-    #   pytest
-    #   tqdm
 coloredlogs==15.0.1
     # via onnxruntime
 colorlog==6.8.2
@@ -106,6 +99,7 @@ filelock==3.15.4
     #   pyannote-pipeline
     #   torch
     #   transformers
+    #   triton
 flatbuffers==24.3.25
     # via
     #   onnxruntime
@@ -184,9 +178,7 @@ julius==0.2.7
     # via
     #   demucs
     #   torch-audiomentations
-keras==2.10.0
-    # via tensorflow
-keras-preprocessing==1.1.2
+keras==2.11.0
     # via tensorflow
 kiwisolver==1.4.5
     # via matplotlib
@@ -278,7 +270,6 @@ numpy==1.26.4
     #   h5py
     #   hmmlearn
     #   imageio
-    #   keras-preprocessing
     #   librosa
     #   lightning
     #   matplotlib
@@ -303,6 +294,37 @@ numpy==1.26.4
     #   tensorflow
     #   torchmetrics
     #   transformers
+nvidia-cublas-cu12==12.1.3.1
+    # via
+    #   nvidia-cudnn-cu12
+    #   nvidia-cusolver-cu12
+    #   torch
+nvidia-cuda-cupti-cu12==12.1.105
+    # via torch
+nvidia-cuda-nvrtc-cu12==12.1.105
+    # via torch
+nvidia-cuda-runtime-cu12==12.1.105
+    # via torch
+nvidia-cudnn-cu12==9.1.0.70
+    # via torch
+nvidia-cufft-cu12==11.0.2.54
+    # via torch
+nvidia-curand-cu12==10.3.2.106
+    # via torch
+nvidia-cusolver-cu12==11.4.5.107
+    # via torch
+nvidia-cusparse-cu12==12.1.0.106
+    # via
+    #   nvidia-cusolver-cu12
+    #   torch
+nvidia-nccl-cu12==2.20.5
+    # via torch
+nvidia-nvjitlink-cu12==12.5.82
+    # via
+    #   nvidia-cusolver-cu12
+    #   nvidia-cusparse-cu12
+nvidia-nvtx-cu12==12.1.105
+    # via torch
 oauthlib==3.2.2
     # via requests-oauthlib
 omegaconf==2.3.0
@@ -408,8 +430,6 @@ pylint==3.2.6
     # via -r requirements.in
 pyparsing==3.1.2
     # via matplotlib
-pyreadline3==3.4.1
-    # via humanfriendly
 pytest==8.3.2
     # via -r requirements.in
 python-dateutil==2.9.0.post0
@@ -502,7 +522,6 @@ six==1.16.0
     # via
     #   astunparse
     #   google-pasta
-    #   keras-preprocessing
     #   pretty-midi
     #   python-dateutil
     #   resampy
@@ -529,7 +548,7 @@ sympy==1.13.1
     #   torch
 tabulate==0.9.0
     # via pyannote-metrics
-tensorboard==2.10.1
+tensorboard==2.11.2
     # via tensorflow
 tensorboard-data-server==0.6.1
     # via tensorboard
@@ -537,9 +556,9 @@ tensorboard-plugin-wit==1.8.1
     # via tensorboard
 tensorboardx==2.6
     # via pyannote-audio
-tensorflow==2.10.0
+tensorflow==2.11.1
     # via -r requirements.in
-tensorflow-estimator==2.10.0
+tensorflow-estimator==2.11.0
     # via tensorflow
 tensorflow-io-gcs-filesystem==0.31.0
     # via tensorflow
@@ -611,6 +630,8 @@ transformers==4.39.3
     # via whisperx
 treetable==0.2.5
     # via dora-search
+triton==3.0.0
+    # via torch
 typer==0.12.3
     # via pyannote-database
 typing-extensions==4.12.2

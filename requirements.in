@@ -16,7 +16,7 @@ pydub
 PyHyphen-Reloaded
 python_Levenshtein
 scipy
-tensorflow==2.10
+tensorflow==2.11.1
 tqdm
 #whisperx
 yt_dlp
