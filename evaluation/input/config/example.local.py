@@ -34,8 +34,6 @@ def init_settings() -> Settings:
 
     if dedicated_test_songs_exist:
         settings.test_songs_input_folder = dedicated_test_folder
-    else:
-        settings.test_songs_input_folder = "C:/My/Test/Song/Library/songs"
 
     return settings
 
