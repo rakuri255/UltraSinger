@@ -38,15 +38,14 @@ transposed inputs
 
 ## Running the evaluation
 
-Copy the `example.local.py` file in the `input/config` directory and name it `local.py`. This file is used to configure the evaluation tool.
-
-Simply run `py UltraSingerEvaluation.py` after following the "How to use this source code/Run" instructions in the root README.md.
+- Copy the `example.local.py` file in the `evaluation/input/config` directory and name it `local.py`. This file is used to configure the evaluation tool.
+- Add songs to the `evaluation/input/songs` directory. You can use the songs from https://github.com/UltraStar-Deluxe/songs.
+- Simply run `py UltraSingerEvaluation.py` after following the "How to use this source code/Run" instructions in the root README.md.
+- The evaluation tool will create a directory in the `evaluation/output` directory with the current date and time as the name. The output of the evaluation will be stored in this directory.
 
 ### Comparing runs
 
-The evaluation tool will create a directory in the `output` directory with the current date and time as the name. This directory will contain the results of each evaluation run.
-
-To compare the results of all runs in the `evaluation/output` folder, run `py UltraSingerMetaEvaluation.py`. This will output each run's measurements to the console.
+- To compare the results of all runs in the `evaluation/output` folder, run `py UltraSingerMetaEvaluation.py`. This will output each run's measurements to the console.
 
 ## Directory structure
 
