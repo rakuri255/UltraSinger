@@ -7,8 +7,7 @@ import pandas
 from modules.Evaluation.TestRun import TestRun
 from modules.console_colors import ULTRASINGER_HEAD, red_highlighted
 
-test_input_folder = os.path.normpath(os.path.abspath(__file__ + "/../../test_input"))
-test_output_folder = os.path.normpath(os.path.abspath(__file__ + "/../../test_output"))
+test_output_folder = os.path.normpath(os.path.abspath(__file__ + "/../../evaluation/output"))
 
 
 def main() -> None:
