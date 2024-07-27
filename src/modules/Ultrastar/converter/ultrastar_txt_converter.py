@@ -6,8 +6,8 @@ from packaging import version
 from modules import os_helper
 from modules.Midi.MidiSegment import MidiSegment
 from modules.ProcessData import ProcessData, MediaInfo
-from modules.Ultrastar.coverter.ultrastar_converter import ultrastar_bpm_to_real_bpm
-from modules.Ultrastar.coverter.ultrastar_midi_converter import ultrastar_to_midi_segments, \
+from modules.Ultrastar.converter.ultrastar_converter import ultrastar_bpm_to_real_bpm
+from modules.Ultrastar.converter.ultrastar_midi_converter import ultrastar_to_midi_segments, \
     convert_midi_notes_to_ultrastar_notes
 from modules.Ultrastar.ultrastar_txt import UltrastarTxtValue, FormatVersion
 from modules.Ultrastar.ultrastar_writer import create_repitched_txt_from_ultrastar_data, format_separated_string, \

@@ -15,7 +15,7 @@ from Settings import Settings
 from modules.Research.TestRun import TestRun, TestedSong
 from modules.Research.TestSong import TestSong
 from modules.Ultrastar import ultrastar_parser
-from modules.Ultrastar.coverter.ultrastar_converter import compare_pitches
+from modules.Ultrastar.converter.ultrastar_converter import compare_pitches
 from modules.Ultrastar.ultrastar_txt import UltrastarTxtValue, FILE_ENCODING
 from modules.console_colors import ULTRASINGER_HEAD, red_highlighted
 
