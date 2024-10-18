@@ -230,7 +230,7 @@ markupsafe==2.1.5
     #   werkzeug
 marshmallow==3.21.3
     # via dataclasses-json
-matplotlib==3.9.1
+matplotlib==3.9.2
     # via
     #   -r requirements.in
     #   crepe
