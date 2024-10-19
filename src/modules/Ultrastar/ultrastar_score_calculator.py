@@ -17,7 +17,7 @@ from modules.console_colors import (
     underlined,
 )
 from modules.Midi.midi_creator import create_midi_note_from_pitched_data
-from modules.Ultrastar.coverter.ultrastar_converter import (
+from modules.Ultrastar.converter.ultrastar_converter import (
     get_end_time_from_ultrastar,
     get_start_time_from_ultrastar,
     ultrastar_note_to_midi_note,

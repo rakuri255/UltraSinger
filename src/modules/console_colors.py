@@ -9,7 +9,7 @@ def blue_highlighted(text: str) -> str:
 
 
 def green_highlighted(text: str) -> str:
-    """Returns a blue highlighted text"""
+    """Returns a green highlighted text"""
     return f"{Bcolors.dark_green}{text}{Bcolors.endc}"
 
 

@@ -1,7 +1,7 @@
 """Tests for ultrastar_txt_converter.py"""
 
 import unittest
-from modules.Ultrastar.coverter.ultrastar_txt_converter import extract_year
+from modules.Ultrastar.converter.ultrastar_txt_converter import extract_year
 
 
 class TestUltrastarTxtConverter(unittest.TestCase):

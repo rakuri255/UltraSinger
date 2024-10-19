@@ -1,6 +1,6 @@
 """Tests for ultrastar_converter.py"""
 
-from modules.Ultrastar.coverter.ultrastar_converter import real_bpm_to_ultrastar_bpm
+from modules.Ultrastar.converter.ultrastar_converter import real_bpm_to_ultrastar_bpm
 
 
 def test_real_bpm_to_ultrastar_bpm():
