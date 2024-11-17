@@ -8,7 +8,7 @@ import Levenshtein
 
 from packaging import version
 
-from modules import os_helper
+from modules import os_helper, timer
 from modules.Audio.denoise import denoise_vocal_audio
 from modules.Audio.separation import separate_vocal_from_audio
 from modules.Audio.vocal_chunks import (
@@ -50,7 +50,7 @@ from modules.Ultrastar import (
 from modules.Speech_Recognition.TranscribedData import TranscribedData
 from modules.Ultrastar.ultrastar_score_calculator import Score, calculate_score_points
 from modules.Ultrastar.ultrastar_txt import FILE_ENCODING, FormatVersion
-from modules.Ultrastar.coverter.ultrastar_txt_converter import from_ultrastar_txt, \
+from modules.Ultrastar.converter.ultrastar_txt_converter import from_ultrastar_txt, \
     create_ultrastar_txt_from_midi_segments, create_ultrastar_txt_from_automation
 from modules.Ultrastar.ultrastar_parser import parse_ultrastar_txt
 from modules.common_print import print_support, print_help, print_version
@@ -212,7 +212,8 @@ def InitProcessData():
         process_data.basename = basename
         process_data.process_data_paths.audio_output_file_path = audio_file_path
         # todo: ignore transcribe
-        settings.ignore_audio = True
+        if settings.ignore_audio is None:
+            settings.ignore_audio = True
 
     elif settings.input_file_path.startswith("https:"):
         # Youtube
@@ -295,9 +296,9 @@ def CreateUltraStarTxt(process_data: ProcessData):
     if settings.calculate_score:
         simple_score, accurate_score = calculate_score_points(process_data, ultrastar_file_output)
 
-    # Add calculated score to Ultrastar txt
+        # Add calculated score to Ultrastar txt
     #Todo: Missing Karaoke
-    ultrastar_writer.add_score_to_ultrastar_txt(ultrastar_file_output, simple_score)
+        ultrastar_writer.add_score_to_ultrastar_txt(ultrastar_file_output, simple_score)
     return accurate_score, simple_score, ultrastar_file_output
 
 
