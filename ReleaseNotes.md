@@ -1,10 +1,12 @@
 # Version: 0.0.12
-Date: 2024.07.13
+Date: 2024.11.29
 - Changes:
   - Reduce Memory usage by clearing cache in whisper
   - Added lyrics to midi file
   - Some bug fixes and improved error handling and logs
   - Fix hypen language download
+  - Split word by note changes
+  - Upgrade to Format Version 1.1.0
 
 # Version: 0.0.11
 Date: 2024.07.06

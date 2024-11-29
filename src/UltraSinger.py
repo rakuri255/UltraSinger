@@ -34,7 +34,8 @@ from modules.Midi.midi_creator import (
     create_repitched_midi_segments_from_ultrastar_txt,
     create_midi_file,
 )
-
+from modules.Midi.MidiSegment import MidiSegment
+from modules.Midi.note_length_calculator import get_thirtytwo_note_second, get_sixteenth_note_second
 from modules.Pitcher.pitcher import (
     get_pitch_with_crepe_file,
 )
@@ -145,6 +146,10 @@ def run() -> tuple[str, Score, Score]:
     if not settings.ignore_audio:
         TranscribeAudio(process_data)
 
+    # Split syllables into segments
+    process_data.transcribed_data = split_syllables_into_segments(process_data.transcribed_data,
+                                                                  process_data.media_info.bpm)
+
     # Create audio chunks
     if settings.create_audio_chunks:
         create_audio_chunks(process_data)
@@ -159,6 +164,12 @@ def run() -> tuple[str, Score, Score]:
     else:
         process_data.midi_segments = create_repitched_midi_segments_from_ultrastar_txt(process_data.pitched_data,
                                                                                        process_data.parsed_file)
+
+    # Merge syllable segments
+    #tuple[list[MidiSegment], list[TranscribedData]]:
+    process_data.midi_segments, process_data.transcribed_data = merge_syllable_segments(process_data.midi_segments,
+                                                                                        process_data.transcribed_data,
+                                                                                        process_data.media_info.bpm)
 
     # Create plot
     if settings.create_plot:
@@ -184,6 +195,106 @@ def run() -> tuple[str, Score, Score]:
     # Print Support
     print_support()
     return ultrastar_file_output, simple_score, accurate_score
+
+
+def split_syllables_into_segments(
+        transcribed_data: list[TranscribedData],
+        real_bpm: float) -> list[TranscribedData]:
+    """Split every syllable into sub-segments"""
+    syllable_segment_size = get_sixteenth_note_second(real_bpm)
+
+    segment_size_decimal_points = len(str(syllable_segment_size).split(".")[1])
+    new_data = []
+
+    for i, data in enumerate(transcribed_data):
+        duration = data.end - data.start
+        if duration <= syllable_segment_size:
+            new_data.append(data)
+            continue
+
+        has_space = str(data.word).endswith(" ")
+        first_segment = copy.deepcopy(data)
+        filler_words_start = data.start + syllable_segment_size
+        remainder = data.end - filler_words_start
+        first_segment.end = filler_words_start
+        if has_space:
+            first_segment.word = first_segment.word[:-1]
+
+        first_segment.is_word_end = False
+        new_data.append(first_segment)
+
+        full_segments, partial_segment = divmod(remainder, syllable_segment_size)
+
+        if full_segments >= 1:
+            first_segment.is_hyphen = True
+            for i in range(int(full_segments)):
+                segment = TranscribedData()
+                segment.word = "~"
+                segment.start = filler_words_start + round(
+                    i * syllable_segment_size, segment_size_decimal_points
+                )
+                segment.end = segment.start + syllable_segment_size
+                segment.is_hyphen = True
+                segment.is_word_end = False
+                new_data.append(segment)
+
+        if partial_segment >= 0.01:
+            first_segment.is_hyphen = True
+            segment = TranscribedData()
+            segment.word = "~"
+            segment.start = filler_words_start + round(
+                full_segments * syllable_segment_size, segment_size_decimal_points
+            )
+            segment.end = segment.start + partial_segment
+            segment.is_hyphen = True
+            segment.is_word_end = False
+            new_data.append(segment)
+
+        if has_space:
+            new_data[-1].word += " "
+            new_data[-1].is_word_end = True
+    return new_data
+
+
+def merge_syllable_segments(midi_segments: list[MidiSegment],
+                            transcribed_data: list[TranscribedData],
+                            real_bpm: float) -> tuple[list[MidiSegment], list[TranscribedData]]:
+    """Merge sub-segments of a syllable where the pitch is the same"""
+
+    thirtytwo_note = get_thirtytwo_note_second(real_bpm)
+    sixteenth_note = get_sixteenth_note_second(real_bpm)
+
+    new_data = []
+    new_midi_notes = []
+
+    previous_data = None
+
+    for i, data in enumerate(transcribed_data):
+        is_note_short = data.end - data.start < thirtytwo_note
+        has_breath_pause = False
+
+        if previous_data is not None:
+            has_breath_pause = data.start - previous_data.end > sixteenth_note
+
+        if (str(data.word).startswith("~")
+                and previous_data is not None
+                and is_note_short or midi_segments[i].note == midi_segments[i - 1].note
+                and not has_breath_pause):
+            new_data[-1].end = data.end
+            new_midi_notes[-1].end = data.end
+
+            if str(data.word).endswith(" "):
+                new_data[-1].word += " "
+                new_midi_notes[-1].word += " "
+                new_data[-1].is_word_end = True
+
+        else:
+            new_data.append(data)
+            new_midi_notes.append(midi_segments[i])
+
+        previous_data = data
+
+    return new_midi_notes, new_data
 
 
 def create_audio_chunks(process_data):
@@ -262,7 +373,8 @@ def TranscribeAudio(process_data):
 
 def CreateUltraStarTxt(process_data: ProcessData):
     # Move instrumental and vocals
-    if settings.create_karaoke and version.parse(settings.format_version.value) < version.parse(FormatVersion.V1_1_0.value):
+    if settings.create_karaoke and version.parse(settings.format_version.value) < version.parse(
+            FormatVersion.V1_1_0.value):
         karaoke_output_path = os.path.join(settings.output_folder_path, process_data.basename + " [Karaoke].mp3")
         convert_wav_to_mp3(process_data.process_data_paths.instrumental_audio_file_path, karaoke_output_path)
 
@@ -286,7 +398,8 @@ def CreateUltraStarTxt(process_data: ProcessData):
         )
     else:
         ultrastar_file_output = create_ultrastar_txt_from_midi_segments(
-            settings.output_folder_path, settings.input_file_path, process_data.media_info.title, process_data.midi_segments
+            settings.output_folder_path, settings.input_file_path, process_data.media_info.title,
+            process_data.midi_segments
         )
 
     # Calc Points
