@@ -271,6 +271,7 @@ def merge_syllable_segments(midi_segments: list[MidiSegment],
 
     for i, data in enumerate(transcribed_data):
         is_note_short = data.end - data.start < thirtytwo_note
+        is_same_note = midi_segments[i].note == midi_segments[i - 1].note
         has_breath_pause = False
 
         if previous_data is not None:
@@ -278,7 +279,7 @@ def merge_syllable_segments(midi_segments: list[MidiSegment],
 
         if (str(data.word).startswith("~")
                 and previous_data is not None
-                and is_note_short or midi_segments[i].note == midi_segments[i - 1].note
+                and (is_note_short or is_same_note)
                 and not has_breath_pause):
             new_data[-1].end = data.end
             new_midi_notes[-1].end = data.end
