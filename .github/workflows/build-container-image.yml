@@ -47,7 +47,7 @@ jobs:
           image: ${{ env.IMAGE_NAME }}
           tags: ${{ env.IMAGE_TAGS }}
           containerfiles: |
-            ./multistage.Dockerfile
+            ./Dockerfile
           oci: true
           layers: true
       # Push the image to GHCR (Image Registry) https://github.com/redhat-actions/push-to-registry
