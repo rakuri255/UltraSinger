@@ -6,7 +6,7 @@ RUN apt-get update \
     && apt-get clean  \
     && rm -rf /var/lib/apt/lists/*
 
-COPY . /app/UltraSinger
+COPY ./requirements.txt /app/UltraSinger/requirements.txt
 WORKDIR /app/UltraSinger
 
 # no need to run as root
@@ -23,5 +23,6 @@ RUN pip install --no-cache-dir -r requirements.txt \
     && pip install --no-cache-dir torch==2.3.0 torchvision==0.18.0 torchaudio==2.3.0 --index-url https://download.pytorch.org/whl/cu121 \
     && pip install --no-cache-dir tensorflow[and-cuda]==2.16.1
 
+COPY . /app/UltraSinger
 WORKDIR /app/UltraSinger/src
 CMD ["bash" ]
