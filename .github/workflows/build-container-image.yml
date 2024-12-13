@@ -6,7 +6,6 @@ on:
 env:
   IMAGE_NAME: ultrasinger
   IMAGE_TAGS: v1 ${{ github.sha }}
-  IMAGE_REGISTRY: ghcr.io/${{ github.repository }}
   REGISTRY_USER: ${{ github.actor }}
   REGISTRY_PASSWORD: ${{ github.token }}
 
@@ -16,9 +15,9 @@ jobs:
     runs-on: ubuntu-22.04
 
     steps:
-      - name: downcase REPO
+      - name: lowercase github.repository
         run: |
-          echo "REPO=${IMAGE_REGISTRY,,}" >>${GITHUB_ENV}
+          echo "IMAGE_REGISTRY=`echo ${{github.repository}} | tr '[:upper:]' '[:lower:]'`" >>${GITHUB_ENV}
       - name: Clear space
         run: |
           df -h /
@@ -47,7 +46,7 @@ jobs:
           image: ${{ env.IMAGE_NAME }}
           tags: ${{ env.IMAGE_TAGS }}
           containerfiles: |
-            ./Dockerfile
+            ./multistage.Dockerfile
           oci: true
           layers: true
       # Push the image to GHCR (Image Registry) https://github.com/redhat-actions/push-to-registry
