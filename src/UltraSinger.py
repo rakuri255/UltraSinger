@@ -129,9 +129,11 @@ def remove_unecessary_punctuations(transcribed_data: list[TranscribedData]) -> N
 
 def run() -> tuple[str, Score, Score]:
     """The processing function of this program"""
-
+    #List selected options (can add more later)
+    if settings.keep_numbers:
+        print(f"{ULTRASINGER_HEAD} {cyan_highlighted('Option:')} Numbers will be transcribed as numerics (i.e. 1, 2, 3, etc.)")
     process_data = InitProcessData()
-
+    
     process_data.process_data_paths.cache_folder_path = (
         os.path.join(settings.output_folder_path, "cache")
         if settings.cache_override_path is None
@@ -479,6 +481,7 @@ def transcribe_audio(cache_folder_path: str, processing_audio_path: str) -> Tran
                 settings.whisper_batch_size,
                 settings.whisper_compute_type,
                 settings.language,
+                settings.keep_numbers,
             )
             with open(transcription_path, "w", encoding=FILE_ENCODING) as file:
                 file.write(transcription_result.to_json())
@@ -603,6 +606,8 @@ def init_settings(argv: list[str]) -> Settings:
             settings.whisper_batch_size = int(arg)
         elif opt in ("--whisper_compute_type"):
             settings.whisper_compute_type = arg
+        elif opt in ("--keep_numbers"):
+            settings.keep_numbers = arg in ["True", "true"]
         elif opt in ("--language"):
             settings.language = arg
         elif opt in ("--crepe"):
@@ -667,6 +672,7 @@ def arg_options():
         "ofile=",
         "crepe=",
         "crepe_step_size=",
+        "demucs=",
         "whisper=",
         "whisper_align_model=",
         "whisper_batch_size=",
@@ -684,7 +690,8 @@ def arg_options():
         "force_crepe_cpu=",
         "format_version=",
         "keep_cache",
-        "musescore_path="
+        "musescore_path=",
+        "keep_numbers="
     ]
     return long, short
 

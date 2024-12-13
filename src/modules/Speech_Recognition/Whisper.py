@@ -11,6 +11,14 @@ from modules.Speech_Recognition.TranscriptionResult import TranscriptionResult
 from modules.console_colors import ULTRASINGER_HEAD, blue_highlighted, red_highlighted
 from modules.Speech_Recognition.TranscribedData import TranscribedData, from_whisper
 
+#Addition for numbers to words
+import re
+import ast
+from num2words import num2words
+
+#Addition for numbers to words
+re_split_preserve_space = re.compile(r'(\d+|\W+|\w+)')
+
 
 MEMORY_ERROR_MESSAGE = f"{ULTRASINGER_HEAD} {blue_highlighted('whisper')} ran out of GPU memory; reduce --whisper_batch_size or force usage of cpu with --force_cpu"
 
@@ -24,6 +32,26 @@ class WhisperModel(Enum):
     LARGE_V2 = "large-v2"
     LARGE_V3 = "large-v3"
 
+#Addition for numbers to words (Using previous code from louispan in PR#135)
+def number_to_words(line,language='en'):
+    # https://github.com/m-bain/whisperX
+    # Transcript words which do not contain characters in the alignment models dictionary e.g. "2014." or "£13.60" cannot be aligned and therefore are not given a timing.
+    # Therefore, convert numbers to words
+    out_tokens = []
+    in_tokens = re_split_preserve_space.findall(line)
+    for token in in_tokens:
+        try:
+            num = ast.literal_eval(token)
+            try:
+                out_tokens.append(num2words(num, lang=language))
+            except NotImplementedError:
+                print(
+                    f"{ULTRASINGER_HEAD} {red_highlighted('Error:')} Unknown language for number transcription. Keeping number as numeric characters for line: {line}, token: {token}"
+                )
+        except Exception:
+            out_tokens.append(token)
+    return ''.join(out_tokens) 
+
 def transcribe_with_whisper(
     audio_path: str,
     model: WhisperModel,
@@ -32,6 +60,7 @@ def transcribe_with_whisper(
     batch_size: int = 16,
     compute_type: str = None,
     language: str = None,
+    keep_numbers: bool = False,
 ) -> TranscriptionResult:
     """Transcribe with whisper"""
 
@@ -78,6 +107,11 @@ def transcribe_with_whisper(
             )
             raise ve
 
+        #Addition for numbers to words (Using previous code from louispan in PR#135)
+        if keep_numbers == False: 
+            for obj in result["segments"]:
+                obj["text"] = number_to_words(obj["text"],language)
+
         # align whisper output
         result_aligned = whisperx.align(
             result["segments"],
@@ -120,11 +154,18 @@ def convert_to_transcribed_data(result_aligned):
             vtd = from_whisper(obj)  # create custom Word object
             vtd.word = vtd.word + " "  # add space to end of word
             if len(obj) < 4:
-                previous = transcribed_data[-1] if len(transcribed_data) != 0 else TranscribedData()
-                vtd.start = previous.end + 0.1
-                vtd.end = previous.end + 0.2
-                msg = f'Error: There is no timestamp for word: "{obj["word"]}". ' \
-                      f'Fixing it by placing it after the previous word: "{previous.word}". At start: {vtd.start} end: {vtd.end}. Fix it manually!'
+                #Addition for numbers to words (Using previous code from louispan in PR#135)
+                if len(transcribed_data) == 0: # if the first word doesn't have any timing data
+                    vtd.start = 0.0
+                    vtd.end = 0.1
+                    msg = f'Error: There is no timestamp for word: "{obj["word"]}". ' \
+                        f'Fixing it by placing it at beginning. At start: {vtd.start} end: {vtd.end}. Fix it manually!'
+                else:
+                    previous = transcribed_data[-1] if len(transcribed_data) != 0 else TranscribedData()
+                    vtd.start = previous.end + 0.1
+                    vtd.end = previous.end + 0.2
+                    msg = f'Error: There is no timestamp for word: "{obj["word"]}". ' \
+                          f'Fixing it by placing it after the previous word: "{previous.word}". At start: {vtd.start} end: {vtd.end}. Fix it manually!'
                 print(f"{red_highlighted(msg)}")
             transcribed_data.append(vtd)  # and add it to list
     return transcribed_data
