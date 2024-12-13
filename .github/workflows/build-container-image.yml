@@ -5,6 +5,7 @@ on:
 
 env:
   IMAGE_NAME: ultrasinger
+  GITHUB_SHA_SHORT: '' # filled by rlespinasse/github-slug-action@v5
   GITHUB_REF_POINT_SLUG_URL: '' # filled by rlespinasse/github-slug-action@v5
   GITHUB_REPOSITORY_SLUG: '' # filled by rlespinasse/github-slug-action@v5
   GITHUB_REPOSITORY_NAME_PART_SLUG_URL: '' # filled by rlespinasse/github-slug-action@v5
@@ -20,7 +21,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
       - name: Inject enhanced GitHub environment variables
-        uses: rlespinasse/github-slug-action@v5
+        uses: rlespinasse/github-slug-action@v5 # https://github.com/rlespinasse/github-slug-action
       - name: Clear space
         run: |
           df -h /
@@ -45,7 +46,7 @@ jobs:
         uses: redhat-actions/buildah-build@v2
         with:
           image: ${{ env.GITHUB_REPOSITORY_NAME_PART_SLUG_URL }}
-          tags: ${{ env.GITHUB_REF_POINT_SLUG_URL }} ${{ github.sha }}
+          tags: ${{ env.GITHUB_REF_POINT_SLUG_URL }} ${{ env.GITHUB_SHA_SHORT }}
           containerfiles: |
             ./Dockerfile
           oci: true
