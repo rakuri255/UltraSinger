@@ -5,9 +5,9 @@ on:
 
 env:
   IMAGE_NAME: ultrasinger
+  IMAGE_REGISTRY: ghcr.io/${{ github.repository }}
   GITHUB_SHA_SHORT: '' # filled by rlespinasse/github-slug-action@v5
   GITHUB_REF_POINT_SLUG_URL: '' # filled by rlespinasse/github-slug-action@v5
-  GITHUB_REPOSITORY_SLUG: '' # filled by rlespinasse/github-slug-action@v5
   GITHUB_REPOSITORY_NAME_PART_SLUG_URL: '' # filled by rlespinasse/github-slug-action@v5
   REGISTRY_USER: ${{ github.actor }}
   REGISTRY_PASSWORD: ${{ github.token }}
@@ -20,6 +20,9 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+      - name: lowercase IMAGE_REGISTRY
+        run: |
+          echo "IMAGE_REGISTRY=${IMAGE_REGISTRY@L}" >> "${GITHUB_ENV}"
       - name: Inject enhanced GitHub environment variables
         uses: rlespinasse/github-slug-action@v5 # https://github.com/rlespinasse/github-slug-action
       - name: Clear space
@@ -58,7 +61,7 @@ jobs:
         with:
           image: ${{ steps.build_image.outputs.image }}
           tags: ${{ steps.build_image.outputs.tags }}
-          registry: ghcr.io/${{ env.GITHUB_REPOSITORY_SLUG }}
+          registry: ${{ env.IMAGE_REGISTRY }}
           username: ${{ env.REGISTRY_USER }}
           password: ${{ env.REGISTRY_PASSWORD }}
           extra-args: |
