@@ -35,7 +35,7 @@ RUN apt-get update \
 
 USER 1000:1000
 
-COPY --from=base --chown 1000:1000 /app/UltraSinger/ /app/UltraSinger/
+COPY --from=base --chown=1000:1000 /app/UltraSinger/ /app/UltraSinger/
 
 # setup venv
 ENV VIRTUAL_ENV=/app/UltraSinger/.venv
