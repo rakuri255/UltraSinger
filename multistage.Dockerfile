@@ -2,9 +2,14 @@ FROM nvidia/cuda:12.6.3-runtime-ubuntu22.04 AS base
 
 # note: the python3-pip package contains Python 3.10 on Ubuntu 22.04
 RUN apt-get update \
-    && apt-get install git python3-pip python3.10-venv ffmpeg -y  \
-    && apt-get clean  \
-    && rm -rf /var/lib/apt/lists/*
+    && apt-get install git python3 ffmpeg -y  \
+    && apt-get -y autoremove \
+    && apt-get -y clean
+
+FROM base AS dependencies
+
+# note: the python3-pip package contains Python 3.10 on Ubuntu 22.04
+RUN apt-get install git python3-pip python3.10-venv ffmpeg -y
 
 # copy only the requirements file to leverage container image build cache
 COPY ./requirements.txt /app/UltraSinger/requirements.txt
@@ -25,17 +30,11 @@ RUN pip install --no-cache-dir -r requirements.txt \
     && pip install --no-cache-dir tensorflow[and-cuda]==2.16.1
 
 # create runtime image with minimal dependencies
-FROM nvidia/cuda:12.6.3-runtime-ubuntu22.04 AS runtime
-
-# note: the python3 package contains Python 3.10 on Ubuntu 22.04
-RUN apt-get update \
-    && apt-get install python3 ffmpeg -y  \
-    && apt-get clean  \
-    && rm -rf /var/lib/apt/lists/*
+FROM base AS runtime
 
 USER 1000:1000
 
-COPY --from=base --chown=1000:1000 /app/UltraSinger/ /app/UltraSinger/
+COPY --from=dependencies --chown=1000:1000 /app/UltraSinger/ /app/UltraSinger/
 
 # setup venv
 ENV VIRTUAL_ENV=/app/UltraSinger/.venv
