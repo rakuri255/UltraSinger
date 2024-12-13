@@ -4,7 +4,6 @@ on:
   workflow_dispatch:
 
 env:
-  IMAGE_REGISTRY: ghcr.io/${{ github.repository }}
   GITHUB_SHA_SHORT: '' # filled by rlespinasse/github-slug-action@v5
   GITHUB_REF_POINT_SLUG_URL: '' # filled by rlespinasse/github-slug-action@v5
   GITHUB_REPOSITORY_NAME_PART_SLUG_URL: '' # filled by rlespinasse/github-slug-action@v5
@@ -19,11 +18,11 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - name: lowercase IMAGE_REGISTRY
-        run: |
-          echo "IMAGE_REGISTRY=${IMAGE_REGISTRY@L}" >> "${GITHUB_ENV}"
       - name: Inject enhanced GitHub environment variables
         uses: rlespinasse/github-slug-action@v5 # https://github.com/rlespinasse/github-slug-action
+      - name: lowercase IMAGE_REGISTRY
+        run: |
+          echo "IMAGE_REGISTRY=ghcr.io/${GITHUB_REPOSITORY_OWNER_PART_SLUG@L}" >> "${GITHUB_ENV}"
       - name: Clear space
         run: |
           df -h /
