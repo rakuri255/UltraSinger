@@ -6,7 +6,7 @@ on:
 env:
   IMAGE_NAME: ultrasinger
   IMAGE_TAGS: v1 ${{ github.sha }}
-  IMAGE_REGISTRY: ghcr.io/${{ github.repository_owner }}
+  IMAGE_REGISTRY: ghcr.io/${{ github.repository }}
   REGISTRY_USER: ${{ github.actor }}
   REGISTRY_PASSWORD: ${{ github.token }}
 
@@ -16,6 +16,9 @@ jobs:
     runs-on: ubuntu-22.04
 
     steps:
+      - name: downcase REPO
+        run: |
+          echo "REPO=${IMAGE_REGISTRY,,}" >>${GITHUB_ENV}
       - name: Clear space
         run: |
           df -h /
@@ -47,7 +50,7 @@ jobs:
             ./Dockerfile
           oci: true
           layers: true
-      # Push the image to GHCR (Image Registry)
+      # Push the image to GHCR (Image Registry) https://github.com/redhat-actions/push-to-registry
       - name: Push To Registry
         uses: redhat-actions/push-to-registry@v2
         id: push
