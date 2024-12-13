@@ -7,9 +7,11 @@
     ```commandline
     git clone https://github.com/rakuri255/UltraSinger.git
     ```
-1. build the container image 
-    ```commandline
+1. build or pull the container image 
+    ```bash
     podman build -t ultrasinger .
+    # or
+    podman pull ghcr.io/bwagener/ultrasinger/ultrasinger:<version> # replace <version> with the desired version or 'latest'
     ```
 1. run the container (note that the first time you run the container models will be downloaded which may take a while)
    1. PowerShell:
@@ -29,7 +31,7 @@
         --device nvidia.com/gpu=all ` # optional, enables GPU acceleration if available, requires step 1.ii
         -v $env:USERPROFILE\.cache:/app/UltraSinger/src/.cache ` # cache directory for models
         -v <desired-output-folder>:/app/UltraSinger/src/output ` # output directory
-        ultrasinger ` # container image name, we built this in step 3
+        ultrasinger ` # container image name, set to ghcr.io/bwagener/ultrasinger/ultrasinger:<version> for the pulled image
         python3 UltraSinger.py -i <refer to top-level README.md> # run UltraSinger, refer to top-level README.md for all options
       ```
    1. Bash:
