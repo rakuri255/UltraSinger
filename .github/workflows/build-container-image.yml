@@ -16,6 +16,9 @@ jobs:
     runs-on: ubuntu-22.04
 
     steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
       # Build image using Buildah action https://github.com/redhat-actions/buildah-build
       - name: Build Image
         id: build_image
