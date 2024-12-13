@@ -2,8 +2,7 @@
 
 import unittest
 from src.modules.Speech_Recognition.TranscribedData import TranscribedData
-from src.modules.Speech_Recognition.Whisper import convert_to_transcribed_data
-
+from src.modules.Speech_Recognition.Whisper import convert_to_transcribed_data, number_to_words
 
 class ConvertToTranscribedDataTest(unittest.TestCase):
     def test_convert_to_transcribed_data(self):
@@ -50,6 +49,36 @@ class ConvertToTranscribedDataTest(unittest.TestCase):
             self.assertEqual(transcribed_data[i].start, expected_output[i].start)
             self.assertEqual(transcribed_data[i].is_hyphen, expected_output[i].is_hyphen)
 
+    def test_number_to_words_converts(self):
+        #Original, test with no language passed
+        self.act_and_assert("I have 1 million dollars and 2 cents.", "I have one million dollars and two cents.")
+        self.act_and_assert("1 2 3 4 5", "one two three four five")
+        self.act_and_assert("1, 2, 3, 4, 5,", "one, two, three, four, five,")
+        self.act_and_assert("Hello world 1, 2!. 3. 4? Test 100#",
+                            "Hello world one, two!. three. four? Test one hundred#")
+        #Test English
+        self.act_and_assert("I have 1 million dollars and 2 cents.", "I have one million dollars and two cents.", "en")
+        self.act_and_assert("1 2 3 4 5", "one two three four five", "en")
+        self.act_and_assert("1, 2, 3, 4, 5,", "one, two, three, four, five,", "en")
+        self.act_and_assert("Hello world 1, 2!. 3. 4? Test 100#",
+                            "Hello world one, two!. three. four? Test one hundred#", "en")
+        #Test German
+        self.act_and_assert("1 2 3 4 5", "eins zwei drei vier fünf" ,"de")
+        self.act_and_assert("1, 2, 3, 4, 5","eins, zwei, drei, vier, fünf","de")
+        self.act_and_assert("Ich habe 1 Million Dollar und 2 Cent.","Ich habe eins Million Dollar und zwei Cent.","de")
+        self.act_and_assert("Hallo Welt 1, 2!. 3. 4? Test 100#","Hallo Welt eins, zwei!. drei. vier? Test einhundert#","de")
+        #Test Spanish
+        self.act_and_assert("1 2 3 4 5","uno dos tres cuatro cinco","es")
+        self.act_and_assert("1, 2, 3, 4, 5","uno, dos, tres, cuatro, cinco","es")
+        self.act_and_assert("Tengo un millón de dólares y 2 centavos","Tengo un millón de dólares y dos centavos","es")
+        self.act_and_assert("Hola mundo 1, 2!. 3. 4? Prueba 100#","Hola mundo uno, dos!. tres. cuatro? Prueba cien#","es")
+        
 
+    def act_and_assert(self, text, expected_output, language="en"):
+        # Act
+        result = number_to_words(text, language)
+
+        # Assert
+        self.assertEqual(result, expected_output)
 if __name__ == "__main__":
     unittest.main()

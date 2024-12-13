@@ -49,3 +49,4 @@ class Bcolors:
     gold = "\033[93m"
     underline = "\033[4m"
     endc = "\033[0m"
+    bright_green = "\033[38;2;204;255;204m"

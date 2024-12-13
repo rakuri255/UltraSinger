@@ -129,9 +129,12 @@ def remove_unecessary_punctuations(transcribed_data: list[TranscribedData]) -> N
 
 def run() -> tuple[str, Score, Score]:
     """The processing function of this program"""
-
+    #List selected options (can add more later)
+    if settings.keep_numbers:
+        print(f"{ULTRASINGER_HEAD} {cyan_highlighted('Option:')} Numbers will be transcribed as numerics (i.e. 1, 2, 3, etc.)")
+    sys.exit()
     process_data = InitProcessData()
-
+    
     process_data.process_data_paths.cache_folder_path = (
         os.path.join(settings.output_folder_path, "cache")
         if settings.cache_override_path is None
@@ -479,6 +482,7 @@ def transcribe_audio(cache_folder_path: str, processing_audio_path: str) -> Tran
                 settings.whisper_batch_size,
                 settings.whisper_compute_type,
                 settings.language,
+                settings.keep_numbers,
             )
             with open(transcription_path, "w", encoding=FILE_ENCODING) as file:
                 file.write(transcription_result.to_json())
@@ -603,6 +607,8 @@ def init_settings(argv: list[str]) -> Settings:
             settings.whisper_batch_size = int(arg)
         elif opt in ("--whisper_compute_type"):
             settings.whisper_compute_type = arg
+        elif opt in ("--keep_numbers"):
+            settings.keep_numbers = arg in ["True", "true"]
         elif opt in ("--language"):
             settings.language = arg
         elif opt in ("--crepe"):
@@ -645,8 +651,15 @@ def init_settings(argv: list[str]) -> Settings:
                 sys.exit(1)
         elif opt in ("--keep_cache"):
             settings.keep_cache = arg
+            print("keep cache")
         elif opt in ("--musescore_path"):
             settings.musescore_path = arg
+        elif opt in ("--demucs"):
+            try:
+                settings.demucs_model = DemucsModel(arg)
+            except ValueError as ve:
+                print(f"The model {arg} is not a valid demucs model selection. Please use one of the following models: {blue_highlighted(', '.join([m.value for m in DemucsModel]))}")
+                sys.exit()
     if settings.output_folder_path == "":
         if settings.input_file_path.startswith("https:"):
             dirname = os.getcwd()
@@ -667,6 +680,7 @@ def arg_options():
         "ofile=",
         "crepe=",
         "crepe_step_size=",
+        "demucs=",
         "whisper=",
         "whisper_align_model=",
         "whisper_batch_size=",
@@ -684,7 +698,8 @@ def arg_options():
         "force_crepe_cpu=",
         "format_version=",
         "keep_cache",
-        "musescore_path="
+        "musescore_path=",
+        "keep_numbers="
     ]
     return long, short
 
