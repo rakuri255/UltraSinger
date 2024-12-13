@@ -51,7 +51,6 @@ jobs:
           image: ${{ env.GITHUB_REPOSITORY_NAME_PART_SLUG_URL }}
           tags: ${{ env.GITHUB_REF_POINT_SLUG_URL }} ${{ env.GITHUB_SHA_SHORT }}
           containerfiles: |
-#            ./Dockerfile
             ./multistage.Dockerfile
           oci: true
           layers: true
