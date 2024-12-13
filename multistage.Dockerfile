@@ -2,7 +2,7 @@ FROM nvidia/cuda:12.6.3-runtime-ubuntu22.04 AS base
 
 # note: the python3-pip package contains Python 3.10 on Ubuntu 22.04
 RUN apt-get update \
-    && apt-get install git python3 ffmpeg -y  \
+    && apt-get install python3 ffmpeg -y  \
     && apt-get clean  \
     && rm -rf /var/lib/apt/lists/*
 
@@ -10,7 +10,7 @@ FROM base AS dependencies
 
 # note: the python3-pip package contains Python 3.10 on Ubuntu 22.04
 RUN apt-get update \
-    && apt-get install python3-pip python3.10-venv ffmpeg -y  \
+    && apt-get install git python3-pip python3.10-venv ffmpeg -y  \
     && apt-get clean  \
     && rm -rf /var/lib/apt/lists/*
 
