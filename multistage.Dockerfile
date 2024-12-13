@@ -3,13 +3,16 @@ FROM nvidia/cuda:12.6.3-runtime-ubuntu22.04 AS base
 # note: the python3-pip package contains Python 3.10 on Ubuntu 22.04
 RUN apt-get update \
     && apt-get install git python3 ffmpeg -y  \
-    && apt-get -y autoremove \
-    && apt-get -y clean
+    && apt-get clean  \
+    && rm -rf /var/lib/apt/lists/*
 
 FROM base AS dependencies
 
 # note: the python3-pip package contains Python 3.10 on Ubuntu 22.04
-RUN apt-get install git python3-pip python3.10-venv ffmpeg -y
+RUN apt-get update \
+    && apt-get install python3-pip python3.10-venv ffmpeg -y  \
+    && apt-get clean  \
+    && rm -rf /var/lib/apt/lists/*
 
 # copy only the requirements file to leverage container image build cache
 COPY ./requirements.txt /app/UltraSinger/requirements.txt
