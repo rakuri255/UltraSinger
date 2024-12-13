@@ -16,9 +16,26 @@ jobs:
     runs-on: ubuntu-22.04
 
     steps:
+      - name: Clear space
+        run: |
+          df -h /
+          sudo rm -rf \
+          "$AGENT_TOOLSDIRECTORY" \
+          /opt/google/chrome \
+          /opt/microsoft/msedge \
+          /opt/microsoft/powershell \
+          /opt/pipx \
+          /usr/lib/mono \
+          /usr/local/julia* \
+          /usr/local/lib/android \
+          /usr/local/lib/node_modules \
+          /usr/local/share/chromium \
+          /usr/local/share/powershell \
+          /usr/share/dotnet \
+          /usr/share/swift
+          df -h /
       - name: Checkout
         uses: actions/checkout@v4
-
       # Build image using Buildah action https://github.com/redhat-actions/buildah-build
       - name: Build Image
         id: build_image
@@ -30,7 +47,6 @@ jobs:
             ./Dockerfile
           oci: true
           layers: true
-
       # Push the image to GHCR (Image Registry)
       - name: Push To Registry
         uses: redhat-actions/push-to-registry@v2
@@ -43,7 +59,6 @@ jobs:
           password: ${{ env.REGISTRY_PASSWORD }}
           extra-args: |
             --disable-content-trust
-
       - name: Echo outputs
         run: |
           echo "${{ toJSON(steps.push.outputs) }}"
