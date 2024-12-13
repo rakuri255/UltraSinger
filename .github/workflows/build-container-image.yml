@@ -5,8 +5,9 @@ on:
 
 env:
   IMAGE_NAME: ultrasinger
-  IMAGE_TAGS: v1 ${{ github.sha }}
-  IMAGE_REGISTRY: ghcr.io/${{ github.repository }}
+  GITHUB_REF_POINT_SLUG_URL: '' # filled by rlespinasse/github-slug-action@v5
+  GITHUB_REPOSITORY_SLUG: '' # filled by rlespinasse/github-slug-action@v5
+  GITHUB_REPOSITORY_NAME_PART_SLUG_URL: '' # filled by rlespinasse/github-slug-action@v5
   REGISTRY_USER: ${{ github.actor }}
   REGISTRY_PASSWORD: ${{ github.token }}
 
@@ -16,9 +17,10 @@ jobs:
     runs-on: ubuntu-22.04
 
     steps:
-      - name: lowercase IMAGE_REGISTRY
-        run: |
-          echo "IMAGE_REGISTRY=${IMAGE_REGISTRY@L}" >> "${GITHUB_ENV}"
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Inject enhanced GitHub environment variables
+        uses: rlespinasse/github-slug-action@v5
       - name: Clear space
         run: |
           df -h /
@@ -37,15 +39,13 @@ jobs:
           /usr/share/dotnet \
           /usr/share/swift
           df -h /
-      - name: Checkout
-        uses: actions/checkout@v4
       # Build image using Buildah action https://github.com/redhat-actions/buildah-build
       - name: Build Image
         id: build_image
         uses: redhat-actions/buildah-build@v2
         with:
-          image: ${{ env.IMAGE_NAME }}
-          tags: ${{ env.IMAGE_TAGS }}
+          image: ${{ env.GITHUB_REPOSITORY_NAME_PART_SLUG_URL }}
+          tags: ${{ env.GITHUB_REF_POINT_SLUG_URL }} ${{ github.sha }}
           containerfiles: |
             ./Dockerfile
           oci: true
@@ -57,7 +57,7 @@ jobs:
         with:
           image: ${{ steps.build_image.outputs.image }}
           tags: ${{ steps.build_image.outputs.tags }}
-          registry: ${{ env.IMAGE_REGISTRY }}
+          registry: ghcr.io/${{ env.GITHUB_REPOSITORY_SLUG }}
           username: ${{ env.REGISTRY_USER }}
           password: ${{ env.REGISTRY_PASSWORD }}
           extra-args: |
