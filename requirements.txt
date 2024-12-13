@@ -86,6 +86,7 @@ dill==0.3.8
     # via pylint
 docopt==0.6.2
     # via
+    #   num2words
     #   pyannote-metrics
     #   pyannote-pipeline
 dora-search==0.1.12
@@ -264,6 +265,8 @@ networkx==3.3
     # via torch
 nltk==3.8.1
     # via whisperx
+num2words==0.5.13
+    # via -r requirements.in
 numba==0.60.0
     # via
     #   librosa
