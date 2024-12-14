@@ -108,14 +108,19 @@ _Not all options working now!_
     (-p      Check pitch of Ultrastar.txt input) # In Progress
     (-m      Create midi file) # In Progress
 
+    [separation]
+    # Default is htdemucs
+    --demucs              Model name htdemucs|htdemucs_ft|htdemucs_6s|hdemucs_mmi|mdx|mdx_extra|mdx_q|mdx_extra_q >> ((default) is htdemucs)
+
     [transcription]
     # Default is whisper
-    --whisper               Multilingual model > tiny|base|small|medium|large-v1|large-v2  >> ((default) is large-v2
+    --whisper               Multilingual model > tiny|base|small|medium|large-v1|large-v2|large-v3  >> ((default) is large-v2
                             English-only model > tiny.en|base.en|small.en|medium.en
     --whisper_align_model   Use other languages model for Whisper provided from huggingface.co
     --language              Override the language detected by whisper, does not affect transcription but steps after transcription
     --whisper_batch_size    Reduce if low on GPU mem >> ((default) is 16)
     --whisper_compute_type  Change to "int8" if low on GPU mem (may reduce accuracy) >> ((default) is "float16" for cuda devices, "int8" for cpu)
+    --keep_numbers          Numbers will be transcribed as numerics instead of as words >> True|False >> ((default) is False)
     
     [pitcher]
     # Default is crepe
@@ -123,18 +128,17 @@ _Not all options working now!_
     --crepe_step_size  unit is miliseconds >> ((default) is 10)
     
     [extra]
-    --hyphenation           True|False >> ((default) is True)
-    --disable_separation    True|False >> ((default) is False)
-    --disable_karaoke       True|False >> ((default) is False)
-    --ignore_audio          True|False >> ((default) is False)
-    --create_audio_chunks   True|False >> ((default) is False)
-    --keep_cache            True|False >> ((default) is False)
-    --plot                  True|False >> ((default) is False)
+    --disable_hyphenation   Disable word hyphenation. Hyphenation is enabled by default.
+    --disable_separation    Disable track separation. Track separation is enabled by default.
+    --disable_karaoke       Disable creation of karaoke style txt file. Karaoke is enabled by default.
+    --create_audio_chunks   Enable creation of audio chunks. Audio chunks are disabled by default.
+    --keep_cache            Keep cache folder after creation. Cache folder is removed by default.
+    --plot                  Enable creation of plots. Plots are disabled by default.
     --format_version        0.3.0|1.0.0|1.1.0 >> ((default) is 1.0.0)
     --musescore_path        path to MuseScore executable
 
     [device]
-    --force_cpu             True|False >> ((default) is False)  All steps will be forced to cpu
+    --force_cpu             Force all steps to be processed on CPU.
     --force_whisper_cpu     True|False >> ((default) is False)  Only whisper will be forced to cpu
     --force_crepe_cpu       True|False >> ((default) is False)  Only crepe will be forced to cpu
 ```
