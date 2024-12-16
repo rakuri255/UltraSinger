@@ -55,6 +55,9 @@ class Settings:
     # MuseScore
     musescore_path = None
 
+    # yt-dlp
+    cookiefile = None
+
     # UltraSinger Evaluation Configuration
     test_songs_input_folder = None
     cache_override_path = None

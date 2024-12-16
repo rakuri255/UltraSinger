@@ -337,7 +337,7 @@ def InitProcessData():
             settings.output_folder_path,
             process_data.process_data_paths.audio_output_file_path,
             process_data.media_info,
-        ) = download_from_youtube(settings.input_file_path, settings.output_folder_path)
+        ) = download_from_youtube(settings.input_file_path, settings.output_folder_path, settings.cookiefile)
     else:
         # Audio File
         print(f"{ULTRASINGER_HEAD} {gold_highlighted('full automatic mode')}")
@@ -652,6 +652,8 @@ def init_settings(argv: list[str]) -> Settings:
             settings.keep_cache = arg
         elif opt in ("--musescore_path"):
             settings.musescore_path = arg
+        elif opt in ("--cookiefile"):
+            settings.cookiefile = arg
     if settings.output_folder_path == "":
         if settings.input_file_path.startswith("https:"):
             dirname = os.getcwd()
@@ -689,8 +691,9 @@ def arg_options():
         "force_whisper_cpu=",
         "force_crepe_cpu=",
         "format_version=",
-        "keep_cache",
+        "keep_cache=",
         "musescore_path=",
+        "cookiefile=",
         "keep_numbers="
     ]
     return long, short
