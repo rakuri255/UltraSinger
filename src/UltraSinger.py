@@ -685,7 +685,7 @@ def arg_options():
         "force_whisper_cpu=",
         "force_crepe_cpu=",
         "format_version=",
-        "keep_cache",
+        "keep_cache=",
         "musescore_path=",
         "cookiefile=",
     ]
