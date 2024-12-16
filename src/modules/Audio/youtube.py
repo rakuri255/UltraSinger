@@ -15,10 +15,12 @@ from modules.Image.image_helper import crop_image_to_square
 from modules.musicbrainz_client import get_music_infos
 
 
-def get_youtube_title(url: str) -> tuple[str, str]:
+def get_youtube_title(url: str, cookiefile: str = None) -> tuple[str, str]:
     """Get the title of the YouTube video"""
 
-    ydl_opts = {}
+    ydl_opts = {
+        "cookiefile": cookiefile,
+    }
     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
         result = ydl.extract_info(
             url, download=False  # We just want to extract the info
@@ -31,7 +33,7 @@ def get_youtube_title(url: str) -> tuple[str, str]:
     return result["channel"].strip(), result["title"].strip()
 
 
-def __download_youtube_audio(url: str, clear_filename: str, output_path: str):
+def __download_youtube_audio(url: str, clear_filename: str, output_path: str, cookiefile: str = None):
     """Download audio from YouTube"""
 
     print(f"{ULTRASINGER_HEAD} Downloading Audio")
@@ -41,18 +43,20 @@ def __download_youtube_audio(url: str, clear_filename: str, output_path: str):
         "postprocessors": [
             {"key": "FFmpegExtractAudio", "preferredcodec": "mp3"}
         ],
+        "cookiefile": cookiefile,
     }
 
     __start_download(ydl_opts, url)
 
 
-def __download_youtube_thumbnail(url: str, clear_filename: str, output_path: str) -> str:
+def __download_youtube_thumbnail(url: str, clear_filename: str, output_path: str, cookiefile: str = None) -> str:
     """Download thumbnail from YouTube"""
 
     print(f"{ULTRASINGER_HEAD} Downloading thumbnail")
     ydl_opts = {
         "skip_download": True,
         "writethumbnail": True,
+        "cookiefile": cookiefile,
     }
 
     thumbnail_url = download_and_convert_thumbnail(ydl_opts, url, clear_filename, output_path)
@@ -78,13 +82,14 @@ def download_and_convert_thumbnail(ydl_opts, url: str, clear_filename: str, outp
             return ""
 
 
-def __download_youtube_video(url: str, clear_filename: str, output_path: str) -> None:
+def __download_youtube_video(url: str, clear_filename: str, output_path: str, cookiefile: str = None) -> None:
     """Download video from YouTube"""
 
     print(f"{ULTRASINGER_HEAD} Downloading Video")
     ydl_opts = {
         "format": "bestvideo[ext=mp4]/mp4",
         "outtmpl": output_path + "/" + clear_filename + ".mp4",
+        "cookiefile": cookiefile,
     }
     __start_download(ydl_opts, url)
 
@@ -98,9 +103,9 @@ def __start_download(ydl_opts, url: str) -> None:
             raise Exception("Download failed with error: " + str(errors))
 
 
-def download_from_youtube(input_file_path: str, output_folder_path: str) -> tuple[str, str, str, MediaInfo]:
+def download_from_youtube(input_file_path: str, output_folder_path: str, cookiefile: str = None) -> tuple[str, str, str, MediaInfo]:
     """Download from YouTube"""
-    (artist, title) = get_youtube_title(input_file_path)
+    (artist, title) = get_youtube_title(input_file_path, cookiefile)
 
     # Get additional data for song
     (title_info, artist_info, year_info, genre_info) = get_music_infos(
@@ -116,8 +121,8 @@ def download_from_youtube(input_file_path: str, output_folder_path: str) -> tupl
     song_output = os.path.join(output_folder_path, basename_without_ext)
     song_output = get_unused_song_output_dir(song_output)
     os_helper.create_folder(song_output)
-    __download_youtube_audio(input_file_path, basename_without_ext, song_output)
-    __download_youtube_video(input_file_path, basename_without_ext, song_output)
+    __download_youtube_audio(input_file_path, basename_without_ext, song_output, cookiefile)
+    __download_youtube_video(input_file_path, basename_without_ext, song_output, cookiefile)
     thumbnail_url = __download_youtube_thumbnail(
         input_file_path, basename_without_ext, song_output
     )
