@@ -70,7 +70,7 @@ contourpy==1.2.1
     # via matplotlib
 crepe==0.0.15
     # via -r requirements.in
-ctranslate2==4.3.1
+ctranslate2==4.4.0
     # via faster-whisper
 cycler==0.12.1
     # via matplotlib
