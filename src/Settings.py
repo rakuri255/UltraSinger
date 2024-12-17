@@ -39,6 +39,7 @@ class Settings:
     whisper_align_model = None   # Model for other languages from huggingface.co e.g -> "gigant/romanian-wav2vec2"
     whisper_batch_size = 16   # reduce if low on GPU mem
     whisper_compute_type = None   # change to "int8" if low on GPU mem (may reduce accuracy)
+    keep_numbers = False
 
     # Pitch
     crepe_model_capacity = "full"  # tiny|small|medium|large|full

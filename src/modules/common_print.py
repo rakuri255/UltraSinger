@@ -39,6 +39,7 @@ def print_help() -> None:
     --language              Override the language detected by whisper, does not affect transcription but steps after transcription
     --whisper_batch_size    Reduce if low on GPU mem >> ((default) is 16)
     --whisper_compute_type  Change to "int8" if low on GPU mem (may reduce accuracy) >> ((default) is "float16" for cuda devices, "int8" for cpu)
+    --keep_numbers          Numbers will be transcribed as numerics instead of as words >> True|False >> ((default) is False)
     
     [pitcher]
     # Default is crepe
