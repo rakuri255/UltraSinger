@@ -64,6 +64,14 @@ class UltrastarTxtTag(str, Enum):
     # (Unused) New in (unreleased) 2.0.0
     MEDLEYSTART = 'MEDLEYSTART'  # Rename of MEDLEYSTARTBEAT
     MEDLEYEND = 'MEDLEYEND'  # Renmame of MEDLEYENDBEAT
+    # These will forced to be in ms only. This will be an braking change from 1.1.0:
+    # GAP: 4500
+    # VIDEOGAP: 1200
+    # START: 21100
+    # END: 223250
+    # MEDLEYSTART: 67050
+    # MEDLEYEND: 960020
+    # PREVIEWSTART: 45200
 
 
 class UltrastarTxtNoteTypeTag(str, Enum):
