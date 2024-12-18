@@ -28,6 +28,7 @@ from modules.console_colors import (
     gold_highlighted,
     red_highlighted,
     green_highlighted,
+    cyan_highlighted
 )
 from modules.Midi.midi_creator import (
     create_midi_segments_from_transcribed_data,

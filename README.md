@@ -110,7 +110,7 @@ _Not all options working now!_
 
     [transcription]
     # Default is whisper
-    --whisper               Multilingual model > tiny|base|small|medium|large-v1|large-v2  >> ((default) is large-v2
+    --whisper               Multilingual model > tiny|base|small|medium|large-v1|large-v2  >> ((default) is large-v2)
                             English-only model > tiny.en|base.en|small.en|medium.en
     --whisper_align_model   Use other languages model for Whisper provided from huggingface.co
     --language              Override the language detected by whisper, does not affect transcription but steps after transcription
@@ -123,15 +123,16 @@ _Not all options working now!_
     --crepe_step_size  unit is miliseconds >> ((default) is 10)
     
     [extra]
-    --hyphenation           True|False >> ((default) is True)
-    --disable_separation    True|False >> ((default) is False)
+    --hyphenation           Use automatic hyphenation > True|False >> ((default) is True)
+    --disable_separation    Disable track separation > True|False >> ((default) is False)
     --disable_karaoke       True|False >> ((default) is False)
     --ignore_audio          True|False >> ((default) is False)
     --create_audio_chunks   True|False >> ((default) is False)
-    --keep_cache            True|False >> ((default) is False)
-    --plot                  True|False >> ((default) is False)
-    --format_version        0.3.0|1.0.0|1.1.0 >> ((default) is 1.0.0)
+    --keep_cache            Keep cache folder after generation > True|False >> ((default) is False)
+    --plot                  Create a pitch plot > True|False >> ((default) is False)
+    --format_version        0.3.0|1.0.0|1.1.0 >> ((default) is 1.1.0)
     --musescore_path        path to MuseScore executable
+    --keep_numbers          Transcribe numbers as digits and not words > True|False >> ((default) is False)
     
     [yt-dlp]
     --cookiefile            File name where cookies should be read from
