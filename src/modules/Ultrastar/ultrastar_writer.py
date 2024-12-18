@@ -79,6 +79,9 @@ def create_ultrastar_txt(
             file.write(f"#{UltrastarTxtTag.VIDEO}:{ultrastar_class.video}\n")
         if ultrastar_class.videoGap is not None:
             file.write(f"#{UltrastarTxtTag.VIDEOGAP}:{ultrastar_class.videoGap}\n")
+        if version.parse(ultrastar_class.version) >= version.parse("1.2.0"):
+            if ultrastar_class.videoUrl is not None:
+                file.write(f"#{UltrastarTxtTag.VIDEOURL}:{ultrastar_class.videoUrl}\n")
         file.write(f"#{UltrastarTxtTag.BPM}:{round(ultrastar_bpm, 2)}\n")  # not the real BPM!
         file.write(f"#{UltrastarTxtTag.GAP}:{int(gap * 1000)}\n")
         file.write(f"#{UltrastarTxtTag.CREATOR}:{ultrastar_class.creator}\n")

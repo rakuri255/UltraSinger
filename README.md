@@ -103,11 +103,6 @@ _Not all options working now!_
     ## if INPUT is ultrastar.txt ##
     default  Creates all
 
-    # Single selection is in progress, you currently getting all!
-    (-r      repitch Ultrastar.txt (input has to be audio)) # In Progress
-    (-p      Check pitch of Ultrastar.txt input) # In Progress
-    (-m      Create midi file) # In Progress
-
     [transcription]
     # Default is whisper
     --whisper               Multilingual model > tiny|base|small|medium|large-v1|large-v2  >> ((default) is large-v2)
@@ -130,7 +125,7 @@ _Not all options working now!_
     --create_audio_chunks   True|False >> ((default) is False)
     --keep_cache            Keep cache folder after generation > True|False >> ((default) is False)
     --plot                  Create a pitch plot > True|False >> ((default) is False)
-    --format_version        0.3.0|1.0.0|1.1.0 >> ((default) is 1.1.0)
+    --format_version        0.3.0|1.0.0|1.1.0|1.2.0 >> ((default) is 1.2.0)
     --musescore_path        path to MuseScore executable
     --keep_numbers          Transcribe numbers as digits and not words > True|False >> ((default) is False)
     

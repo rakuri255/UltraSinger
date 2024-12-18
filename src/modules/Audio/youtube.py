@@ -103,9 +103,9 @@ def __start_download(ydl_opts, url: str) -> None:
             raise Exception("Download failed with error: " + str(errors))
 
 
-def download_from_youtube(input_file_path: str, output_folder_path: str, cookiefile: str = None) -> tuple[str, str, str, MediaInfo]:
+def download_from_youtube(input_url: str, output_folder_path: str, cookiefile: str = None) -> tuple[str, str, str, MediaInfo]:
     """Download from YouTube"""
-    (artist, title) = get_youtube_title(input_file_path, cookiefile)
+    (artist, title) = get_youtube_title(input_url, cookiefile)
 
     # Get additional data for song
     (title_info, artist_info, year_info, genre_info) = get_music_infos(
@@ -121,10 +121,10 @@ def download_from_youtube(input_file_path: str, output_folder_path: str, cookief
     song_output = os.path.join(output_folder_path, basename_without_ext)
     song_output = get_unused_song_output_dir(song_output)
     os_helper.create_folder(song_output)
-    __download_youtube_audio(input_file_path, basename_without_ext, song_output, cookiefile)
-    __download_youtube_video(input_file_path, basename_without_ext, song_output, cookiefile)
+    __download_youtube_audio(input_url, basename_without_ext, song_output, cookiefile)
+    __download_youtube_video(input_url, basename_without_ext, song_output, cookiefile)
     thumbnail_url = __download_youtube_thumbnail(
-        input_file_path, basename_without_ext, song_output
+        input_url, basename_without_ext, song_output
     )
     audio_file_path = os.path.join(song_output, basename)
     real_bpm = get_bpm_from_file(audio_file_path)
@@ -133,5 +133,5 @@ def download_from_youtube(input_file_path: str, output_folder_path: str, cookief
         song_output,
         audio_file_path,
         MediaInfo(artist=artist, title=title, year=year_info, genre=genre_info, bpm=real_bpm,
-                  youtube_thumbnail_url=thumbnail_url),
+                  youtube_thumbnail_url=thumbnail_url, youtube_video_url=input_url),
     )
