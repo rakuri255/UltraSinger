@@ -123,7 +123,7 @@ _Not all options working now!_
     --crepe_step_size  unit is miliseconds >> ((default) is 10)
     
     [extra]
-    --hyphenation           Disable automatic hyphenation > True|False >> ((default) is True)
+    --hyphenation           Use automatic hyphenation > True|False >> ((default) is True)
     --disable_separation    Disable track separation > True|False >> ((default) is False)
     --disable_karaoke       True|False >> ((default) is False)
     --ignore_audio          True|False >> ((default) is False)
