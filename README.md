@@ -61,8 +61,8 @@ This will help me a lot to keep this project alive and improve it.
     - [🏆 Ultrastar Score Calculation](#-ultrastar-score-calculation)
     - [📟 Use GPU](#-use-gpu)
       - [Considerations for Windows users](#considerations-for-windows-users)
-      - [Info](#info)
-      - [Docker](#docker)
+      - [Crashes due to low VRAM](#crashes-due-to-low-vram)
+    - [📦 Containerized](#containerized-docker-or-podman)
 
 ## 💻 How to use this source code
 
@@ -285,65 +285,15 @@ TensorFlow dropped GPU support for Windows for versions >2.10 as you can see in 
 
 For now UltraSinger runs the latest version available that still supports GPUs on windows.
 
-For running later versions of TensorFlow on windows while still taking advantage of GPU support the suggested solution is:
+For running later versions of TensorFlow on windows while still taking advantage of GPU support the suggested solution is to [run UltraSinger in a container](container/README.md).
 
-* [install WSL2](https://learn.microsoft.com/en-us/windows/wsl/install)
-* within the Ubuntu WSL2 installation
-  * run `sudo apt update && sudo apt install nvidia-cuda-toolkit`
-  * follow the setup instructions for UltraSinger at the top of this document
-
-#### Info
+#### Crashes due to low VRAM
 
 If something crashes because of low VRAM then use a smaller model.
 Whisper needs more than 8GB VRAM in the `large` model!
 
 You can also force cpu usage with the extra option `--force_cpu`.
 
-#### Docker
-to run the docker run `git clone https://github.com/rakuri255/UltraSinger.git`
-enter the UltraSinger folder.
-run this command to build the docker
-`docker build -t ultrasinger .` make sure to include the "." at the end
-let this run till complete.
-then run this command
-`docker run --gpus all -it --name UltraSinger -v  $pwd/src/output:/app/src/output ultrasinger`
+### Containerized (Docker or Podman)
 
-Docker-Compose
-there are two files that you can pick from.
-cd into `docker-compose` folder and then cd into `Nvidia` or `NonGPU`
-Run `docker-compose up` to download and setup
-
-Nvidia is for if you have a nvidia gpu to use with UltraSinger.
-NonGPU is for if you wish to only use the CPU for UltraSinger.
-
-Output
-by default the docker-compose will setup the output folder as `/output` inside the docker.
-on the host machine it will map to the folder with the `docker-compose.yml` file under `output`
-you may chnage this by editing the `docker-compose.yml`
-
-to edit the file.
-use any text editor you wish. i would recoment nano.
-run `nano docker-compose.yml`
-then change this line
-`            -  ./output:/app/UltraSinger/src/output`
-to anything you line for on your host machine.
-`            -  /yourfolderpathhere:/app/UltraSinger/src/output`
-sample
-`            -  /mnt/user/appdata/UltraSinger:/output`
-note the blank space before the `-`
-formating is important here in this file.
-
-this will create and drop you into the docker.
-now run this command.
-`python3 UltraSinger.py -i file`
-or
-`python3 UltraSinger.py -i youtube_url`
-to use mp3's in the folder you git cloned you must place all songs you like in UltraSinger/src/output.
-this will be the place for youtube links aswell.
-
-
-to quit the docker just type exit.
-
-to reenter docker run this command
-`docker start UltraSinger && Docker exec -it UltraSinger /bin/bash`
-
+See [container/README.md](container/README.md)
