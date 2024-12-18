@@ -35,6 +35,9 @@ class UltrastarTxtTag(str, Enum):
     INSTRUMENTAL = 'INSTRUMENTAL'  # Instrumental only audio
     TAGS = 'TAGS'  # Tags for the song. Can be used for filtering
 
+    # 1.2.0
+    VIDEOURL = 'VIDEOURL'  # URL to the video file
+
     # Unused 0.2.0
     EDITION = 'EDITION'  # Multi-language support since v1.1.0
     START = 'START'
@@ -59,7 +62,6 @@ class UltrastarTxtTag(str, Enum):
     AUDIOURL = 'AUDIOURL'  # URL to the audio file
     COVERURL = 'COVERURL'  # URL to the cover file
     BACKGROUNDURL = 'BACKGROUNDURL'  # URL to the background file
-    VIDEOURL = 'VIDEOURL'  # URL to the video file
 
     # (Unused) New in (unreleased) 2.0.0
     MEDLEYSTART = 'MEDLEYSTART'  # Rename of MEDLEYSTARTBEAT
@@ -121,6 +123,7 @@ class UltrastarTxtValue:
     mp3 = ""
     audio = ""
     video = None
+    videoUrl = None
     videoGap = None
     gap = ""
     bpm = ""

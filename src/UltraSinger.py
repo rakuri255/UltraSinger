@@ -337,7 +337,7 @@ def InitProcessData():
             process_data.basename,
             settings.output_folder_path,
             process_data.process_data_paths.audio_output_file_path,
-            process_data.media_info,
+            process_data.media_info
         ) = download_from_youtube(settings.input_file_path, settings.output_folder_path, settings.cookiefile)
     else:
         # Audio File
@@ -646,6 +646,8 @@ def init_settings(argv: list[str]) -> Settings:
                 settings.format_version = FormatVersion.V1_0_0
             elif arg == FormatVersion.V1_1_0.value:
                 settings.format_version = FormatVersion.V1_1_0
+            elif arg == FormatVersion.V1_2_0.value:
+                settings.format_version = FormatVersion.V1_2_0
             else:
                 print(
                     f"{ULTRASINGER_HEAD} {red_highlighted('Error: Format version')} {blue_highlighted(arg)} {red_highlighted('is not supported.')}"
