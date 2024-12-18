@@ -130,7 +130,7 @@ _Not all options working now!_
     --create_audio_chunks   True|False >> ((default) is False)
     --keep_cache            Keep cache folder after generation > True|False >> ((default) is False)
     --plot                  Create a pitch plot > True|False >> ((default) is False)
-    --format_version        0.3.0|1.0.0|1.1.0 >> ((default) is 1.0.0)
+    --format_version        0.3.0|1.0.0|1.1.0 >> ((default) is 1.1.0)
     --musescore_path        path to MuseScore executable
     --keep_numbers          Transcribe numbers as digits and not words > True|False >> ((default) is False)
     
