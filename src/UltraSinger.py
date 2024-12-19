@@ -620,7 +620,7 @@ def init_settings(argv: list[str]) -> Settings:
             try:
                 settings.whisper_model = WhisperModel(arg)
             except ValueError as ve:
-                print(f"The model {arg} is not a valid whisper model selection. Please use one of the following models: {blue_highlighted(', '.join([m.value for m in WhisperModel]))}")
+                print(f"{ULTRASINGER_HEAD} The model {arg} is not a valid whisper model selection. Please use one of the following models: {blue_highlighted(', '.join([m.value for m in WhisperModel]))}")
                 sys.exit()
         elif opt in ("--whisper_align_model"):
             settings.whisper_align_model = arg
@@ -679,7 +679,7 @@ def init_settings(argv: list[str]) -> Settings:
             try:
                 settings.demucs_model = DemucsModel(arg)
             except ValueError as ve:
-                print(f"The model {arg} is not a valid demucs model selection. Please use one of the following models: {blue_highlighted(', '.join([m.value for m in DemucsModel]))}")
+                print(f"{ULTRASINGER_HEAD} The model {arg} is not a valid demucs model selection. Please use one of the following models: {blue_highlighted(', '.join([m.value for m in DemucsModel]))}")
                 sys.exit()
     if settings.output_folder_path == "":
         if settings.input_file_path.startswith("https:"):
