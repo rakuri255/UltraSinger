@@ -511,8 +511,6 @@ def infos_from_audio_input_file() -> tuple[str, str, str, MediaInfo]:
         title = basename_without_ext
 
     song_info = search_musicbrainz(title, artist)
-    if song_info.image_data is not None:
-        save_image(song_info.image_data, basename_without_ext, settings.output_folder_path)
     basename_without_ext = f"{song_info.artist} - {song_info.title}"
     extension = os.path.splitext(basename)[1]
     basename = f"{basename_without_ext}{extension}"
@@ -526,6 +524,8 @@ def infos_from_audio_input_file() -> tuple[str, str, str, MediaInfo]:
         os.path.join(song_folder_output_path, basename),
     )
     # Todo: Read ID3 tags
+    if song_info.image_data is not None:
+        save_image(song_info.image_data, basename_without_ext, song_folder_output_path)
     ultrastar_audio_input_path = os.path.join(song_folder_output_path, basename)
     real_bpm = get_bpm_from_file(settings.input_file_path)
     return (
