@@ -114,13 +114,13 @@ _Not all options working now!_
 
     [transcription]
     # Default is whisper
-    --whisper               Multilingual model > tiny|base|small|medium|large-v1|large-v2|large-v3  >> ((default) is large-v2
+    --whisper               Multilingual model > tiny|base|small|medium|large-v1|large-v2|large-v3  >> ((default) is large-v2)
                             English-only model > tiny.en|base.en|small.en|medium.en
     --whisper_align_model   Use other languages model for Whisper provided from huggingface.co
     --language              Override the language detected by whisper, does not affect transcription but steps after transcription
     --whisper_batch_size    Reduce if low on GPU mem >> ((default) is 16)
     --whisper_compute_type  Change to "int8" if low on GPU mem (may reduce accuracy) >> ((default) is "float16" for cuda devices, "int8" for cpu)
-    --keep_numbers          Numbers will be transcribed as numerics instead of as words >> True|False >> ((default) is False)
+    --keep_numbers          Numbers will be transcribed as numerics instead of as words >> ((default) is False)
     
     [pitcher]
     # Default is crepe
@@ -139,8 +139,8 @@ _Not all options working now!_
 
     [device]
     --force_cpu             Force all steps to be processed on CPU.
-    --force_whisper_cpu     True|False >> ((default) is False)  Only whisper will be forced to cpu
-    --force_crepe_cpu       True|False >> ((default) is False)  Only crepe will be forced to cpu
+    --force_whisper_cpu     Only whisper will be forced to cpu
+    --force_crepe_cpu       Only crepe will be forced to cpu
 ```
 
 For standard use, you only need to use [opt]. All other options are optional.
