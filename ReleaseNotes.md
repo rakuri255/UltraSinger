@@ -1,12 +1,18 @@
 # Version: 0.0.12
-Date: 2024.11.29
+Date: 2024.12.19
 - Changes:
   - Reduce Memory usage by clearing cache in whisper
-  - Added lyrics to midi file
-  - Some bug fixes and improved error handling and logs
-  - Fix hypen language download
+  - Add lyrics to midi file
   - Split word by note changes
-  - Upgrade to Format Version 1.1.0
+  - Upgrade UltraStar Format to Version 1.2.0 (Use of VIDEOURL)
+  - Use yt with cookies
+  - Some docker container improvements
+  - Fix keep-cache option
+  - Fix numbers in lyrics and transcribtion
+  - Fix model path option
+  - Fix error in PDF sheet generation
+  - Fix hypen language download
+  - Some bug fixes and improved error handling and logs
 
 # Version: 0.0.11
 Date: 2024.07.06
