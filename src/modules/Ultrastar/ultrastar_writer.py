@@ -64,6 +64,9 @@ def create_ultrastar_txt(
             file.write(f"#{UltrastarTxtTag.GENRE}:{ultrastar_class.genre}\n")
         if ultrastar_class.cover is not None:
             file.write(f"#{UltrastarTxtTag.COVER}:{ultrastar_class.cover}\n")
+        if version.parse(ultrastar_class.version) >= version.parse("1.2.0"):
+            if ultrastar_class.coverUrl is not None:
+                file.write(f"#{UltrastarTxtTag.COVERURL}:{ultrastar_class.coverUrl}\n")
         if ultrastar_class.background is not None:
             file.write(f"#{UltrastarTxtTag.BACKGROUND}:{ultrastar_class.background}\n")
         file.write(f"#{UltrastarTxtTag.MP3}:{ultrastar_class.mp3}\n")

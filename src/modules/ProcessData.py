@@ -23,8 +23,8 @@ class MediaInfo:
     year: Optional[str] = None
     genre: Optional[str] = None
     language: Optional[str] = None
-    youtube_thumbnail_url: Optional[str] = None
-    youtube_video_url: Optional[str] = None
+    cover_url: Optional[str] = None
+    video_url: Optional[str] = None
 
 @dataclass
 class ProcessData:
