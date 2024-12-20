@@ -31,6 +31,11 @@ class TestCreateUltrastarTxt(unittest.TestCase):
         self.act_and_assert(bpm, class_under_test, expected_calls, midi_segments,
                             ultrastar_file_output)
 
+        class_under_test.version = "1.2.0"
+        expected_calls = self.default_values(class_under_test, class_under_test.version)
+        self.act_and_assert(bpm, class_under_test, expected_calls, midi_segments,
+                            ultrastar_file_output)
+
     def test_create_ultrastar_txt_from_automation_full_values(self):
         # Arrange
         bpm, midi_segments, ultrastar_file_output = self.arrange()
@@ -44,6 +49,7 @@ class TestCreateUltrastarTxt(unittest.TestCase):
         class_under_test.tags = "pop, rock"
         class_under_test.cover = "cover [CO].jpg"
         class_under_test.video = "video.mp4"
+        class_under_test.videoUrl = "https://xyz.com/video"
         class_under_test.mp3 = "music.mp3"
         class_under_test.audio = "music.mp3"
         class_under_test.vocals = "vocals.mp3"
@@ -62,6 +68,11 @@ class TestCreateUltrastarTxt(unittest.TestCase):
                             ultrastar_file_output)
 
         class_under_test.version = "1.1.0"
+        expected_calls = self.full_values(class_under_test, class_under_test.version)
+        self.act_and_assert(bpm, class_under_test, expected_calls, midi_segments,
+                            ultrastar_file_output)
+
+        class_under_test.version = "1.2.0"
         expected_calls = self.full_values(class_under_test, class_under_test.version)
         self.act_and_assert(bpm, class_under_test, expected_calls, midi_segments,
                             ultrastar_file_output)
@@ -105,6 +116,9 @@ class TestCreateUltrastarTxt(unittest.TestCase):
             expected_calls += [
                 f"#{UltrastarTxtTag.VIDEO}:{default_ultrastar_class.video}\n"
             ]
+        if version.parse(ver) >= version.parse("1.2.0"):
+            if default_ultrastar_class.videoUrl is not None:
+                expected_calls += [f"#{UltrastarTxtTag.VIDEOURL}:{default_ultrastar_class.videoUrl}\n"]
         expected_calls += [
             f"#{UltrastarTxtTag.BPM}:390.0\n",
             f"#{UltrastarTxtTag.GAP}:500\n",
@@ -136,6 +150,8 @@ class TestCreateUltrastarTxt(unittest.TestCase):
             expected_calls.append(f"#{UltrastarTxtTag.INSTRUMENTAL}:{default_ultrastar_class.instrumental}\n")
             expected_calls.append(f"#{UltrastarTxtTag.TAGS}:{default_ultrastar_class.tags}\n")
         expected_calls.append(f"#{UltrastarTxtTag.VIDEO}:{default_ultrastar_class.video}\n")
+        if version.parse(ver) >= version.parse("1.2.0"):
+            expected_calls.append(f"#{UltrastarTxtTag.VIDEOURL}:{default_ultrastar_class.videoUrl}\n")
         expected_calls.append(f"#{UltrastarTxtTag.BPM}:390.0\n")
         expected_calls.append(f"#{UltrastarTxtTag.GAP}:500\n")
         expected_calls.append(f"#{UltrastarTxtTag.CREATOR}:{default_ultrastar_class.creator}\n")

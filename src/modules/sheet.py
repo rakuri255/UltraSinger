@@ -41,11 +41,18 @@ def create_sheet(midi_segments: list[MidiSegment],
     success = set_environment_variables(musescore_path)
     if not success:
         return
-    s = stream.Stream()
-    add_metadata_to_stream(s, media_info.artist, media_info.title, int(media_info.bpm))
-    add_midi_segments_to_stream(s, midi_segments)
-    export_stream_to_pdf(s, os.path.join(output_folder_path, f"{filename}.pdf"))
-    move(os.path.join(output_folder_path, f"{filename}.musicxml"), os.path.join(cache_folder_path, f"{filename}.musicxml"))
+    
+    try:
+        s = stream.Stream()
+        add_metadata_to_stream(s, media_info.artist, media_info.title, int(media_info.bpm))
+        add_midi_segments_to_stream(s, midi_segments)
+        export_stream_to_pdf(s, os.path.join(output_folder_path, f"{filename}.pdf"))
+        move(os.path.join(output_folder_path, f"{filename}.musicxml"), os.path.join(cache_folder_path, f"{filename}.musicxml"))
+    except Exception as e:
+        song_error = (f"{media_info.artist} - {media_info.title}")
+        print(f"{ULTRASINGER_HEAD} {red_highlighted('Error: Could not create sheet for')} {blue_highlighted(song_error)}")
+        print(f"\t{red_highlighted(f'Error: ->{e}')}")
+        return
 
 def round_to_nearest_quarter(number: float) -> float:
     return round(number * 4) / 4

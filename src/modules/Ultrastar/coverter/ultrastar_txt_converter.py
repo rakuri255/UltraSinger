@@ -86,6 +86,8 @@ def create_ultrastar_txt_from_automation(
         ultrastar_txt.year = extract_year(media_info.year)
     if media_info.genre is not None:
         ultrastar_txt.genre = format_separated_string(media_info.genre)
+    if media_info.youtube_video_url is not None:
+        ultrastar_txt.videoUrl = media_info.youtube_video_url
 
     ultrastar_file_output_path = os.path.join(song_folder_output_path, basename + ".txt")
     create_ultrastar_txt(
@@ -106,6 +108,9 @@ def create_ultrastar_txt_from_automation(
             ultrastar_txt,
             media_info.bpm,
         )
+    if version.parse(format_version.value) < version.parse(FormatVersion.V1_2_0.value):
+        ultrastar_txt.videoUrl = media_info.youtube_video_url
+
     return ultrastar_file_output_path
 
 

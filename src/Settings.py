@@ -10,7 +10,7 @@ from modules.Ultrastar.ultrastar_txt import FormatVersion
 @dataclass_json
 @dataclass
 class Settings:
-    APP_VERSION = "0.0.12-dev4"
+    APP_VERSION = "0.0.12"
 
     create_midi = True
     create_plot = False
@@ -27,7 +27,7 @@ class Settings:
     output_folder_path = ""
     
     language = None
-    format_version = FormatVersion.V1_1_0
+    format_version = FormatVersion.V1_2_0
 
     # Demucs
     demucs_model = DemucsModel.HTDEMUCS  # htdemucs|htdemucs_ft|htdemucs_6s|hdemucs_mmi|mdx|mdx_extra|mdx_q|mdx_extra_q|SIG
@@ -54,6 +54,9 @@ class Settings:
 
     # MuseScore
     musescore_path = None
+
+    # yt-dlp
+    cookiefile = None
 
     # UltraSinger Evaluation Configuration
     test_songs_input_folder = None
