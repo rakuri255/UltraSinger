@@ -353,8 +353,8 @@ def InitProcessData():
             process_data.basename,
             settings.output_folder_path,
             process_data.process_data_paths.audio_output_file_path,
-            process_data.media_info,
-        ) = download_from_youtube(settings.input_file_path, settings.output_folder_path)
+            process_data.media_info
+        ) = download_from_youtube(settings.input_file_path, settings.output_folder_path, settings.cookiefile)
     else:
         # Audio File
         print(f"{ULTRASINGER_HEAD} {gold_highlighted('full automatic mode')}")
@@ -485,8 +485,10 @@ def CreateProcessAudio(process_data) -> str:
 def transcribe_audio(cache_folder_path: str, processing_audio_path: str) -> TranscriptionResult:
     """Transcribe audio with AI"""
     transcription_result = None
+    whisper_align_model_string = None
     if settings.transcriber == "whisper":
-        transcription_config = f"{settings.transcriber}_{settings.whisper_model.value}_{settings.pytorch_device}_{settings.whisper_align_model}_{settings.whisper_align_model}_{settings.whisper_batch_size}_{settings.whisper_compute_type}_{settings.language}"
+        if not settings.whisper_align_model is None: whisper_align_model_string = settings.whisper_align_model.replace("/", "_")
+        transcription_config = f"{settings.transcriber}_{settings.whisper_model.value}_{settings.pytorch_device}_{whisper_align_model_string}_{settings.whisper_batch_size}_{settings.whisper_compute_type}_{settings.language}"
         transcription_path = os.path.join(cache_folder_path, f"{transcription_config}.json")
         cached_transcription_available = check_file_exists(transcription_path)
         if settings.skip_cache_transcription or not cached_transcription_available:
@@ -665,6 +667,8 @@ def init_settings(argv: list[str]) -> Settings:
                 settings.format_version = FormatVersion.V1_0_0
             elif arg == FormatVersion.V1_1_0.value:
                 settings.format_version = FormatVersion.V1_1_0
+            elif arg == FormatVersion.V1_2_0.value:
+                settings.format_version = FormatVersion.V1_2_0
             else:
                 print(
                     f"{ULTRASINGER_HEAD} {red_highlighted('Error: Format version')} {blue_highlighted(arg)} {red_highlighted('is not supported.')}"
@@ -681,6 +685,8 @@ def init_settings(argv: list[str]) -> Settings:
             except ValueError as ve:
                 print(f"{ULTRASINGER_HEAD} The model {arg} is not a valid demucs model selection. Please use one of the following models: {blue_highlighted(', '.join([m.value for m in DemucsModel]))}")
                 sys.exit()
+        elif opt in ("--cookiefile"):
+            settings.cookiefile = arg
     if settings.output_folder_path == "":
         if settings.input_file_path.startswith("https:"):
             dirname = os.getcwd()
@@ -719,9 +725,10 @@ def arg_options():
         "force_whisper_cpu",
         "force_crepe_cpu",
         "format_version=",
-        "keep_cache",
+        "keep_cache=",
         "musescore_path=",
-        "keep_numbers"
+        "keep_numbers",
+        "cookiefile="
     ]
     return long, short
 

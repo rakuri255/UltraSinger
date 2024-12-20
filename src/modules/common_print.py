@@ -26,10 +26,6 @@ def print_help() -> None:
     ## INPUT is ultrastar.txt ##
     default  Creates all
 
-    # Single selection is in progress, you currently getting all!
-    (-r      repitch Ultrastar.txt (input has to be audio)) # In Progress
-    (-p      Check pitch of Ultrastar.txt input) # In Progress
-    (-m      Create midi file) # In Progress
 
     [separation]
     # Default is htdemucs
@@ -37,7 +33,7 @@ def print_help() -> None:
 
     [transcription]
     # Default is whisper
-    --whisper               Multilingual model > tiny|base|small|medium|large-v1|large-v2|large-v3  >> ((default) is large-v2
+    --whisper               Multilingual model > tiny|base|small|medium|large-v1|large-v2|large-v3  >> ((default) is large-v2)
                             English-only model > tiny.en|base.en|small.en|medium.en
     --whisper_align_model   Use other languages model for Whisper provided from huggingface.co
     --language              Override the language detected by whisper, does not affect transcription but steps after transcription
@@ -57,8 +53,11 @@ def print_help() -> None:
     --create_audio_chunks   Enable creation of audio chunks. Audio chunks are disabled by default.
     --keep_cache            Keep cache folder after creation. Cache folder is removed by default.
     --plot                  Enable creation of plots. Plots are disabled by default.
-    --format_version        0.3.0|1.0.0|1.1.0 >> ((default) is 1.0.0)
+    --format_version        0.3.0|1.0.0|1.1.0|1.2.0 >> ((default) is 1.2.0)
     --musescore_path        path to MuseScore executable
+    
+    [yt-dlp]
+    --cookiefile            File name where cookies should be read from and dumped to.
     
     [device]
     --force_cpu             Force all steps to be processed on CPU.
