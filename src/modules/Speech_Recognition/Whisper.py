@@ -1,7 +1,6 @@
 """Whisper Speech Recognition Module"""
-
-import sys
-
+import inspect
+import textwrap
 import torch
 import whisperx
 from enum import Enum
@@ -52,6 +51,24 @@ def number_to_words(line,language='en'):
             out_tokens.append(token)
     return ''.join(out_tokens) 
 
+def replace_code_lines(source, start_token, end_token,
+                       replacement, escape_tokens=True):
+    """Replace the source code between `start_token` and `end_token`
+    in `source` with `replacement`. The `start_token` portion is included
+    in the replaced code. If `escape_tokens` is True (default),
+    escape the tokens to avoid them being treated as a regular expression."""
+
+    if escape_tokens:
+        start_token = re.escape(start_token)
+        end_token = re.escape(end_token)
+
+    def replace_with_indent(match):
+        indent = match.group(1)
+        return textwrap.indent(replacement, indent)
+
+    return re.sub(r"^(\s+)({}[\s\S]+?)(?=^\1{})".format(start_token, end_token),
+                  replace_with_indent, source, flags=re.MULTILINE)
+
 def transcribe_with_whisper(
     audio_path: str,
     model: WhisperModel,
@@ -63,6 +80,40 @@ def transcribe_with_whisper(
     keep_numbers: bool = False,
 ) -> TranscriptionResult:
     """Transcribe with whisper"""
+    # Info: Monkey Patch FasterWhisperPipeline.detect_language to include error handling for low confidence Test with https://www.youtube.com/watch?v=tcV7VN3l3bY
+    src = textwrap.dedent(inspect.getsource(whisperx.asr.FasterWhisperPipeline.detect_language))
+    # Replace the relevant part of the method
+    start_token = "if audio.shape[0] < N_SAMPLES:"
+    end_token = "return language"
+    replacement = """\
+    #Added imports
+    from modules.console_colors import ULTRASINGER_HEAD, blue_highlighted, red_highlighted
+    from Settings import Settings
+    #End Import addition
+    if audio.shape[0] < N_SAMPLES:
+        print("Warning: audio is shorter than 30s, language detection may be inaccurate.")
+    model_n_mels = self.model.feat_kwargs.get("feature_size")
+    segment = log_mel_spectrogram(audio[: N_SAMPLES],
+                                    n_mels=model_n_mels if model_n_mels is not None else 80,
+                                    padding=0 if audio.shape[0] >= N_SAMPLES else N_SAMPLES - audio.shape[0])
+    encoder_output = self.model.encode(segment)
+    results = self.model.model.detect_language(encoder_output)
+    language_token, language_probability = results[0][0]
+    language = language_token[2:-2]
+    print(f"Detected language: {language} ({language_probability:.2f}) in first 30s of audio...")
+    #Added handling for low detection probability (test with https://www.youtube.com/watch?v=tcV7VN3l3bY)
+    if language_probability < Settings.CONFIDENCE_THRESHOLD:
+        print(f"{ULTRASINGER_HEAD} {red_highlighted('Warning:')} Language detection probability for detected language {language} is below {Settings.CONFIDENCE_THRESHOLD}, results may be inaccurate.")
+        language_response = input(f"{ULTRASINGER_HEAD} Do you want to continue with {language} (default) or override with another language (y)? (y/n): ").strip().lower() == 'y'
+        if language_response:
+            language = input(f"{ULTRASINGER_HEAD} Please enter the language code for the language you want to use (e.g. 'en', 'de', 'es', etc.): ").strip().lower()
+    #End addition
+    """
+    new_src = replace_code_lines(src, start_token, end_token, replacement)
+    # Compile it and execute it in the target module's namespace
+    exec(compile(new_src, "<string>", "exec"), whisperx.asr.__dict__)
+    whisperx.asr.FasterWhisperPipeline.detect_language = whisperx.asr.detect_language
+    #End Monkey Patch
 
     # Info: Regardless of the audio sampling rate used in the original audio file, whisper resample the audio signal to 16kHz (via ffmpeg). So the standard input from (44.1 or 48 kHz) should work.
 

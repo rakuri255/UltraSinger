@@ -11,7 +11,7 @@ from modules.Ultrastar.ultrastar_txt import FormatVersion
 @dataclass
 class Settings:
     APP_VERSION = "0.0.12"
-
+    CONFIDENCE_THRESHOLD = 0.6
     create_midi = True
     create_plot = False
     create_audio_chunks = False
