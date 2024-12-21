@@ -50,6 +50,7 @@ from modules.Ultrastar import (
     ultrastar_writer,
 )
 from modules.Speech_Recognition.TranscribedData import TranscribedData
+from modules.Speech_Recognition.Whisper import WhisperModel
 from modules.Ultrastar.ultrastar_score_calculator import Score, calculate_score_points
 from modules.Ultrastar.ultrastar_txt import FILE_ENCODING, FormatVersion
 from modules.Ultrastar.coverter.ultrastar_txt_converter import from_ultrastar_txt, \
@@ -602,7 +603,7 @@ def init_settings(argv: list[str]) -> Settings:
             settings.output_folder_path = arg
         elif opt in ("--whisper"):
             settings.transcriber = "whisper"
-            settings.whisper_model = arg
+            settings.whisper_model = WhisperModel(arg)
         elif opt in ("--whisper_align_model"):
             settings.whisper_align_model = arg
         elif opt in ("--whisper_batch_size"):
