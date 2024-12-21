@@ -524,8 +524,8 @@ def infos_from_audio_input_file() -> tuple[str, str, str, MediaInfo]:
         os.path.join(song_folder_output_path, basename),
     )
     # Todo: Read ID3 tags
-    if song_info.image_data is not None:
-        save_image(song_info.image_data, basename_without_ext, song_folder_output_path)
+    if song_info.cover_image_data is not None:
+        save_image(song_info.cover_image_data, basename_without_ext, song_folder_output_path)
     ultrastar_audio_input_path = os.path.join(song_folder_output_path, basename)
     real_bpm = get_bpm_from_file(settings.input_file_path)
     return (

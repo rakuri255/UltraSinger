@@ -111,9 +111,9 @@ def download_from_youtube(input_url: str, output_folder_path: str, cookiefile: s
     __download_youtube_audio(input_url, basename_without_ext, song_output, cookiefile)
     __download_youtube_video(input_url, basename_without_ext, song_output, cookiefile)
 
-    if song_info.cover_url is not None and song_info.image_data is not None:
+    if song_info.cover_url is not None and song_info.cover_image_data is not None:
         cover_url = song_info.cover_url
-        save_image(song_info.image_data, basename_without_ext, song_output)
+        save_image(song_info.cover_image_data, basename_without_ext, song_output)
     else:
         cover_url = __download_youtube_thumbnail(
             input_url, basename_without_ext, song_output

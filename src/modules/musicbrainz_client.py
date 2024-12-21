@@ -14,7 +14,7 @@ class SongInfo:
     artist: str
     year: Optional[str] = None
     genres: Optional[str] = None
-    image_data: Optional[bytes] = None
+    cover_image_data: Optional[bytes] = None
     cover_url: Optional[str] = None
 
 
@@ -29,7 +29,7 @@ def __clean_string(s: str) -> str:
     return s.translate(str.maketrans('', '', string.punctuation)).lower().strip()
 
 
-def search_musicbrainz(title: str, artist: str) -> SongInfo:
+def search_musicbrainz(title: str, artist) -> SongInfo:
     # Musicbrainz API documentation
     # https://python-musicbrainzngs.readthedocs.io/en/latest/api/
 
@@ -37,6 +37,7 @@ def search_musicbrainz(title: str, artist: str) -> SongInfo:
 
     # remove from search_string "official video"
     # todo: do we need filter?
+    origin_title = title
     for filter in title_filter:
         title = title.lower().replace(filter.lower(), "").strip()
         if artist is not None:
@@ -49,7 +50,7 @@ def search_musicbrainz(title: str, artist: str) -> SongInfo:
 
     if recording is None:
         print(f"{ULTRASINGER_HEAD} {red_highlighted('No match found')}")
-        return SongInfo(title=title, artist="Unknown Artist")
+        return SongInfo(title=origin_title, artist="Unknown Artist")
 
     artist = recording['artist-credit-phrase']
     title = recording['title']
@@ -58,10 +59,9 @@ def search_musicbrainz(title: str, artist: str) -> SongInfo:
 
     year = __get_year(recording)
     genres = __get_genres(recording)
-
     image_data, image_url = __get_image(recording)
 
-    return SongInfo(title=title, artist=artist, year=year, genres=genres, image_data=image_data, cover_url=image_url)
+    return SongInfo(title=title, artist=artist, year=year, genres=genres, cover_image_data=image_data, cover_url=image_url)
 
 
 def __single_line_search(search_string):
@@ -70,26 +70,29 @@ def __single_line_search(search_string):
 
     artists = musicbrainzngs.search_artists(search_string, limit=10, artist=search_string)
     recordings = musicbrainzngs.search_recordings(search_string, limit=100, artistname=search_string)
-    artist = None
+    found_artist = None
 
     for record in recordings['recording-list']:
-        if artist is not None:
+        if found_artist is not None:
             break
 
-        for a in record['artist-credit']:
-            if artist is not None:
+        for artist_credit in record['artist-credit']:
+            if found_artist is not None:
                 break
-            if isinstance(a, str):
+            if isinstance(artist_credit, str):
                 continue
             # todo: there is also an "alias-list". Maybe search also there?
 
-            for y in artists['artist-list']:
-                if a['artist'] and a['artist']['id'] == y['id']:
-                    artist = record['artist-credit-phrase']
+            for artist in artists['artist-list']:
+                if artist_credit['artist'] and artist_credit['artist']['id'] == artist['id']:
+                    found_artist = record['artist-credit-phrase']
                     break
 
+    if found_artist is None:
+        return None
+
     recordings = [x for x in recordings['recording-list'] if
-                  __clean_string(x['artist-credit-phrase']) == __clean_string(artist)]
+                  __clean_string(x['artist-credit-phrase']) == __clean_string(found_artist)]
 
     recording = None
 
@@ -164,7 +167,7 @@ def __get_image(recording) -> (bytes, str):
             except:
                 continue
     if image_data is not None:
-        print(f"{ULTRASINGER_HEAD} Found image")
+        print(f"{ULTRASINGER_HEAD} Found cover image")
 
     return image_data, image_url
 

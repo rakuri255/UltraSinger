@@ -9,7 +9,10 @@ class TestGetMusicInfos(unittest.TestCase):
 
     @patch('musicbrainzngs.search_artists')
     @patch('musicbrainzngs.search_recordings')
-    def test_get_music_infos(self, mock_search_recordings, mock_search_artists):
+    @patch('musicbrainzngs.get_image_front')
+    @patch('musicbrainzngs.get_image_list')
+    @patch('musicbrainzngs.get_release_group_by_id')
+    def test_get_music_infos(self, mock_get_release_group_by_id, mock_get_image_list, mock_get_image_front, mock_search_recordings, mock_search_artists):
         # Arrange
         artist = 'UltraSinger'
         title = 'That\'s Rocking! (UltrStar 2023) FULL HD'
@@ -17,78 +20,83 @@ class TestGetMusicInfos(unittest.TestCase):
         # Set up mock return values for the MusicBrainz API calls
         mock_search_artists.return_value = {
             'artist-list': [
-                {'name': artist}
-            ]
-        }
-
-        mock_search_recordings.return_value = {
-            'recording-list': [
-                {'artist-credit': [
-                    {'name': 'Half Japanese',
-                     'artist': {
-                         'name': 'Half Japanese',
-                                               'sort-name': 'Half Japanese'
-                     }}],
-                 'release-list': [{'title': title,
-                                   'status': 'Official',
-                                   'artist-credit': [{'name': 'Half Japanese'}],
-                                   'date': '2014-04-20',
-                                   'artist-credit-phrase': artist}],
-                 'artist-credit-phrase': artist}]}
-
-        # Call the function to test
-        title, artist, year, genre = search_musicbrainz(title, artist)
-
-        # Assert the returned values
-        self.assertEqual(title, 'That\'s Rocking!')
-        self.assertEqual(artist, 'UltraSinger')
-        self.assertEqual(year, '2023-01-01')
-        self.assertEqual(genre, 'Genre 1,Genre 2,')
-
-    @patch('musicbrainzngs.search_artists')
-    @patch('musicbrainzngs.search_recordings')
-    def test_get_music_infos_when_title_and_artist_are_the_same(self, mock_search_release_groups, mock_search_artists):
-        # Arrange
-        artist = "ArtistIsTitle"
-        title = "ArtistIsTitle"
-
-        # Set up mock return values for the MusicBrainz API calls
-        mock_search_artists.return_value = {
-            'artist-list': [
-                {'name': artist}
-            ]
-        }
-
-        mock_search_release_groups.return_value = {
-            'release-group-list': [
                 {
-                    'title': title,
-                    'artist-credit-phrase': artist,
+                    'id': 'fake_artist_id',
+                    'name': artist
                 }
             ]
         }
 
-        # Act search_not_same but musicbrainz returns the same artist and title
-        title, artist, year, genre = search_musicbrainz("ArtistIsTitle", "ArtistNotTitle")
+        # image_data = musicbrainzngs.get_image_front(release['id'])
+        mock_get_image_front.return_value = b'fake image data'
 
-        # Assert
-        self.assertEqual(title, None)
-        self.assertEqual(artist, None)
-        self.assertEqual(year, None)
-        self.assertEqual(genre, None)
 
-        # Act search_is_same and musicbrainz returns the same artist and title
-        title, artist, year, genre = search_musicbrainz(title, artist)
+        mock_get_image_list.return_value = {
+            'images': [
+                {
+                    'front': True,
+                    'image': 'https://example.com/image.jpg'
+                }
+            ]
+        }
 
-        # Assert
-        self.assertEqual(title, 'ArtistIsTitle')
-        self.assertEqual(artist, 'ArtistIsTitle')
-        self.assertEqual(year, None)
-        self.assertEqual(genre, None)
+        mock_get_release_group_by_id.return_value = {
+            'release-group': {
+                'first-release-date': '2023-01-01'
+            }
+        }
+
+        mock_search_recordings.return_value = {
+            'recording-list': [
+                {
+                    'title': 'That\'s Rocking!',
+                    'artist-credit-phrase': artist,
+                    'release-list': [
+                        {
+                            'id': 'fake_release_id',
+                            'release-group': {
+                                'id': 'fake_group_id',
+                                }
+                        },
+                    ],
+                    'tag-list': [
+                        {'name': 'Genre 1'},
+                        {'name': 'Genre 2'},
+                    ],
+                    'artist-credit': [
+                        {
+                            'artist': {'id': 'fake_artist_id'}
+                        }
+                    ],
+                }
+            ]}
+
+        # Call the function to test
+        song_info_single_line = search_musicbrainz(f'{artist} - {title}', None) # Single line test
+
+        # Assert the returned values
+        self.assertEqual(song_info_single_line.title, 'That\'s Rocking!')
+        self.assertEqual(song_info_single_line.artist, 'UltraSinger')
+        self.assertEqual(song_info_single_line.year, '2023')
+        self.assertEqual(song_info_single_line.genres, 'Genre 1,Genre 2,')
+        self.assertEqual(song_info_single_line.cover_image_data, b'fake image data')
+        self.assertEqual(song_info_single_line.cover_url, 'https://example.com/image.jpg')
+
+        song_info_multi_line = search_musicbrainz(title, artist) # multi line test
+
+        self.assertEqual(song_info_multi_line.title, 'That\'s Rocking!')
+        self.assertEqual(song_info_multi_line.artist, 'UltraSinger')
+        self.assertEqual(song_info_multi_line.year, '2023')
+        self.assertEqual(song_info_multi_line.genres, 'Genre 1,Genre 2,')
+        self.assertEqual(song_info_multi_line.cover_image_data, b'fake image data')
+        self.assertEqual(song_info_multi_line.cover_url, 'https://example.com/image.jpg')
+
+
+
 
     @patch('musicbrainzngs.search_artists')
     @patch('musicbrainzngs.search_recordings')
-    def test_get_empty_artist_music_infos(self, mock_search_release_groups, mock_search_artists):
+    def test_get_empty_artist_music_infos(self, mock_search_recordings, mock_search_artists):
         # Arrange
         artist = 'UltraSinger'
         title = 'That\'s Rocking! (UltrStar 2023) FULL HD'
@@ -98,32 +106,45 @@ class TestGetMusicInfos(unittest.TestCase):
             'artist-list': []
         }
 
-        mock_search_release_groups.return_value = {
-            'release-group-list': [
+        mock_search_recordings.return_value = {
+            'recording-list': [
                 {
-                    'title': f'  {title}  ',  # Also test leading and trailing whitespaces
-                    'artist-credit-phrase': f'  {artist}  ',  # Also test leading and trailing whitespaces
-                    'first-release-date': '  2023-01-01  ',  # Also test leading and trailing whitespaces
+                    'title': 'That\'s Rocking!',
+                    'artist-credit-phrase': artist,
+                    'release-list': [
+                        {
+                            'id': 'fake_release_id',
+                            'release-group': {
+                                'id': 'fake_group_id',
+                                }
+                        },
+                    ],
                     'tag-list': [
-                        {'name': '  Genre 1  '},  # Also test leading and trailing whitespaces
-                        {'name': '  Genre 2  '}  # Also test leading and trailing whitespaces
-                    ]
+                        {'name': 'Genre 1'},
+                        {'name': 'Genre 2'},
+                    ],
+                    'artist-credit': [
+                        {
+                            'artist': {'id': 'fake_artist_id'}
+                        }
+                    ],
                 }
-            ]
-        }
+            ]}
 
         # Act
-        title, artist, year, genre = search_musicbrainz(title, artist)
+        song_info_single_line = search_musicbrainz(f'{artist} - {title}', None) # Single line test
 
         # Assert
-        self.assertEqual(title, None)
-        self.assertEqual(artist, None)
-        self.assertEqual(year, None)
-        self.assertEqual(genre, None)
+        self.assertEqual(song_info_single_line.title, f'{artist} - {title}')
+        self.assertEqual(song_info_single_line.artist, "Unknown Artist")
+        self.assertEqual(song_info_single_line.year, None)
+        self.assertEqual(song_info_single_line.genres, None)
+        self.assertEqual(song_info_single_line.cover_image_data, None)
+        self.assertEqual(song_info_single_line.cover_url, None)
 
     @patch('musicbrainzngs.search_artists')
     @patch('musicbrainzngs.search_recordings')
-    def test_get_empty_release_music_infos(self, mock_search_release_groups, mock_search_artists):
+    def test_get_empty_release_music_infos(self, mock_search_recordings, mock_search_artists):
         # Arrange
         artist = 'UltraSinger'
         title = 'That\'s Rocking! (UltrStar 2023) FULL HD'
@@ -135,25 +156,28 @@ class TestGetMusicInfos(unittest.TestCase):
             ]
         }
 
-        mock_search_release_groups.return_value = {
-            'release-group-list': []
+        mock_search_recordings.return_value = {
+            'recording-list': []
         }
 
         # Act
-        title, artist, year, genre = search_musicbrainz(title, artist)
+        song_info_single_line = search_musicbrainz(f'{artist} - {title}', None) # Single line test
 
         # Assert
-        self.assertEqual(title, None)
-        self.assertEqual(artist, None)
-        self.assertEqual(year, None)
-        self.assertEqual(genre, None)
+        self.assertEqual(song_info_single_line.title, f'{artist} - {title}')
+        self.assertEqual(song_info_single_line.artist, "Unknown Artist")
+        self.assertEqual(song_info_single_line.year, None)
+        self.assertEqual(song_info_single_line.genres, None)
+        self.assertEqual(song_info_single_line.cover_image_data, None)
+        self.assertEqual(song_info_single_line.cover_url, None)
 
-    #@unittest.skip("Search with real data only test manually")
+
+    @unittest.skip("Search with real data only test manually")
     def test_search_musicbrainz_with_real_data(self):
 
         # Arrange
         search_list = [
-            #(search_artist, seartch_title, expected_artist, expected_title)
+            # (search_artist, seartch_title, expected_artist, expected_title)
 
             (None, 't', None, None),  # this should return "Unknown artist"
             ('Căsuța noastră', 'Gică Petrescu', 'Gică Petrescu', 'Căsuța noastră'),  # Gică Petrescu - Gică Petrescu
