@@ -12,6 +12,7 @@ Date: 2024.12.19
   - Fix model path option
   - Fix error in PDF sheet generation
   - Fix hypen language download
+  - Fix install scripts
   - Some bug fixes and improved error handling and logs
 
 # Version: 0.0.11
