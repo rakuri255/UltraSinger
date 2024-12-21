@@ -164,7 +164,7 @@ def __get_image(recording) -> (bytes, str):
                         image_url = image['image']
                         break
                 break
-            except:
+            except musicbrainzngs.ResponseError:
                 continue
     if image_data is not None:
         print(f"{ULTRASINGER_HEAD} Found cover image")
