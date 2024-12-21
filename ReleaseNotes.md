@@ -1,3 +1,9 @@
+# Version: 0.0.13dev1
+Date: 2024.12.22
+- Changes:
+  - Download Cover from MusicBrainz
+  - Fix selection of whisper model
+
 # Version: 0.0.12
 Date: 2024.12.19
 - Changes:
