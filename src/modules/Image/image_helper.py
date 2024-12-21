@@ -11,10 +11,10 @@ def save_image(image_data: bytes, clear_filename: str, output_path: str) -> None
     image = image.convert('RGB')  # Convert to RGB to avoid transparency or RGBA issues
     image_path = os.path.join(output_path, clear_filename + " [CO].jpg")
     image.save(image_path, "JPEG")
-    __crop_image_to_square(image_path)
+    crop_image_to_square(image_path)
 
 
-def __crop_image_to_square(image_path):
+def crop_image_to_square(image_path):
     image = Image.open(image_path)
     width, height = image.size
     size = min(width, height)
