@@ -129,6 +129,7 @@ class UltrastarTxtValue:
     bpm = ""
     language = None
     cover = None
+    coverUrl = None
     background = None
     vocals = None
     instrumental = None

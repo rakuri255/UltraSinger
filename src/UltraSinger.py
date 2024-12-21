@@ -59,11 +59,12 @@ from modules.Ultrastar.ultrastar_parser import parse_ultrastar_txt
 from modules.common_print import print_support, print_help, print_version
 from modules.os_helper import check_file_exists, get_unused_song_output_dir
 from modules.plot import create_plots
-from modules.musicbrainz_client import get_music_infos
+from modules.musicbrainz_client import search_musicbrainz
 from modules.sheet import create_sheet
 from modules.ProcessData import ProcessData, ProcessDataPaths, MediaInfo
 from modules.DeviceDetection.device_detection import check_gpu_support
 from modules.Audio.bpm import get_bpm_from_file
+from modules.Image.image_helper import save_image
 
 from Settings import Settings
 
@@ -507,24 +508,13 @@ def infos_from_audio_input_file() -> tuple[str, str, str, MediaInfo]:
     artist, title = None, None
     if " - " in basename_without_ext:
         artist, title = basename_without_ext.split(" - ", 1)
-        search_string = f"{artist} - {title}"
-    else:
-        search_string = basename_without_ext
-
-    # Get additional data for song
-    (title_info, artist_info, year_info, genre_info) = get_music_infos(search_string)
-
-    if title_info is not None:
-        title = title_info
-        artist = artist_info
     else:
         title = basename_without_ext
-        artist = "Unknown Artist"
 
-    if artist is not None and title is not None:
-        basename_without_ext = f"{artist} - {title}"
-        extension = os.path.splitext(basename)[1]
-        basename = f"{basename_without_ext}{extension}"
+    song_info = search_musicbrainz(title, artist)
+    basename_without_ext = f"{song_info.artist} - {song_info.title}"
+    extension = os.path.splitext(basename)[1]
+    basename = f"{basename_without_ext}{extension}"
 
     song_folder_output_path = os.path.join(settings.output_folder_path, basename_without_ext)
     song_folder_output_path = get_unused_song_output_dir(song_folder_output_path)
@@ -535,13 +525,15 @@ def infos_from_audio_input_file() -> tuple[str, str, str, MediaInfo]:
         os.path.join(song_folder_output_path, basename),
     )
     # Todo: Read ID3 tags
+    if song_info.cover_image_data is not None:
+        save_image(song_info.cover_image_data, basename_without_ext, song_folder_output_path)
     ultrastar_audio_input_path = os.path.join(song_folder_output_path, basename)
     real_bpm = get_bpm_from_file(settings.input_file_path)
     return (
         basename_without_ext,
         song_folder_output_path,
         ultrastar_audio_input_path,
-        MediaInfo(artist=artist, title=title, year=year_info, genre=genre_info, bpm=real_bpm),
+        MediaInfo(artist=song_info.artist, title=song_info.title, year=song_info.year, genre=song_info.genres, bpm=real_bpm, cover_url=song_info.cover_url),
     )
 
 
