@@ -1,18 +1,15 @@
 """YouTube Downloader"""
 
-import io
 import os
-
 import yt_dlp
-from PIL import Image
 
 from modules.os_helper import sanitize_filename, get_unused_song_output_dir
 from modules import os_helper
 from modules.ProcessData import MediaInfo
 from modules.Audio.bpm import get_bpm_from_file
 from modules.console_colors import ULTRASINGER_HEAD
-from modules.Image.image_helper import crop_image_to_square
-from modules.musicbrainz_client import get_music_infos
+from modules.Image.image_helper import save_image
+from modules.musicbrainz_client import search_musicbrainz
 
 
 def get_youtube_title(url: str, cookiefile: str = None) -> tuple[str, str]:
@@ -72,11 +69,7 @@ def download_and_convert_thumbnail(ydl_opts, url: str, clear_filename: str, outp
         if thumbnail_url:
             response = ydl.urlopen(thumbnail_url)
             image_data = response.read()
-            image = Image.open(io.BytesIO(image_data))
-            image = image.convert('RGB') # Convert to RGB to avoid transparency or RGBA issues
-            image_path = os.path.join(output_path, clear_filename + " [CO].jpg")
-            image.save(image_path, "JPEG")
-            crop_image_to_square(image_path)
+            save_image(image_data, clear_filename, output_path)
             return thumbnail_url
         else:
             return ""
@@ -108,23 +101,22 @@ def download_from_youtube(input_url: str, output_folder_path: str, cookiefile: s
     (artist, title) = get_youtube_title(input_url, cookiefile)
 
     # Get additional data for song
-    (title_info, artist_info, year_info, genre_info) = get_music_infos(
-        f"{artist} - {title}"
-    )
+    song_info = search_musicbrainz(title, artist)
 
-    if title_info is not None:
-        title = title_info
-        artist = artist_info
-
-    basename_without_ext = sanitize_filename(f"{artist} - {title}")
+    basename_without_ext = sanitize_filename(f"{song_info.artist} - {song_info.title}")
     basename = basename_without_ext + ".mp3"
     song_output = os.path.join(output_folder_path, basename_without_ext)
     song_output = get_unused_song_output_dir(song_output)
     os_helper.create_folder(song_output)
     __download_youtube_audio(input_url, basename_without_ext, song_output, cookiefile)
     __download_youtube_video(input_url, basename_without_ext, song_output, cookiefile)
-    thumbnail_url = __download_youtube_thumbnail(
-        input_url, basename_without_ext, song_output
+
+    if song_info.cover_url is not None and song_info.cover_image_data is not None:
+        cover_url = song_info.cover_url
+        save_image(song_info.cover_image_data, basename_without_ext, song_output)
+    else:
+        cover_url = __download_youtube_thumbnail(
+            input_url, basename_without_ext, song_output
     )
     audio_file_path = os.path.join(song_output, basename)
     real_bpm = get_bpm_from_file(audio_file_path)
@@ -132,6 +124,6 @@ def download_from_youtube(input_url: str, output_folder_path: str, cookiefile: s
         basename_without_ext,
         song_output,
         audio_file_path,
-        MediaInfo(artist=artist, title=title, year=year_info, genre=genre_info, bpm=real_bpm,
-                  youtube_thumbnail_url=thumbnail_url, youtube_video_url=input_url),
+        MediaInfo(artist=song_info.artist, title=song_info.title, year=song_info.year, genre=song_info.genres, bpm=real_bpm,
+                  cover_url=cover_url, video_url=input_url),
     )
