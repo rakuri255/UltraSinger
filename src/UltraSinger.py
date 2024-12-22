@@ -9,6 +9,7 @@ import Levenshtein
 from packaging import version
 
 from modules import os_helper
+from modules.init_interactive_mode import init_settings_interactive
 from modules.Audio.denoise import denoise_vocal_audio
 from modules.Audio.separation import separate_vocal_from_audio
 from modules.Audio.vocal_chunks import (
@@ -65,13 +66,7 @@ from modules.DeviceDetection.device_detection import check_gpu_support
 from modules.Audio.bpm import get_bpm_from_file
 
 from Settings import Settings
-#Imports for Interactive Mode  
-from modules.Speech_Recognition.Whisper import WhisperModel
-from modules.Audio.separation import DemucsModel
-from rich.console import Console  
-from rich.table import Table  
-from rich.theme import Theme  
-from rich.prompt import Prompt  
+
 settings = Settings()
 
 
@@ -583,7 +578,7 @@ def main(argv: list[str]) -> None:
     print_version(settings.APP_VERSION)
     init_settings(argv)
     if settings.interactive_mode: 
-        init_settings_interactive()     
+        init_settings_interactive(settings)
     run()
     sys.exit()
 
@@ -600,7 +595,6 @@ def init_settings(argv: list[str]) -> Settings:
     if len(opts) == 0:
         print_help()
         sys.exit()
-    settings.interactive_mode = False
     for opt, arg in opts:
         if opt == "-h":
             print_help()
@@ -715,7 +709,8 @@ def arg_options():
     ]
     return long, short
 
-def init_settings_interactive() -> Settings:  
+
+""" def init_settings_interactive() -> Settings:  
     ULTRASINGER_HEAD = "[bold green][UltraSinger][/bold green]"  
     console = Console()
     console.print(f"{ULTRASINGER_HEAD} [gold]UltraSinger Interactive Mode[/gold]\n")  
@@ -855,7 +850,7 @@ def init_settings_interactive() -> Settings:
         if cookie_file:  
             settings.cookiefile = cookie_file  
     console.print(f"\n{ULTRASINGER_HEAD} [bold cyan]Thank you! Starting processing...[/bold cyan]\n")  
-    return settings  
+    return settings   """
 
 if __name__ == "__main__":
     main(sys.argv[1:])
