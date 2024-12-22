@@ -16,8 +16,8 @@ def print_help() -> None:
     
     [mode]
     ## INPUT is audio ##
-    default  Creates all
-    --interactive Interactive mode for easier configuration
+    default (Full Automatic Mode) - Creates all, depending on command line options
+    --interactive - Interactive Mode. All options are asked at runtime for easier configuration
     
     # Single file creation selection is in progress, you currently getting all!
     (-u      Create ultrastar txt file) # In Progress
