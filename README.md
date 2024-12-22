@@ -131,7 +131,7 @@ _Not all options working now!_
     --plot                  Enable creation of plots. Plots are disabled by default.
     --format_version        0.3.0|1.0.0|1.1.0|1.2.0 >> ((default) is 1.2.0)
     --musescore_path        path to MuseScore executable
-    --keep_numbers          Transcribe numbers as digits and not words > True|False >> ((default) is False)
+    --keep_numbers          Transcribe numbers as digits and not words
     
     [yt-dlp]
     --cookiefile            File name where cookies should be read from
@@ -201,10 +201,10 @@ Example for romanian:
 Is on by default. Can also be deactivated if hyphenation does not produce 
 anything useful. Note that the word is simply split, 
 without paying attention to whether the separated word really 
-starts at the place or is heard.  
+starts at the place or is heard. To disable:
 
 ```commandline
--i XYZ --hyphenation True
+-i XYZ --disable_hyphenation
 ```
 
 ### 👂 Pitcher
@@ -224,7 +224,7 @@ The vocals are separated from the audio before they are passed to the models. If
 you have the option to disable this function; in which case the original audio file is used instead.
 
 ```commandline
--i XYZ --disable_separation True
+-i XYZ --disable_separation 
 ```
 
 ### Sheet Music
