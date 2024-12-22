@@ -71,7 +71,9 @@ contourpy==1.2.1
 crepe==0.0.15
     # via -r requirements.in
 ctranslate2==4.4.0
-    # via faster-whisper
+    # via
+    #   faster-whisper
+    #   whisperx
 cycler==0.12.1
     # via matplotlib
 dataclasses==0.6
@@ -166,6 +168,8 @@ imageio==2.34.2
     # via crepe
 iniconfig==2.0.0
     # via pytest
+inputimeout==1.0.4
+    # via -r requirements.in
 isort==5.13.2
     # via
     #   -r requirements.in

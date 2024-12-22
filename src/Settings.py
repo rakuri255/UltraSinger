@@ -10,8 +10,9 @@ from modules.Ultrastar.ultrastar_txt import FormatVersion
 @dataclass_json
 @dataclass
 class Settings:
-    APP_VERSION = "0.0.12"
+    APP_VERSION = "0.0.13-dev1"
     CONFIDENCE_THRESHOLD = 0.6
+    CONFIDENCE_PROMPT_TIMEOUT = 4
     create_midi = True
     create_plot = False
     create_audio_chunks = False

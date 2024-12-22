@@ -80,7 +80,7 @@ def transcribe_with_whisper(
     keep_numbers: bool = False,
 ) -> TranscriptionResult:
     """Transcribe with whisper"""
-    # Info: Monkey Patch FasterWhisperPipeline.detect_language to include error handling for low confidence Test with https://www.youtube.com/watch?v=tcV7VN3l3bY
+    # Info: Monkey Patch FasterWhisperPipeline.detect_language to include error handling for low confidence
     src = textwrap.dedent(inspect.getsource(whisperx.asr.FasterWhisperPipeline.detect_language))
     # Replace the relevant part of the method
     start_token = "if audio.shape[0] < N_SAMPLES:"
@@ -89,6 +89,7 @@ def transcribe_with_whisper(
     #Added imports
     from modules.console_colors import ULTRASINGER_HEAD, blue_highlighted, red_highlighted
     from Settings import Settings
+    from inputimeout import inputimeout, TimeoutOccurred
     #End Import addition
     if audio.shape[0] < N_SAMPLES:
         print("Warning: audio is shorter than 30s, language detection may be inaccurate.")
@@ -101,10 +102,28 @@ def transcribe_with_whisper(
     language_token, language_probability = results[0][0]
     language = language_token[2:-2]
     print(f"Detected language: {language} ({language_probability:.2f}) in first 30s of audio...")
-    #Added handling for low detection probability (test with https://www.youtube.com/watch?v=tcV7VN3l3bY)
+    #Added handling for low detection probability
     if language_probability < Settings.CONFIDENCE_THRESHOLD:
         print(f"{ULTRASINGER_HEAD} {red_highlighted('Warning:')} Language detection probability for detected language {language} is below {Settings.CONFIDENCE_THRESHOLD}, results may be inaccurate.")
-        language_response = input(f"{ULTRASINGER_HEAD} Do you want to continue with {language} (default) or override with another language (y)? (y/n): ").strip().lower() == 'y'
+        print(f"{ULTRASINGER_HEAD} Override the language below or re-run with parameter {blue_highlighted('--language xx')} to specify the song language...")    
+        try:  
+            response = inputimeout(  
+                prompt=f"{ULTRASINGER_HEAD} Do you want to continue with {language} (default) or override with another language (y)? (y/n): ",  
+                timeout=Settings.CONFIDENCE_PROMPT_TIMEOUT  
+            ).strip().lower()  
+        except TimeoutOccurred:
+            import locale
+            print(f"{ULTRASINGER_HEAD} No user input received in {Settings.CONFIDENCE_PROMPT_TIMEOUT} seconds. Attempting automatic override with system locale.")
+            print(f"{ULTRASINGER_HEAD} Trying to get language from default locale...")  
+            current_locale = locale.getlocale()
+            if current_locale[0]:  
+                language_code = current_locale[0][:2].strip().lower()
+                print(f"{ULTRASINGER_HEAD} Found language code: {language_code} in locale. Setting language to {blue_highlighted(language_code)}...")
+                language = language_code   
+            else:  
+                print(f"{ULTRASINGER_HEAD} No locale is set.")  
+            response = 'n'
+        language_response = response == 'y'  
         if language_response:
             language = input(f"{ULTRASINGER_HEAD} Please enter the language code for the language you want to use (e.g. 'en', 'de', 'es', etc.): ").strip().lower()
     #End addition

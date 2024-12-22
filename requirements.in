@@ -31,3 +31,4 @@ unidecode
 dataclasses
 dataclasses_json
 num2words
+inputimeout
