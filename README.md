@@ -243,13 +243,15 @@ Or provide the path to the `MuseScore` executable.
 
 This defines the format version of the UltraStar.txt file. For more info see [Official UltraStar format specification](https://usdx.eu/format/).
 
-You can choose between 3 different format versions. The default is `1.0.0`.
-* `0.3.0` is the old format version. Use this if you have problems with the new format.
-* `1.0.0` is the current format version.
-* `1.1.0` is the upcoming format version. It is not finished yet.
+You can choose between different format versions. The default is `1.2.0`.
+* `0.3.0` is the first format version. Use this if you have an old UltraStar program and problems with the newer format.
+* `1.0.0` should be supported by the most UltraStar programs. Use this if you have problems with the newest format version
+* `1.1.0` is the current format version.
+* `1.2.0` is the upcoming format version. It is not finished yet.
+* `2.0.0` is the next format version. It is not finished yet.
 
 ```commandline
--i XYZ --format_version 1.0.0
+-i XYZ --format_version 1.2.0
 ```
 
 ### 🏆 Ultrastar Score Calculation
@@ -296,6 +298,6 @@ Whisper needs more than 8GB VRAM in the `large` model!
 
 You can also force cpu usage with the extra option `--force_cpu`.
 
-### Containerized (Docker or Podman)
+### 📦 Containerized (Docker or Podman)
 
 See [container/README.md](container/README.md)

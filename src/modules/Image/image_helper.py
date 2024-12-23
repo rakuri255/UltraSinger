@@ -1,4 +1,17 @@
+"""Image file helper"""
+
+import io
+import os
+
 from PIL import Image
+
+
+def save_image(image_data: bytes, clear_filename: str, output_path: str) -> None:
+    image = Image.open(io.BytesIO(image_data))
+    image = image.convert('RGB')  # Convert to RGB to avoid transparency or RGBA issues
+    image_path = os.path.join(output_path, clear_filename + " [CO].jpg")
+    image.save(image_path, "JPEG")
+    crop_image_to_square(image_path)
 
 
 def crop_image_to_square(image_path):
