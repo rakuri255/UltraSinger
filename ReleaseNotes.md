@@ -1,8 +1,12 @@
-# Version: 0.0.13dev1
+# Version: 0.0.13dev2
 Date: 2024.12.22
 - Changes:
   - Download Cover from MusicBrainz
   - Fix selection of whisper model
+  - Added colab notebook
+  - Optimized whisper language check with confidence
+  - Improved arguments, so you dont need to use true or false
+  - Added interactive mode
 
 # Version: 0.0.12
 Date: 2024.12.19
