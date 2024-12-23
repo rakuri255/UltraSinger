@@ -3,7 +3,7 @@ import string
 from Levenshtein import ratio
 from dataclasses import dataclass
 from typing import Optional
-from src.Settings import Settings
+from Settings import Settings
 
 from modules.console_colors import ULTRASINGER_HEAD, blue_highlighted, red_highlighted
 
