@@ -16,6 +16,8 @@ from modules.Audio.vocal_chunks import (
     create_audio_chunks_from_ultrastar_data,
 )
 from modules.Audio.silence_processing import remove_silence_from_transcription_data, mute_no_singing_parts
+from modules.Speech_Recognition.Whisper import WhisperModel
+from modules.Audio.separation import DemucsModel
 
 from modules.Audio.convert_audio import convert_audio_to_mono_wav, convert_wav_to_mp3
 from modules.Audio.youtube import (
@@ -28,7 +30,8 @@ from modules.console_colors import (
     gold_highlighted,
     red_highlighted,
     green_highlighted,
-    cyan_highlighted
+    cyan_highlighted,
+    bright_green_highlighted,
 )
 from modules.Midi.midi_creator import (
     create_midi_segments_from_transcribed_data,
@@ -134,7 +137,20 @@ def run() -> tuple[str, Score, Score]:
     """The processing function of this program"""
     #List selected options (can add more later)
     if settings.keep_numbers:
-        print(f"{ULTRASINGER_HEAD} {cyan_highlighted('Option:')} Numbers will be transcribed as numerics (i.e. 1, 2, 3, etc.)")
+        print(f"{ULTRASINGER_HEAD} {bright_green_highlighted('Option:')} {cyan_highlighted('Numbers will be transcribed as numerics (i.e. 1, 2, 3, etc.)')}")
+    if settings.create_plot:
+        print(f"{ULTRASINGER_HEAD} {bright_green_highlighted('Option:')} {cyan_highlighted('Plot will be created')}")
+    if settings.keep_cache:
+        print(f"{ULTRASINGER_HEAD} {bright_green_highlighted('Option:')} {cyan_highlighted('Cache folder will not be deleted')}")
+    if settings.create_audio_chunks:
+        print(f"{ULTRASINGER_HEAD} {bright_green_highlighted('Option:')} {cyan_highlighted('Audio chunks will be created')}")
+    if not settings.create_karaoke:
+        print(f"{ULTRASINGER_HEAD} {bright_green_highlighted('Option:')} {cyan_highlighted('Karaoke txt will not be created')}")
+    if not settings.use_separated_vocal:
+        print(f"{ULTRASINGER_HEAD} {bright_green_highlighted('Option:')} {cyan_highlighted('Vocals will not be separated')}")
+    if not settings.hyphenation:
+        print(f"{ULTRASINGER_HEAD} {bright_green_highlighted('Option:')} {cyan_highlighted('Hyphenation will not be applied')}")
+
     process_data = InitProcessData()
     
     process_data.process_data_paths.cache_folder_path = (
@@ -142,7 +158,7 @@ def run() -> tuple[str, Score, Score]:
         if settings.cache_override_path is None
         else settings.cache_override_path
     )
-
+    
     # Create process audio
     process_data.process_data_paths.processing_audio_path = CreateProcessAudio(process_data)
 
@@ -196,7 +212,7 @@ def run() -> tuple[str, Score, Score]:
     # Cleanup
     if not settings.keep_cache:
         remove_cache_folder(process_data.process_data_paths.cache_folder_path)
-
+        
     # Print Support
     print_support()
     return ultrastar_file_output, simple_score, accurate_score
@@ -595,7 +611,13 @@ def init_settings(argv: list[str]) -> Settings:
             settings.output_folder_path = arg
         elif opt in ("--whisper"):
             settings.transcriber = "whisper"
-            settings.whisper_model = WhisperModel(arg)
+
+            #Addition of whisper model choice. Added error handling for unknown models.
+            try:
+                settings.whisper_model = WhisperModel(arg)
+            except ValueError as ve:
+                print(f"{ULTRASINGER_HEAD} The model {arg} is not a valid whisper model selection. Please use one of the following models: {blue_highlighted(', '.join([m.value for m in WhisperModel]))}")
+                sys.exit()
         elif opt in ("--whisper_align_model"):
             settings.whisper_align_model = arg
         elif opt in ("--whisper_batch_size"):
@@ -603,7 +625,7 @@ def init_settings(argv: list[str]) -> Settings:
         elif opt in ("--whisper_compute_type"):
             settings.whisper_compute_type = arg
         elif opt in ("--keep_numbers"):
-            settings.keep_numbers = arg in ["True", "true"]
+            settings.keep_numbers = True
         elif opt in ("--language"):
             settings.language = arg
         elif opt in ("--crepe"):
@@ -611,27 +633,27 @@ def init_settings(argv: list[str]) -> Settings:
         elif opt in ("--crepe_step_size"):
             settings.crepe_step_size = int(arg)
         elif opt in ("--plot"):
-            settings.create_plot = arg in ["True", "true"]
+            settings.create_plot = True
         elif opt in ("--midi"):
-            settings.create_midi = arg in ["True", "true"]
-        elif opt in ("--hyphenation"):
-            settings.hyphenation = eval(arg.title())
+            settings.create_midi = True
+        elif opt in ("--disable_hyphenation"):
+            settings.hyphenation = False
         elif opt in ("--disable_separation"):
-            settings.use_separated_vocal = not arg
+            settings.use_separated_vocal = False
         elif opt in ("--disable_karaoke"):
-            settings.create_karaoke = not arg
+            settings.create_karaoke = False
         elif opt in ("--create_audio_chunks"):
             settings.create_audio_chunks = arg
         elif opt in ("--ignore_audio"):
-            settings.ignore_audio = arg in ["True", "true"]
+            settings.ignore_audio = True
         elif opt in ("--force_cpu"):
-            settings.force_cpu = arg
+            settings.force_cpu = True
             if settings.force_cpu:
                 os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
         elif opt in ("--force_whisper_cpu"):
-            settings.force_whisper_cpu = eval(arg.title())
+            settings.force_whisper_cpu = True
         elif opt in ("--force_crepe_cpu"):
-            settings.force_crepe_cpu = eval(arg.title())
+            settings.force_crepe_cpu = True
         elif opt in ("--format_version"):
             if arg == FormatVersion.V0_3_0.value:
                 settings.format_version = FormatVersion.V0_3_0
@@ -646,10 +668,17 @@ def init_settings(argv: list[str]) -> Settings:
                     f"{ULTRASINGER_HEAD} {red_highlighted('Error: Format version')} {blue_highlighted(arg)} {red_highlighted('is not supported.')}"
                 )
                 sys.exit(1)
-        elif opt in ("--keep_cache"):
-            settings.keep_cache = arg
+        elif opt in ("--keep_cache"):    
+            settings.keep_cache = True
         elif opt in ("--musescore_path"):
             settings.musescore_path = arg
+        #Addition of demucs model choice. Work seems to be needed to make sure syntax is same for models. Added error handling for unknown models
+        elif opt in ("--demucs"):
+            try:
+                settings.demucs_model = DemucsModel(arg)
+            except ValueError as ve:
+                print(f"{ULTRASINGER_HEAD} The model {arg} is not a valid demucs model selection. Please use one of the following models: {blue_highlighted(', '.join([m.value for m in DemucsModel]))}")
+                sys.exit()
         elif opt in ("--cookiefile"):
             settings.cookiefile = arg
     if settings.output_folder_path == "":
@@ -665,6 +694,7 @@ def init_settings(argv: list[str]) -> Settings:
     return settings
 
 
+#For convenience, made True/False options into noargs
 def arg_options():
     short = "hi:o:amv:"
     long = [
@@ -680,19 +710,19 @@ def arg_options():
         "language=",
         "plot=",
         "midi=",
-        "hyphenation=",
-        "disable_separation=",
-        "disable_karaoke=",
-        "create_audio_chunks=",
+        "disable_hyphenation",
+        "disable_separation",
+        "disable_karaoke",
+        "create_audio_chunks",
         "ignore_audio=",
-        "force_cpu=",
-        "force_whisper_cpu=",
-        "force_crepe_cpu=",
+        "force_cpu",
+        "force_whisper_cpu",
+        "force_crepe_cpu",
         "format_version=",
         "keep_cache=",
         "musescore_path=",
-        "cookiefile=",
-        "keep_numbers="
+        "keep_numbers",
+        "cookiefile="
     ]
     return long, short
 
