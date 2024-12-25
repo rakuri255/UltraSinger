@@ -23,7 +23,8 @@ class Settings:
     ignore_audio = False
     input_file_is_ultrastar_txt = False # todo: to process_data
     keep_cache = False
-
+    interactive_mode = False
+    
     # Process data Paths
     input_file_path = ""
     output_folder_path = ""

@@ -9,6 +9,7 @@ import Levenshtein
 from packaging import version
 
 from modules import os_helper
+from modules.init_interactive_mode import init_settings_interactive
 from modules.Audio.denoise import denoise_vocal_audio
 from modules.Audio.separation import separate_vocal_from_audio
 from modules.Audio.vocal_chunks import (
@@ -349,7 +350,7 @@ def InitProcessData():
 
     elif settings.input_file_path.startswith("https:"):
         # Youtube
-        print(f"{ULTRASINGER_HEAD} {gold_highlighted('full automatic mode')}")
+        print(f"{ULTRASINGER_HEAD} {gold_highlighted('Full Automatic Mode')}")
         process_data = ProcessData()
         (
             process_data.basename,
@@ -359,7 +360,7 @@ def InitProcessData():
         ) = download_from_youtube(settings.input_file_path, settings.output_folder_path, settings.cookiefile)
     else:
         # Audio File
-        print(f"{ULTRASINGER_HEAD} {gold_highlighted('full automatic mode')}")
+        print(f"{ULTRASINGER_HEAD} {gold_highlighted('Full Automatic Mode')}")
         process_data = ProcessData()
         (
             process_data.basename,
@@ -585,6 +586,8 @@ def main(argv: list[str]) -> None:
     """Main function"""
     print_version(settings.APP_VERSION)
     init_settings(argv)
+    if settings.interactive_mode: 
+        init_settings_interactive(settings)
     run()
     sys.exit()
 
@@ -681,6 +684,8 @@ def init_settings(argv: list[str]) -> Settings:
                 sys.exit()
         elif opt in ("--cookiefile"):
             settings.cookiefile = arg
+        elif opt in ("--interactive"):
+            settings.interactive_mode = True
     if settings.output_folder_path == "":
         if settings.input_file_path.startswith("https:"):
             dirname = os.getcwd()
@@ -721,11 +726,12 @@ def arg_options():
         "format_version=",
         "keep_cache=",
         "musescore_path=",
+        "keep_numbers=",
+        "interactive",
         "keep_numbers",
         "cookiefile="
     ]
     return long, short
-
 
 if __name__ == "__main__":
     main(sys.argv[1:])
