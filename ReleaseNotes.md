@@ -7,6 +7,7 @@ Date: 2024.12.22
   - Optimized whisper language check with confidence
   - Improved arguments, so you dont need to use true or false
   - Added interactive mode
+  - Use user defined ffmpeg path
 
 # Version: 0.0.12
 Date: 2024.12.19

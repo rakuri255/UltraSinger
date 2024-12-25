@@ -19,11 +19,11 @@ from modules.Audio.vocal_chunks import (
 from modules.Audio.silence_processing import remove_silence_from_transcription_data, mute_no_singing_parts
 from modules.Speech_Recognition.Whisper import WhisperModel
 from modules.Audio.separation import DemucsModel
-
 from modules.Audio.convert_audio import convert_audio_to_mono_wav, convert_wav_to_mp3
 from modules.Audio.youtube import (
     download_from_youtube,
 )
+from modules.Audio.bpm import get_bpm_from_file
 
 from modules.console_colors import (
     ULTRASINGER_HEAD,
@@ -67,8 +67,8 @@ from modules.musicbrainz_client import search_musicbrainz
 from modules.sheet import create_sheet
 from modules.ProcessData import ProcessData, ProcessDataPaths, MediaInfo
 from modules.DeviceDetection.device_detection import check_gpu_support
-from modules.Audio.bpm import get_bpm_from_file
 from modules.Image.image_helper import save_image
+from modules.ffmpeg_helper import is_ffmpeg_available, get_ffmpeg_and_ffprobe_paths
 
 from Settings import Settings
 
@@ -153,13 +153,13 @@ def run() -> tuple[str, Score, Score]:
         print(f"{ULTRASINGER_HEAD} {bright_green_highlighted('Option:')} {cyan_highlighted('Hyphenation will not be applied')}")
 
     process_data = InitProcessData()
-    
+
     process_data.process_data_paths.cache_folder_path = (
         os.path.join(settings.output_folder_path, "cache")
         if settings.cache_override_path is None
         else settings.cache_override_path
     )
-    
+
     # Create process audio
     process_data.process_data_paths.processing_audio_path = CreateProcessAudio(process_data)
 
@@ -213,7 +213,7 @@ def run() -> tuple[str, Score, Score]:
     # Cleanup
     if not settings.keep_cache:
         remove_cache_folder(process_data.process_data_paths.cache_folder_path)
-        
+
     # Print Support
     print_support()
     return ultrastar_file_output, simple_score, accurate_score
@@ -586,11 +586,28 @@ def main(argv: list[str]) -> None:
     """Main function"""
     print_version(settings.APP_VERSION)
     init_settings(argv)
-    if settings.interactive_mode: 
+    check_requirements()
+    if settings.interactive_mode:
         init_settings_interactive(settings)
     run()
     sys.exit()
 
+
+def check_requirements() -> None:
+    if not settings.force_cpu:
+        settings.tensorflow_device, settings.pytorch_device = check_gpu_support()
+    print(f"{ULTRASINGER_HEAD} ----------------------")
+
+    if not is_ffmpeg_available(settings.user_ffmpeg_path):
+        print(
+            f"{ULTRASINGER_HEAD} {red_highlighted('Error:')} {blue_highlighted('FFmpeg')} {red_highlighted('is not available. Provide --ffmpeg ‘path’ or install FFmpeg with PATH')}")
+        sys.exit(1)
+    else:
+        ffmpeg_path, ffprobe_path = get_ffmpeg_and_ffprobe_paths()
+        print(f"{ULTRASINGER_HEAD} {blue_highlighted('FFmpeg')} - using {red_highlighted(ffmpeg_path)}")
+        print(f"{ULTRASINGER_HEAD} {blue_highlighted('FFprobe')} - using {red_highlighted(ffprobe_path)}")
+
+    print(f"{ULTRASINGER_HEAD} ----------------------")
 
 def remove_cache_folder(cache_folder_path: str) -> None:
     """Remove cache folder"""
@@ -671,7 +688,7 @@ def init_settings(argv: list[str]) -> Settings:
                     f"{ULTRASINGER_HEAD} {red_highlighted('Error: Format version')} {blue_highlighted(arg)} {red_highlighted('is not supported.')}"
                 )
                 sys.exit(1)
-        elif opt in ("--keep_cache"):    
+        elif opt in ("--keep_cache"):
             settings.keep_cache = True
         elif opt in ("--musescore_path"):
             settings.musescore_path = arg
@@ -686,15 +703,14 @@ def init_settings(argv: list[str]) -> Settings:
             settings.cookiefile = arg
         elif opt in ("--interactive"):
             settings.interactive_mode = True
+        elif opt in ("--ffmpeg"):
+            settings.user_ffmpeg_path = arg
     if settings.output_folder_path == "":
         if settings.input_file_path.startswith("https:"):
             dirname = os.getcwd()
         else:
             dirname = os.path.dirname(settings.input_file_path)
         settings.output_folder_path = os.path.join(dirname, "output")
-
-    if not settings.force_cpu:
-        settings.tensorflow_device, settings.pytorch_device = check_gpu_support()
 
     return settings
 
@@ -726,10 +742,10 @@ def arg_options():
         "format_version=",
         "keep_cache=",
         "musescore_path=",
-        "keep_numbers=",
-        "interactive",
         "keep_numbers",
-        "cookiefile="
+        "interactive",
+        "cookiefile=",
+        "ffmpeg="
     ]
     return long, short
 
