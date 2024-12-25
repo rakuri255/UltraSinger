@@ -94,7 +94,8 @@ _Not all options working now!_
     
     [mode]
     ## if INPUT is audio ##
-    default  Creates all
+    default (Full Automatic Mode) - Creates all, depending on command line options
+    --interactive - Interactive Mode. All options are asked at runtime for easier configuration
     
     # Single file creation selection is in progress, you currently getting all!
     (-u      Create ultrastar txt file) # In Progress
@@ -148,6 +149,12 @@ For standard use, you only need to use [opt]. All other options are optional.
 
 ### 🎶 Input
 
+### Mode
+default (Full Automatic Mode) - Creates all, depending on command line options
+--interactive - Interactive Mode. All options are asked at runtime for easier configuration
+```commandline
+--interactive
+```
 #### Audio (full automatic)
 
 ##### Local file

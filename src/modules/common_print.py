@@ -16,7 +16,8 @@ def print_help() -> None:
     
     [mode]
     ## INPUT is audio ##
-    default  Creates all
+    default (Full Automatic Mode) - Creates all, depending on command line options
+    --interactive - Interactive Mode. All options are asked at runtime for easier configuration
     
     # Single file creation selection is in progress, you currently getting all!
     (-u      Create ultrastar txt file) # In Progress
@@ -85,7 +86,9 @@ def print_support() -> None:
 
 def print_version(app_version: str) -> None:
     """Print version text"""
+    versiontext = (f"UltraSinger Version: {app_version}")    
+    starquant = "*" * len(versiontext) # set star number to length of version
     print()
-    print(f"{ULTRASINGER_HEAD} {gold_highlighted('*****************************')}")
+    print(f"{ULTRASINGER_HEAD} {gold_highlighted(starquant)}")
     print(f"{ULTRASINGER_HEAD} {gold_highlighted('UltraSinger Version:')} {light_blue_highlighted(app_version)}")
-    print(f"{ULTRASINGER_HEAD} {gold_highlighted('*****************************')}")
+    print(f"{ULTRASINGER_HEAD} {gold_highlighted(starquant)}")

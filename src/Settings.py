@@ -24,6 +24,7 @@ class Settings:
     ignore_audio = False
     input_file_is_ultrastar_txt = False # todo: to process_data
     keep_cache = False
+    interactive_mode = False
     user_ffmpeg_path = ""
 
     # Process data Paths
