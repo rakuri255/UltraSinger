@@ -55,7 +55,9 @@ def print_help() -> None:
     --plot                  Enable creation of plots. Plots are disabled by default.
     --format_version        0.3.0|1.0.0|1.1.0|1.2.0 >> ((default) is 1.2.0)
     --musescore_path        path to MuseScore executable
-    
+    --keep_numbers          Transcribe numbers as digits and not words
+    --ffmpeg                Path to ffmpeg and ffprobe executable
+
     [yt-dlp]
     --cookiefile            File name where cookies should be read from and dumped to.
     

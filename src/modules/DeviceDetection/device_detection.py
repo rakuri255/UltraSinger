@@ -12,11 +12,9 @@ pytorch_gpu_supported = False
 def check_gpu_support() -> tuple[bool, bool]:
     """Check worker device (e.g cuda or cpu) supported by tensorflow and pytorch"""
 
-    print(f"{ULTRASINGER_HEAD} Checking GPU support for {blue_highlighted('tensorflow')} and {blue_highlighted('pytorch')}.")
+    print(f"{ULTRASINGER_HEAD} Checking GPU support.")
 
     tensorflow_gpu_supported = False
-    pytorch_gpu_supported = False
-
     gpus = tf.config.list_physical_devices('GPU')
     if gpus:
         tensorflow_gpu_supported = True

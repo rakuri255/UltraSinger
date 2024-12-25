@@ -70,7 +70,7 @@ This will help me a lot to keep this project alive and improve it.
 ### Installation
 
 * Install Python 3.10 **(older and newer versions has some breaking changes)**. [Download](https://www.python.org/downloads/)
-* Also install ffmpeg separately with PATH. [Download](https://www.ffmpeg.org/download.html)
+* Also download or install ffmpeg with PATH. [Download](https://www.ffmpeg.org/download.html)
 * Go to folder `install` and run install script for your OS.
   * Choose `GPU` if you have an nvidia CUDA GPU.
   * Choose `CPU` if you don't have an nvidia CUDA GPU.
@@ -133,6 +133,7 @@ _Not all options working now!_
     --format_version        0.3.0|1.0.0|1.1.0|1.2.0 >> ((default) is 1.2.0)
     --musescore_path        path to MuseScore executable
     --keep_numbers          Transcribe numbers as digits and not words
+    --ffmpeg                Path to ffmpeg and ffprobe executable
     
     [yt-dlp]
     --cookiefile            File name where cookies should be read from
