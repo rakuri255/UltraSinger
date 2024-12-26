@@ -4,8 +4,6 @@ from enum import Enum
 
 import demucs.separate
 
-from modules.Audio.convert_audio import convert_audio_to_mono_wav
-
 from modules.console_colors import (
     ULTRASINGER_HEAD,
     blue_highlighted,

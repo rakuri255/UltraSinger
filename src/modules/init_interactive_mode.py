@@ -58,7 +58,7 @@ def configure_additional_options(console, settings, header):
   
     if additional_options_input == 'y':  
         console.print(f"\n{header} [bold underline]Additional options:[/bold underline]\n")  
-  
+
         # Whisper Batch Size  
         whipser_batch_size_response = console.input(  
             f"{header} Enter the [green]Whisper batch size[/green] (default [cyan]16[/cyan]): "  
@@ -66,7 +66,7 @@ def configure_additional_options(console, settings, header):
         settings.whisper_batch_size = int(whipser_batch_size_response) if whipser_batch_size_response.isdigit() else 16  
   
         # Whisper Compute Type  
-        whisper_compute_choice = console.input(  
+        whisper_compute_choice = console.input(
             f"{header} Enter the [green]Whisper compute type[/green] (default '[cyan]float16[/cyan]' for CUDA and '[cyan]int8[/cyan]' for CPU): "  
         ).strip()  
         if whisper_compute_choice:  
@@ -158,7 +158,14 @@ def configure_additional_options(console, settings, header):
             f"\n{header} Enter the path to [green]cookies.txt[/green] file (if required for YouTube downloads, leave empty otherwise): "  
         ).strip()  
         if cookie_file:  
-            settings.cookiefile = cookie_file  
+            settings.cookiefile = cookie_file
+
+        # FFmpeg executable path
+        ffmpeg_path = console.input(
+            f"\n{header} Enter the path to [green]ffmpeg[/green] executable folder (leave empty for default): "
+        ).strip()
+        if ffmpeg_path:
+            settings.ffmpeg_path = ffmpeg_path
   
 def init_settings_interactive(settings: Settings) -> Settings:  
     ULTRASINGER_HEAD = "[bold green][UltraSinger][/bold green]"  

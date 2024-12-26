@@ -17,7 +17,6 @@ from modules.Audio.vocal_chunks import (
     create_audio_chunks_from_ultrastar_data,
 )
 from modules.Audio.silence_processing import remove_silence_from_transcription_data, mute_no_singing_parts
-from modules.Speech_Recognition.Whisper import WhisperModel
 from modules.Audio.separation import DemucsModel
 from modules.Audio.convert_audio import convert_audio_to_mono_wav, convert_wav_to_mp3
 from modules.Audio.youtube import (
