@@ -1,4 +1,4 @@
-# Version: 0.0.13dev3
+# Version: 0.0.13dev4
 Date: 2024.12.26
 - Changes:
   - Download Cover from MusicBrainz
@@ -8,6 +8,7 @@ Date: 2024.12.26
   - Improved arguments, so you dont need to use true or false
   - Added interactive mode
   - Use user defined ffmpeg path
+  - Show GPU Name and VRAM
 
 # Version: 0.0.12
 Date: 2024.12.19
