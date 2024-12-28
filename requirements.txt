@@ -251,7 +251,7 @@ multidict==6.0.5
     # via
     #   aiohttp
     #   yarl
-music21==9.1.0
+music21==9.3.0
     # via -r requirements.in
 musicbrainzngs==0.7.1
     # via -r requirements.in
@@ -263,7 +263,7 @@ networkx==3.3
     # via torch
 nltk==3.8.1
     # via whisperx
-num2words==0.5.13
+num2words==0.5.14
     # via -r requirements.in
 numba==0.60.0
     # via
