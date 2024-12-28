@@ -231,7 +231,7 @@ markupsafe==2.1.5
     #   werkzeug
 marshmallow==3.21.3
     # via dataclasses-json
-matplotlib==3.9.2
+matplotlib==3.10.0
     # via
     #   -r requirements.in
     #   crepe
@@ -479,7 +479,7 @@ scikit-learn==1.5.1
     #   pyannote-metrics
     #   pyannote-pipeline
     #   pytorch-metric-learning
-scipy==1.14.0
+scipy==1.14.1
     # via
     #   -r requirements.in
     #   crepe
@@ -591,7 +591,7 @@ torchmetrics==1.4.0.post0
     #   lightning
     #   pyannote-audio
     #   pytorch-lightning
-tqdm==4.66.4
+tqdm==4.67.1
     # via
     #   -r requirements.in
     #   demucs
