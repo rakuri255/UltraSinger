@@ -1,34 +1,75 @@
 # requirements.in
+
+# Pitching
 crepe
-demucs
-ffmpeg_python
+# machine learning platform (used for crepe)
+tensorflow==2.10
+
+# Audio to wavefile (used for crepe)
+scipy
+
+# Transcription
+#whisperx
 git+https://github.com/m-bain/whisperx.git
+# Convert numbers to words in multilanguage (Used because of whisper)
+num2words
+# User imput timeout (used in whisper)
+inputimeout
+
+# langcodes for creates the language name from the language code. Used for Ultrastar txt
 langcodes
-language-data
+# Version handling (Used in UltraStar txt)
+packaging
+
+# Audio analysis
 librosa~=0.9.2
-matplotlib~=3.9.2
-musicbrainzngs
-numpy
-Pillow
-pretty_midi
+# Audio manipulation
 pydub
+# Audio Separation
+demucs
+# Ffmpeg wrapper
+ffmpeg_python
+
+# Plot engine
+matplotlib
+
+# For getting additional song info like cover, genre, year
+musicbrainzngs
+# For distance calculation (used in musicbrainz_client)
+python_Levenshtein
+
+# For midi file handling
+pretty_midi
+# Convert Unicode to ascii (used for midi)
+unidecode
+
+# For text hyphenation
 #PyHyphen
 PyHyphen-Reloaded
-python_Levenshtein
-scipy
-tensorflow==2.10
+
+# Progress bar
 tqdm
-#whisperx
+
+# yt
 yt_dlp
+
+# external cleanup tools
+## Sort imports
 isort
+## Code formatter
 black
+## Code analyser
 pylint
+
+# For Tests
 pytest
-protobuf
-packaging
+
+# Musical Analysis and Computational Musicology (Used for sheet)
 music21
-unidecode
+
+# Data structure
 dataclasses
 dataclasses_json
-num2words
-inputimeout
+
+# Array support
+numpy<2
