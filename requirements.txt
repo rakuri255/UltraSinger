@@ -64,7 +64,7 @@ colorlog==6.8.2
     # via optuna
 contourpy==1.2.1
     # via matplotlib
-crepe==0.0.15
+crepe==0.0.16
     # via -r requirements.in
 ctranslate2==4.4.0
     # via
@@ -193,7 +193,7 @@ kiwisolver==1.4.5
     # via matplotlib
 lameenc==1.7.0
     # via demucs
-langcodes==3.4.0
+langcodes==3.5.0
     # via -r requirements.in
 language-data==1.2.0
     # via
