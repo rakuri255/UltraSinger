@@ -34,14 +34,10 @@ av==11.0.0
     # via faster-whisper
 black==24.4.2
     # via -r requirements.in
-brotli==1.1.0
-    # via yt-dlp
 cachetools==5.4.0
     # via google-auth
 certifi==2024.7.4
-    # via
-    #   requests
-    #   yt-dlp
+    # via requests
 cffi==1.16.0
     # via soundfile
 chardet==5.2.0
@@ -259,8 +255,6 @@ music21==9.1.0
     # via -r requirements.in
 musicbrainzngs==0.7.1
     # via -r requirements.in
-mutagen==1.47.0
-    # via yt-dlp
 mypy-extensions==1.0.0
     # via
     #   black
@@ -403,8 +397,6 @@ pyasn1-modules==0.4.0
     # via google-auth
 pycparser==2.22
     # via cffi
-pycryptodomex==3.20.0
-    # via yt-dlp
 pydub==0.25.1
     # via -r requirements.in
 pygments==2.18.0
@@ -459,7 +451,6 @@ requests==2.32.3
     #   requests-oauthlib
     #   tensorboard
     #   transformers
-    #   yt-dlp
 requests-oauthlib==2.0.0
     # via google-auth-oauthlib
 resampy==0.2.2
@@ -644,13 +635,9 @@ tzdata==2024.1
 unidecode==1.3.8
     # via -r requirements.in
 urllib3==2.2.2
-    # via
-    #   requests
-    #   yt-dlp
+    # via requests
 webcolors==24.6.0
     # via music21
-websockets==12.0
-    # via yt-dlp
 werkzeug==3.0.3
     # via tensorboard
 wheel==0.43.0
@@ -664,7 +651,7 @@ wrapt==1.16.0
     # via tensorflow
 yarl==1.9.4
     # via aiohttp
-yt-dlp==2024.7.25
+yt-dlp==2024.12.23
     # via -r requirements.in
 
 # The following packages are considered to be unsafe in a requirements file:
