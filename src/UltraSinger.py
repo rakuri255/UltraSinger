@@ -667,8 +667,7 @@ def init_settings(argv: list[str]) -> Settings:
             settings.ignore_audio = True
         elif opt in ("--force_cpu"):
             settings.force_cpu = True
-            if settings.force_cpu:
-                os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
+            os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
         elif opt in ("--force_whisper_cpu"):
             settings.force_whisper_cpu = True
         elif opt in ("--force_crepe_cpu"):
@@ -728,18 +727,18 @@ def arg_options():
         "whisper_batch_size=",
         "whisper_compute_type=",
         "language=",
-        "plot=",
-        "midi=",
+        "plot",
+        "midi",
         "disable_hyphenation",
         "disable_separation",
         "disable_karaoke",
         "create_audio_chunks",
-        "ignore_audio=",
+        "ignore_audio",
         "force_cpu",
         "force_whisper_cpu",
         "force_crepe_cpu",
         "format_version=",
-        "keep_cache=",
+        "keep_cache",
         "musescore_path=",
         "keep_numbers",
         "interactive",
