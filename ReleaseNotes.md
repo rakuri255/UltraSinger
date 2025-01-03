@@ -1,4 +1,4 @@
-# Version: 0.0.13dev4
+# Version: 0.0.13dev6
 Date: 2024.12.26
 - Changes:
   - Download Cover from MusicBrainz
@@ -9,6 +9,7 @@ Date: 2024.12.26
   - Added interactive mode
   - Use user defined ffmpeg path
   - Show GPU Name and VRAM
+  - No linebreak before the last 'E' word for UltraStar txt files
 
 # Version: 0.0.12
 Date: 2024.12.19

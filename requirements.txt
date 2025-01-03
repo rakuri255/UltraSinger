@@ -95,7 +95,7 @@ einops==0.8.0
     #   pyannote-audio
 exceptiongroup==1.2.2
     # via pytest
-faster-whisper==1.0.0
+faster-whisper==1.1.0
     # via whisperx
 ffmpeg-python==0.2.0
     # via -r requirements.in
@@ -368,7 +368,7 @@ protobuf==3.19.6
     #   tensorboard
     #   tensorboardx
     #   tensorflow
-pyannote-audio==3.1.1
+pyannote-audio==3.3.2
     # via whisperx
 pyannote-core==5.0.0
     # via
@@ -591,6 +591,7 @@ tqdm==4.67.1
     # via
     #   -r requirements.in
     #   demucs
+    #   faster-whisper
     #   huggingface-hub
     #   lightning
     #   nltk
