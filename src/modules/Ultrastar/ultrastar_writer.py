@@ -127,13 +127,12 @@ def create_ultrastar_txt(
             file.write(line)
 
             # detect silence between words
-            #if not transcribed_data[i].is_word_end:
             if not midi_segment.word.endswith(" "):
                 separated_word_silence.append(silence)
                 continue
 
-            if silence_split_duration != 0 and silence > silence_split_duration or any(
-                    s > silence_split_duration for s in separated_word_silence) and i != len(midi_segments) - 1:
+            if i != len(midi_segments) - 1 and silence_split_duration != 0 and silence > silence_split_duration or any(
+                    s > silence_split_duration for s in separated_word_silence):
                 # - 10
                 # '-' end of current sing part
                 # 'n1' show next at time in real beat
