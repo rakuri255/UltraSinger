@@ -45,6 +45,7 @@ jobs:
         uses: docker/metadata-action@v5
         with:
           tags: |
+            type=raw,value=latest,enable=${{ github.ref == format('refs/heads/{0}', 'main') }}
             type=edge
             type=sha
             type=ref,event=branch
@@ -64,6 +65,8 @@ jobs:
             ./Dockerfile
           oci: true
           layers: true
+          labels: |
+            ${{ steps.docker-metadata.outputs.labels }}
       # Push the image to GHCR (Image Registry) https://github.com/redhat-actions/push-to-registry
       - name: Push To Registry
         uses: redhat-actions/push-to-registry@v2
