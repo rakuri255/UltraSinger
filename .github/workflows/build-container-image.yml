@@ -4,8 +4,6 @@ on:
   workflow_dispatch:
 
 env:
-  GITHUB_SHA_SHORT: '' # filled by rlespinasse/github-slug-action@v5
-  GITHUB_REF_POINT_SLUG_URL: '' # filled by rlespinasse/github-slug-action@v5
   GITHUB_REPOSITORY_NAME_PART_SLUG_URL: '' # filled by rlespinasse/github-slug-action@v5
   REGISTRY_USER: ${{ github.actor }}
   REGISTRY_PASSWORD: ${{ github.token }}
@@ -41,6 +39,7 @@ jobs:
           /usr/share/dotnet \
           /usr/share/swift
           df -h /
+      # Determine tags using Docker Metadata action https://github.com/docker/metadata-action
       - name: Docker Metadata
         id: docker-metadata
         uses: docker/metadata-action@v5
@@ -60,7 +59,7 @@ jobs:
         uses: redhat-actions/buildah-build@v2
         with:
           image: ${{ env.GITHUB_REPOSITORY_NAME_PART_SLUG_URL }}
-          tags: ${{ env.GITHUB_REF_POINT_SLUG_URL }} ${{ env.GITHUB_SHA_SHORT }} ${{ steps.docker-metadata.outputs.tags }}
+          tags: ${{ steps.docker-metadata.outputs.tags }}
           containerfiles: |
             ./Dockerfile
           oci: true
