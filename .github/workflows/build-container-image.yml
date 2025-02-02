@@ -41,13 +41,28 @@ jobs:
           /usr/share/dotnet \
           /usr/share/swift
           df -h /
+      - name: Docker Metadata
+        id: docker-metadata
+        uses: docker/metadata-action@v5
+        with:
+          images: |
+            ${{ env.GITHUB_REPOSITORY_NAME_PART_SLUG_URL }}
+          tags: |
+            type=edge
+            type=sha
+            type=ref,event=branch
+            type=ref,event=pr
+            type=schedule
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=semver,pattern={{major}}
       # Build image using Buildah action https://github.com/redhat-actions/buildah-build
       - name: Build Image
         id: build_image
         uses: redhat-actions/buildah-build@v2
         with:
           image: ${{ env.GITHUB_REPOSITORY_NAME_PART_SLUG_URL }}
-          tags: ${{ env.GITHUB_REF_POINT_SLUG_URL }} ${{ env.GITHUB_SHA_SHORT }}
+          tags: ${{ env.GITHUB_REF_POINT_SLUG_URL }} ${{ env.GITHUB_SHA_SHORT }} ${{ steps.docker-metadata.outputs.tags }}
           containerfiles: |
             ./Dockerfile
           oci: true
