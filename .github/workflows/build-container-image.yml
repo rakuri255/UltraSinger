@@ -45,8 +45,6 @@ jobs:
         id: docker-metadata
         uses: docker/metadata-action@v5
         with:
-          images: |
-            ${{ env.GITHUB_REPOSITORY_NAME_PART_SLUG_URL }}
           tags: |
             type=edge
             type=sha
