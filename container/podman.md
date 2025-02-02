@@ -11,7 +11,7 @@
     ```bash
     podman build -t ultrasinger .
     # or
-    podman pull ghcr.io/bwagener/ultrasinger/ultrasinger:<version> # replace <version> with the desired version or 'latest'
+    podman pull ghcr.io/rakuri255/ultrasinger:<version> # replace <version> with the desired version or 'latest'
     ```
 1. run the container (note that the first time you run the container models will be downloaded which may take a while)
    1. PowerShell:
@@ -22,7 +22,7 @@
         --device nvidia.com/gpu=all `
         -v $env:USERPROFILE\.cache:/app/UltraSinger/src/.cache `
         -v <desired-output-folder>:/app/UltraSinger/src/output `
-        ultrasinger `
+        ghcr.io/rakuri255/ultrasinger `
         python3 UltraSinger.py -i <refer to top-level README.md>
       
       # explanation:
@@ -31,7 +31,7 @@
         --device nvidia.com/gpu=all ` # optional, enables GPU acceleration if available, requires step 1.ii
         -v $env:USERPROFILE\.cache:/app/UltraSinger/src/.cache ` # cache directory for models
         -v <desired-output-folder>:/app/UltraSinger/src/output ` # output directory
-        ultrasinger ` # container image name, set to ghcr.io/bwagener/ultrasinger/ultrasinger:<version> for the pulled image
+        ghcr.io/rakuri255/ultrasinger ` # latest container image, set to 'ultrasinger' to use the locally built image
         python3 UltraSinger.py -i <refer to top-level README.md> # run UltraSinger, refer to top-level README.md for all options
       ```
    1. Bash:
