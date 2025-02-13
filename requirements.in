@@ -45,7 +45,7 @@ unidecode
 
 # For text hyphenation
 #PyHyphen
-PyHyphen-Reloaded
+pyhyphen
 
 # Progress bar
 tqdm
