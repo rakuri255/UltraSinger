@@ -17,7 +17,7 @@ alembic==1.13.2
 antlr4-python3-runtime==4.9.3
     # via omegaconf
 appdirs==1.4.4
-    # via pyhyphen-reloaded
+    # via pyhyphen
 asteroid-filterbanks==0.4.0
     # via pyannote-audio
 astroid==3.2.4
@@ -397,7 +397,7 @@ pydub==0.25.1
     # via -r requirements.in
 pygments==2.18.0
     # via rich
-pyhyphen-reloaded==4.0.6
+pyhyphen==4.0.4
     # via -r requirements.in
 pylint==3.2.6
     # via -r requirements.in
@@ -443,7 +443,7 @@ requests==2.32.3
     #   huggingface-hub
     #   music21
     #   pooch
-    #   pyhyphen-reloaded
+    #   pyhyphen
     #   requests-oauthlib
     #   tensorboard
     #   transformers
@@ -640,7 +640,7 @@ werkzeug==3.0.3
 wheel==0.43.0
     # via
     #   astunparse
-    #   pyhyphen-reloaded
+    #   pyhyphen
     #   tensorboard
 whisperx @ git+https://github.com/m-bain/whisperx.git
     # via -r requirements.in
