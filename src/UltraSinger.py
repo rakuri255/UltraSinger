@@ -168,7 +168,8 @@ def run() -> tuple[str, Score, Score]:
         TranscribeAudio(process_data)
 
     # Split syllables into segments
-    process_data.transcribed_data = split_syllables_into_segments(process_data.transcribed_data,
+    if not settings.ignore_audio:
+        process_data.transcribed_data = split_syllables_into_segments(process_data.transcribed_data,
                                                                   process_data.media_info.bpm)
 
     # Create audio chunks
@@ -187,8 +188,8 @@ def run() -> tuple[str, Score, Score]:
                                                                                        process_data.parsed_file)
 
     # Merge syllable segments
-    #tuple[list[MidiSegment], list[TranscribedData]]:
-    process_data.midi_segments, process_data.transcribed_data = merge_syllable_segments(process_data.midi_segments,
+    if not settings.ignore_audio:
+        process_data.midi_segments, process_data.transcribed_data = merge_syllable_segments(process_data.midi_segments,
                                                                                         process_data.transcribed_data,
                                                                                         process_data.media_info.bpm)
 
@@ -291,12 +292,12 @@ def merge_syllable_segments(midi_segments: list[MidiSegment],
     previous_data = None
 
     for i, data in enumerate(transcribed_data):
-        is_note_short = data.end - data.start < thirtytwo_note
+        is_note_short = (data.end - data.start) < thirtytwo_note
         is_same_note = midi_segments[i].note == midi_segments[i - 1].note
         has_breath_pause = False
 
         if previous_data is not None:
-            has_breath_pause = data.start - previous_data.end > sixteenth_note
+            has_breath_pause = (data.start - previous_data.end) > sixteenth_note
 
         if (str(data.word).startswith("~")
                 and previous_data is not None
