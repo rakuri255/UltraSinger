@@ -648,7 +648,7 @@ wrapt==1.16.0
     # via tensorflow
 yarl==1.9.4
     # via aiohttp
-yt-dlp==2025.1.26
+yt-dlp==2025.01.26
     # via -r requirements.in
 
 # The following packages are considered to be unsafe in a requirements file:

@@ -1,0 +1,84 @@
+name: Build container image
+on:
+  push:
+  workflow_dispatch:
+
+env:
+  GITHUB_REPOSITORY_NAME_PART_SLUG_URL: '' # filled by rlespinasse/github-slug-action@v5
+  REGISTRY_USER: ${{ github.actor }}
+  REGISTRY_PASSWORD: ${{ github.token }}
+
+jobs:
+  push-ghcr:
+    name: Build and push image
+    runs-on: ubuntu-22.04
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Inject enhanced GitHub environment variables
+        uses: rlespinasse/github-slug-action@v5 # https://github.com/rlespinasse/github-slug-action
+      - name: lowercase IMAGE_REGISTRY
+        run: |
+          echo "IMAGE_REGISTRY=ghcr.io/${GITHUB_REPOSITORY_OWNER_PART_SLUG@L}" >> "${GITHUB_ENV}"
+      - name: Clear space
+        run: |
+          df -h /
+          sudo rm -rf \
+          "$AGENT_TOOLSDIRECTORY" \
+          /opt/google/chrome \
+          /opt/microsoft/msedge \
+          /opt/microsoft/powershell \
+          /opt/pipx \
+          /usr/lib/mono \
+          /usr/local/julia* \
+          /usr/local/lib/android \
+          /usr/local/lib/node_modules \
+          /usr/local/share/chromium \
+          /usr/local/share/powershell \
+          /usr/share/dotnet \
+          /usr/share/swift
+          df -h /
+      # Determine tags using Docker Metadata action https://github.com/docker/metadata-action
+      - name: Docker Metadata
+        id: docker-metadata
+        uses: docker/metadata-action@v5
+        with:
+          tags: |
+            type=raw,value=latest,enable=${{ github.ref == format('refs/heads/{0}', 'main') }}
+            type=edge
+            type=sha
+            type=ref,event=branch
+            type=ref,event=pr
+            type=schedule
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=semver,pattern={{major}}
+      # Build image using Buildah action https://github.com/redhat-actions/buildah-build
+      - name: Build Image
+        id: build_image
+        uses: redhat-actions/buildah-build@v2
+        with:
+          image: ${{ env.GITHUB_REPOSITORY_NAME_PART_SLUG_URL }}
+          tags: ${{ steps.docker-metadata.outputs.tags }}
+          containerfiles: |
+            ./Dockerfile
+          oci: true
+          layers: true
+          labels: |
+            ${{ steps.docker-metadata.outputs.labels }}
+      # Push the image to GHCR (Image Registry) https://github.com/redhat-actions/push-to-registry
+      - name: Push To Registry
+        uses: redhat-actions/push-to-registry@v2
+        id: push
+        with:
+          image: ${{ steps.build_image.outputs.image }}
+          tags: ${{ steps.build_image.outputs.tags }}
+          registry: ${{ env.IMAGE_REGISTRY }}
+          username: ${{ env.REGISTRY_USER }}
+          password: ${{ env.REGISTRY_PASSWORD }}
+          extra-args: |
+            --disable-content-trust
+      - name: Echo outputs
+        run: |
+          echo "${{ toJSON(steps.push.outputs) }}"
