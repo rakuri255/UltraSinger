@@ -9,8 +9,8 @@ tensorflow==2.10
 scipy
 
 # Transcription
-#whisperx
-git+https://github.com/m-bain/whisperx.git
+whisperx
+#git+https://github.com/m-bain/whisperx.git
 # Convert numbers to words in multilanguage (Used because of whisper)
 num2words
 # User imput timeout (used in whisper)
