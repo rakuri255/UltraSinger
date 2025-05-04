@@ -1,5 +1,6 @@
 """Ultrastar Converter"""
 
+from modules.common_print import ULTRASINGER_HEAD
 from modules.Ultrastar.ultrastar_txt import UltrastarTxtValue
 
 
@@ -90,10 +91,16 @@ def get_end_time(gap: str, ultrastar_bpm: str, startBeat: float, duration: float
 
 
 def __convert_gap(gap: str) -> float:
-    gap = float(gap.replace(",", ".")) / 1000
-    return gap
+    try:
+        gap_float = float(gap.replace(",", ".")) / 1000
+    except ValueError:
+        gap_float = 0.0
+    return gap_float
 
 
 def __convert_bpm(ultrastar_bpm: str) -> float:
-    real_bpm = ultrastar_bpm_to_real_bpm(float(ultrastar_bpm.replace(",", ".")))
+    try:
+        real_bpm = ultrastar_bpm_to_real_bpm(float(ultrastar_bpm.replace(",", ".")))
+    except ValueError:
+        real_bpm = 120.0  # Default to 120 real BPM if conversion fails
     return real_bpm

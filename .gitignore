@@ -12,6 +12,6 @@ test_input
 test_output
 
 # default output folder
-output
+output*
 /UltraSinger*.spec
 /registry_path.txt

@@ -63,7 +63,7 @@ def plot(
 ) -> None:
     """Plot transcribed data"""
 
-    # determine time between to datapoints if there is no gap (this is the step size crepe ran with)
+    # determine time between to datapoints if there is no gap (this is the step size torchcrepe ran with)
     step_size = pitched_data.times[1]
     pitched_data = get_pitched_data_with_high_confidence(pitched_data)
 

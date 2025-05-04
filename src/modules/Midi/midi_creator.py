@@ -28,8 +28,18 @@ def create_midi_instrument(midi_segments: list[MidiSegment]) -> object:
     velocity = 100
 
     for i, midi_segment in enumerate(midi_segments):
-        note = pretty_midi.Note(velocity, librosa.note_to_midi(midi_segment.note), midi_segment.start, midi_segment.end)
-        instrument.notes.append(note)
+        # Skip if the note is empty or potentially invalid
+        if not midi_segment.note:
+            print(f"{ULTRASINGER_HEAD} [Warning] Skipping empty note at index {i}, time {midi_segment.start:.2f}s")
+            continue
+
+        try:
+            midi_note_number = librosa.note_to_midi(midi_segment.note)
+            note = pretty_midi.Note(velocity, midi_note_number, midi_segment.start, midi_segment.end)
+            instrument.notes.append(note)
+        except librosa.util.exceptions.ParameterError:
+            print(f"{ULTRASINGER_HEAD} [Warning] Skipping invalid note format '{midi_segment.note}' at index {i}, time {midi_segment.start:.2f}s")
+            continue
 
     return instrument
 
@@ -95,33 +105,97 @@ def create_midi_notes_from_pitched_data(start_times: list[float], end_times: lis
         word = str(words[index])
 
         midi_segment = create_midi_note_from_pitched_data(start_time, end_time, pitched_data, word)
-        midi_segments.append(midi_segment)
+        if midi_segment is not None: # Filter out None results
+            midi_segments.append(midi_segment)
 
         # todo: Progress?
         # print(filename + " f: " + str(mean))
     return midi_segments
 
 
-def create_midi_note_from_pitched_data(start_time: float, end_time: float, pitched_data: PitchedData, word: str) -> MidiSegment:
-    """Create midi note from pitched data"""
+def create_midi_note_from_pitched_data(start_time: float, end_time: float, pitched_data: PitchedData, word: str) -> MidiSegment | None:
+    """Create midi note from pitched data. Returns None if no valid note can be determined."""
 
     start = find_nearest_index(pitched_data.times, start_time)
     end = find_nearest_index(pitched_data.times, end_time)
 
+    # Check if indices are valid
+    if start >= len(pitched_data.frequencies) or end > len(pitched_data.frequencies) or start < 0 or end < 0:
+        print(f"{ULTRASINGER_HEAD} [Warning] Invalid time range for word '{word}' ({start_time:.2f}s - {end_time:.2f}s). Skipping note creation.")
+        return None
+
+    # Handle edge case where start and end indices are the same
     if start == end:
-        freqs = [pitched_data.frequencies[start]]
-        confs = [pitched_data.confidence[start]]
+        # Ensure index is within bounds before accessing
+        if start < len(pitched_data.frequencies):
+            freqs = [pitched_data.frequencies[start]]
+            confs = [pitched_data.confidence[start]]
+        else:
+            print(f"{ULTRASINGER_HEAD} [Warning] Start index {start} out of bounds for word '{word}'. Skipping note creation.")
+            return None
     else:
+        # Ensure slice indices are valid
         freqs = pitched_data.frequencies[start:end]
         confs = pitched_data.confidence[start:end]
 
+    # Check if frequency/confidence lists are empty after slicing (can happen if end <= start)
+    if not freqs or not confs:
+        print(f"{ULTRASINGER_HEAD} [Warning] No frequency data found for word '{word}' in time range ({start_time:.2f}s - {end_time:.2f}s). Skipping note creation.")
+        return None
+
+    # Get frequencies with high confidence
     conf_f = get_frequencies_with_high_confidence(freqs, confs)
+    # If no high-confidence frequencies, try using all positive frequencies in the segment
+    # if not conf_f:
+        # print(f"{ULTRASINGER_HEAD} [Debug] No high-confidence frequencies for word '{word}' ({start_time:.2f}s - {end_time:.2f}s). Trying with all positive frequencies.")
+        # conf_f = [f for f in freqs if f > 0]
+        # if not conf_f:
+            # print(f"{ULTRASINGER_HEAD} [Debug] No positive frequencies found at all for word '{word}'. Skipping note creation.")
+            # return None
 
-    notes = convert_frequencies_to_notes(conf_f)
+    # If still no confident frequencies after potentially trying the fallback (or if fallback is removed/commented)
+    if not conf_f:
+        # print(f"{ULTRASINGER_HEAD} [Debug] No confident frequencies found for word '{word}'. Skipping note creation.")
+        return None
 
-    note = most_frequent(notes)[0][0]
+    # Convert frequencies to notes and validate format
+    valid_notes = []
+    for freq in conf_f:
+        try:
+            # Ensure frequency is positive before conversion
+            if freq > 0:
+                note = librosa.hz_to_note(float(freq))
+                # Basic validation for note format (e.g., 'C4', 'A#3')
+                if note and len(note) >= 2 and note[0].isalpha() and note[-1].isdigit():
+                    valid_notes.append(note)
+            # else: # Optional: Log zero/negative frequencies if needed
+            #     print(f"{ULTRASINGER_HEAD} [Debug] Skipping non-positive frequency {freq} for word '{word}'.")
+        except (ValueError, TypeError) as e:
+            print(f"{ULTRASINGER_HEAD} [Warning] Error converting frequency {freq} to note for word '{word}': {e}. Skipping this frequency.")
+            continue
 
-    return MidiSegment(note, start_time, end_time, word)
+    if not valid_notes:
+        # print(f"{ULTRASINGER_HEAD} [Debug] No valid notes derived from confident frequencies for word '{word}'. Skipping note creation.")
+        return None
+
+    # Get the most common note
+    most_common = most_frequent(valid_notes)
+    # Ensure most_common is not empty and has a valid note string
+    if not most_common or not most_common[0] or not most_common[0][0]:
+        # print(f"{ULTRASINGER_HEAD} [Debug] Could not determine most common note for word '{word}'. Skipping note creation.")
+        return None
+
+    note = most_common[0][0]
+    # print(f"{ULTRASINGER_HEAD} [Debug] Created note '{note}' for word '{word}' ({start_time:.2f}s - {end_time:.2f}s)")
+    
+    # Calculate MIDI note number
+    midi_note_number = None
+    try:
+        midi_note_number = librosa.note_to_midi(note)
+    except librosa.util.exceptions.ParameterError:
+        print(f"{ULTRASINGER_HEAD} [Warning] Could not convert determined note '{note}' to MIDI number for word '{word}'. Skipping MIDI number assignment.")
+
+    return MidiSegment(note, start_time, end_time, word, midi_note=midi_note_number)
 
 
 def create_midi_segments_from_transcribed_data(transcribed_data: list[TranscribedData], pitched_data: PitchedData) -> list[MidiSegment]:

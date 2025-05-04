@@ -41,7 +41,7 @@ from modules.Midi.midi_creator import (
 from modules.Midi.MidiSegment import MidiSegment
 from modules.Midi.note_length_calculator import get_thirtytwo_note_second, get_sixteenth_note_second
 from modules.Pitcher.pitcher import (
-    get_pitch_with_crepe_file,
+    get_pitch_with_torchcrepe_file,
 )
 from modules.Pitcher.pitched_data import PitchedData
 from modules.Speech_Recognition.TranscriptionResult import TranscriptionResult
@@ -558,16 +558,16 @@ def pitch_audio(
         process_data_paths: ProcessDataPaths) -> PitchedData:
     """Pitch audio"""
 
-    pitching_config = f"crepe_{settings.ignore_audio}_{settings.crepe_model_capacity}_{settings.crepe_step_size}_{settings.tensorflow_device}"
+    pitching_config = f"torchcrepe_{settings.ignore_audio}_{settings.torchcrepe_model_capacity}_{settings.torchcrepe_step_size}_{settings.pytorch_device}"
     pitched_data_path = os.path.join(process_data_paths.cache_folder_path, f"{pitching_config}.json")
     cache_available = check_file_exists(pitched_data_path)
 
     if settings.skip_cache_transcription or not cache_available:
-        pitched_data = get_pitch_with_crepe_file(
+        pitched_data = get_pitch_with_torchcrepe_file(
             process_data_paths.processing_audio_path,
-            settings.crepe_model_capacity,
-            settings.crepe_step_size,
-            settings.tensorflow_device,
+            settings.torchcrepe_model_capacity,
+            settings.torchcrepe_step_size,
+            settings.pytorch_device,
         )
 
         pitched_data_json = pitched_data.to_json()
@@ -595,7 +595,8 @@ def main(argv: list[str]) -> None:
 
 def check_requirements() -> None:
     if not settings.force_cpu:
-        settings.tensorflow_device, settings.pytorch_device = check_gpu_support()
+    # Determine device for pytorch
+        settings.pytorch_device = check_gpu_support()
     print(f"{ULTRASINGER_HEAD} ----------------------")
 
     if not is_ffmpeg_available(settings.user_ffmpeg_path):
@@ -648,10 +649,10 @@ def init_settings(argv: list[str]) -> Settings:
             settings.keep_numbers = True
         elif opt in ("--language"):
             settings.language = arg
-        elif opt in ("--crepe"):
-            settings.crepe_model_capacity = arg
-        elif opt in ("--crepe_step_size"):
-            settings.crepe_step_size = int(arg)
+        elif opt in ("--torchcrepe"):
+            settings.torchcrepe_model_capacity = arg
+        elif opt in ("--torchcrepe_step_size"):
+            settings.torchcrepe_step_size = int(arg)
         elif opt in ("--plot"):
             settings.create_plot = True
         elif opt in ("--midi"):
@@ -671,8 +672,8 @@ def init_settings(argv: list[str]) -> Settings:
             os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
         elif opt in ("--force_whisper_cpu"):
             settings.force_whisper_cpu = True
-        elif opt in ("--force_crepe_cpu"):
-            settings.force_crepe_cpu = True
+        elif opt in ("--force_torchcrepe_cpu"):
+            settings.force_torchcrepe_cpu = True
         elif opt in ("--format_version"):
             if arg == FormatVersion.V0_3_0.value:
                 settings.format_version = FormatVersion.V0_3_0
@@ -720,8 +721,8 @@ def arg_options():
     long = [
         "ifile=",
         "ofile=",
-        "crepe=",
-        "crepe_step_size=",
+        "torchcrepe=",
+        "torchcrepe_step_size=",
         "demucs=",
         "whisper=",
         "whisper_align_model=",
@@ -737,7 +738,7 @@ def arg_options():
         "ignore_audio",
         "force_cpu",
         "force_whisper_cpu",
-        "force_crepe_cpu",
+        "force_torchcrepe_cpu",
         "format_version=",
         "keep_cache",
         "musescore_path=",

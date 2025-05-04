@@ -7,6 +7,8 @@ from modules.console_colors import ULTRASINGER_HEAD, red_highlighted
 from modules.Ultrastar.coverter.ultrastar_converter import (
     get_end_time,
     get_start_time,
+    get_start_time_from_ultrastar, # Added for post-processing
+    get_end_time_from_ultrastar   # Added for post-processing
 )
 from modules.Ultrastar.ultrastar_txt import (
     UltrastarTxtValue,
@@ -32,6 +34,7 @@ def parse(input_file: str) -> UltrastarTxtValue:
     # Strips the newline character
     for line in txt:
         count += 1
+        print(f"DEBUG: Processing line {count}: [{line.strip()}]") # DEBUG PRINT
         if line.startswith("#"):
             if line.startswith(f"#{UltrastarTxtTag.ARTIST}"):
                 ultrastar_class.artist = line.split(":")[1].replace("\n", "")
@@ -57,13 +60,10 @@ def parse(input_file: str) -> UltrastarTxtValue:
                 ultrastar_class.background = line.split(":")[1].replace("\n", "")
         elif line.startswith(
             (
-                f"{UltrastarTxtNoteTypeTag.FREESTYLE} ",
-                f"{UltrastarTxtNoteTypeTag.NORMAL} ",
-                f"{UltrastarTxtNoteTypeTag.GOLDEN} ",
-                f"{UltrastarTxtNoteTypeTag.RAP} ",
-                f"{UltrastarTxtNoteTypeTag.RAP_GOLDEN} ",
+                ": ", "* ", "F ", "R ", "G "
             )
         ):
+            print(f"DEBUG: Identified note line: [{line.strip()}]") # DEBUG PRINT
             parts = line.split()
             # [0] F : * R G
             # [1] start beat
@@ -71,18 +71,29 @@ def parse(input_file: str) -> UltrastarTxtValue:
             # [3] pitch
             # [4] word
 
-            ultrastar_note_line = UltrastarNoteLine(noteType=get_note_type_from_string(parts[0]),
-                              startBeat=float(parts[1]),
-                              duration=float(parts[2]),
-                              pitch=int(parts[3]),
-                              word=parts[4] if len(parts) > 4 else "",
-                            startTime=get_start_time(ultrastar_class.gap, ultrastar_class.bpm, float(parts[1])),
-                            endTime=get_end_time(ultrastar_class.gap, ultrastar_class.bpm, float(parts[1]), float(parts[2])))
-
+            # Extract just the first character for note type
+            note_type_char = parts[0][0] if parts[0] else ':'
+            ultrastar_note_line = UltrastarNoteLine(
+                noteType=get_note_type_from_string(note_type_char),
+                startBeat=float(parts[1]),
+                duration=float(parts[2]),
+                pitch=int(parts[3]),
+                word=parts[4] if len(parts) > 4 else "")
+                # startTime=get_start_time(ultrastar_class.gap, ultrastar_class.bpm, float(parts[1])),
+                # endTime=get_end_time(ultrastar_class.gap, ultrastar_class.bpm, float(parts[1]), float(parts[2])))
+                # startTime and endTime will be calculated after parsing headers
+                
             ultrastar_class.UltrastarNoteLines.append(ultrastar_note_line)
+            print(f"DEBUG: Appended note line. Total notes now: {len(ultrastar_class.UltrastarNoteLines)}") # DEBUG PRINT
 
             # todo: Progress?
 
+   # Calculate start and end times after parsing all headers
+    for i, note_line in enumerate(ultrastar_class.UltrastarNoteLines):
+       note_line.startTime = get_start_time_from_ultrastar(ultrastar_class, i)
+       note_line.endTime = get_end_time_from_ultrastar(ultrastar_class, i)
+
+    print(f"DEBUG: Finished parsing. Total notes found: {len(ultrastar_class.UltrastarNoteLines)}") # DEBUG PRINT
     return ultrastar_class
 
 
