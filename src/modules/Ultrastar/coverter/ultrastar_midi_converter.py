@@ -10,10 +10,17 @@ from modules.console_colors import ULTRASINGER_HEAD
 
 def convert_midi_note_to_ultrastar_note(midi_segment: MidiSegment) -> int:
     """Convert midi notes to ultrastar notes"""
-
-    note_number_librosa = librosa.note_to_midi(midi_segment.note)
-    ultrastar_note = midi_note_to_ultrastar_note(note_number_librosa)
-    return ultrastar_note
+    
+    if not midi_segment or not midi_segment.note:
+        return 0  # Return a default value for empty notes
+        
+    try:
+        note_number_librosa = librosa.note_to_midi(midi_segment.note)
+        ultrastar_note = midi_note_to_ultrastar_note(note_number_librosa)
+        return ultrastar_note
+    except (ValueError, librosa.util.exceptions.ParameterError):
+        # Handle invalid note format
+        return 0  # Return a default value for invalid notes
 
 
 def convert_ultrastar_to_midi_instrument(ultrastar_class: UltrastarTxtValue) -> object:

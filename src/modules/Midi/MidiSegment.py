@@ -7,3 +7,4 @@ class MidiSegment:
   start: float
   end: float
   word: str
+  midi_note: int | None = None # Add field for MIDI note number

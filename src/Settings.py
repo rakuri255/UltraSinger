@@ -47,15 +47,14 @@ class Settings:
     keep_numbers = False
 
     # Pitch
-    crepe_model_capacity = "full"  # tiny|small|medium|large|full
-    crepe_step_size = 10 # in miliseconds
+    torchcrepe_model_capacity = "full"  # tiny|small|medium|large|full
+    torchcrepe_step_size = 10 # in miliseconds
 
     # Device
-    pytorch_device = 'cpu'  # cpu|cuda
-    tensorflow_device = 'cpu'  # cpu|cuda
+    pytorch_device = 'cuda'  # cpu|cuda
     force_cpu = False
     force_whisper_cpu = False
-    force_crepe_cpu = False
+    force_torchcrepe_cpu = False
 
     # MuseScore
     musescore_path = None

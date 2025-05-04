@@ -2,7 +2,7 @@
 
 from enum import Enum
 from dataclasses import dataclass, field
-from typing import List
+from typing import List, Optional
 
 FILE_ENCODING = "utf-8"
 
@@ -86,29 +86,33 @@ class UltrastarTxtNoteTypeTag(str, Enum):
 
 
 def get_note_type_from_string(note_type_str: str) -> UltrastarTxtNoteTypeTag:
-    if note_type_str == UltrastarTxtNoteTypeTag.NORMAL.value:
+    # Extract the first character as the note type
+    if not note_type_str:
         return UltrastarTxtNoteTypeTag.NORMAL
-    elif note_type_str == UltrastarTxtNoteTypeTag.RAP.value:
-        return UltrastarTxtNoteTypeTag.RAP
-    elif note_type_str == UltrastarTxtNoteTypeTag.RAP_GOLDEN.value:
-        return UltrastarTxtNoteTypeTag.RAP_GOLDEN
-    elif note_type_str == UltrastarTxtNoteTypeTag.FREESTYLE.value:
-        return UltrastarTxtNoteTypeTag.FREESTYLE
-    elif note_type_str == UltrastarTxtNoteTypeTag.GOLDEN.value:
-        return UltrastarTxtNoteTypeTag.GOLDEN
-    else:
-        raise ValueError(f"Unknown NoteType: {note_type_str}")
+    
+    note_type_char = note_type_str[0]
+    
+    # Map note type character to corresponding enum
+    note_type_map = {
+        ':': UltrastarTxtNoteTypeTag.NORMAL,
+        'R': UltrastarTxtNoteTypeTag.RAP,
+        'G': UltrastarTxtNoteTypeTag.RAP_GOLDEN,
+        'F': UltrastarTxtNoteTypeTag.FREESTYLE,
+        '*': UltrastarTxtNoteTypeTag.GOLDEN
+    }
+    
+    return note_type_map.get(note_type_char, UltrastarTxtNoteTypeTag.NORMAL)
 
 
 @dataclass
 class UltrastarNoteLine:
     startBeat: float
-    startTime: float
-    endTime: float
     duration: float
     pitch: int
     word: str
     noteType: UltrastarTxtNoteTypeTag  # F, R, G, *, :
+    startTime: Optional[float] = None
+    endTime: Optional[float] = None
 
 
 @dataclass

@@ -75,9 +75,12 @@ def get_score(points: Points) -> Score:
         if points.line_bonus == 0
         else MAX_SONG_SCORE - MAX_SONG_LINE_BONUS
     )
-    score.notes = round(
-        score.max_score * (points.notes + points.rap) / points.parts
-    )
+    if points.parts > 0:
+        score.notes = round(
+            score.max_score * (points.notes + points.rap) / points.parts
+        )
+    else:
+        score.notes = 0 # Assign 0 if parts is 0 to avoid division error
     score.golden = round(points.golden_notes + points.golden_rap)
     score.score = round(score.notes + points.line_bonus + score.golden)
     score.line_bonus = round(points.line_bonus)
@@ -96,6 +99,12 @@ def calculate_score(pitched_data: PitchedData, ultrastar_class: UltrastarTxtValu
     """Calculate score."""
 
     print(ULTRASINGER_HEAD + " Calculating Ultrastar Points")
+
+    # Add check for empty note lines
+    if not ultrastar_class.UltrastarNoteLines:
+        print(ULTRASINGER_HEAD + " No note lines found in Ultrastar data. Returning default scores.")
+        # Return default scores for both simple and accurate calculations
+        return Score(), Score()
 
     simple_points = Points()
     accurate_points = Points()
@@ -131,15 +140,18 @@ def calculate_score(pitched_data: PitchedData, ultrastar_class: UltrastarTxtValu
 
             midi_segment = create_midi_note_from_pitched_data(start, end, pitched_data, note_line.word)
 
-            if midi_segment.note[:-1] == ultrastar_note[:-1]:
-                # Ignore octave high
-                simple_points = add_point(note_line.noteType, simple_points)
-                simple_part_line_bonus_points += 1
+            # Check if a valid note was detected before comparing
+            if midi_segment is not None and midi_segment.midi_note is not None:
+                # Compare MIDI note numbers directly
+                # Simple match: Compare note numbers ignoring octave (difference is multiple of 12)
+                if (midi_segment.midi_note - ultrastar_midi_note) % 12 == 0:
+                    simple_points = add_point(note_line.noteType, simple_points)
+                    simple_part_line_bonus_points += 1
 
-            if midi_segment.note == ultrastar_note:
-                # Octave high must be the same
-                accurate_points = add_point(note_line.noteType, accurate_points)
-                accurate_part_line_bonus_points += 1
+                # Accurate match: Compare exact MIDI note numbers
+                if midi_segment.midi_note == ultrastar_midi_note:
+                    accurate_points = add_point(note_line.noteType, accurate_points)
+                    accurate_part_line_bonus_points += 1
 
             accurate_points.parts += 1
             simple_points.parts += 1

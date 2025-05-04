@@ -1,12 +1,7 @@
 # requirements.in
 
 # Pitching
-crepe
-# machine learning platform (used for crepe)
-tensorflow==2.10
-
-# Audio to wavefile (used for crepe)
-scipy
+torchcrepe
 
 # Transcription
 whisperx

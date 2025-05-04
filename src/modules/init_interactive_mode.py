@@ -123,9 +123,9 @@ def configure_additional_options(console, settings, header):
             f"{header} Force [green]Whisper CPU usage[/green]? ([bright_green]y[/bright_green]/[bright_red]n[/bright_red], default '[bright_red]n[/bright_red]'): "  
         ).strip().lower() == 'y'  
   
-        # Force Crepe CPU Usage  
-        settings.force_crepe_cpu = console.input(  
-            f"{header} Force [green]Crepe CPU usage[/green]? ([bright_green]y[/bright_green]/[bright_red]n[/bright_red], default '[bright_red]n[/bright_red]'): "  
+        # Force Torchcrepe CPU Usage  
+        settings.force_torchcrepe_cpu = console.input(  
+            f"{header} Force [green]Torchcrepe CPU usage[/green]? ([bright_green]y[/bright_green]/[bright_red]n[/bright_red], default '[bright_red]n[/bright_red]'): "  
         ).strip().lower() == 'y'  
   
         # Keep Cache  
@@ -179,4 +179,4 @@ def init_settings_interactive(settings: Settings) -> Settings:
     configure_additional_options(console, settings, ULTRASINGER_HEAD)  
   
     console.print(f"\n{ULTRASINGER_HEAD} [bold cyan]Thank you! Starting processing...[/bold cyan]\n")  
-    return settings  
+    return settings

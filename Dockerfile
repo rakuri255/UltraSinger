@@ -21,8 +21,7 @@ ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 
 # install dependencies
 RUN pip install --no-cache-dir -r requirements.txt \
-    && pip install --no-cache-dir torch==2.3.0 torchvision==0.18.0 torchaudio==2.3.0 --index-url https://download.pytorch.org/whl/cu121 \
-    && pip install --no-cache-dir tensorflow[and-cuda]==2.16.1
+    && pip install --no-cache-dir torch==2.3.0 torchvision==0.18.0 torchaudio==2.3.0 --index-url https://download.pytorch.org/whl/cu121
 
 # copy sources late to allow for caching of layers which contain all the dependencies
 COPY . /app/UltraSinger
