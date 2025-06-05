@@ -3,11 +3,13 @@ name: Check Requirements
 on:
   push:
     paths:
-      - "requirements.txt"
+      - "requirements-linux.txt"
+      - "requirements-windows.txt"
 
   pull_request:
     paths:
-      - "requirements.txt"
+      - "requirements-linux.txt"
+      - "requirements-windows.txt"
 
 jobs:
   build:
@@ -32,10 +34,17 @@ jobs:
       with:
         python-version: ${{ matrix.python-version }}
 
-    - name: Install dependencies
+    - name: Install dependencies (Windows)
+      if: matrix.TARGET == 'Windows'
       run: |
         python -m pip install --upgrade pip
-        pip install -r requirements.txt
+        pip install -r requirements-windows.txt
+
+    - name: Install dependencies (others)
+      if: matrix.TARGET != 'Windows'
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements-linux.txt
       
     - name: Install gpu dependencies
       if: matrix.TARGET != 'macOS'
