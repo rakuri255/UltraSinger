@@ -3,6 +3,7 @@
 # Pitching
 crepe
 # machine learning platform (used for crepe)
+# This is only compatible with Python 3.10 and older
 tensorflow==2.10
 
 # Audio to wavefile (used for crepe)
