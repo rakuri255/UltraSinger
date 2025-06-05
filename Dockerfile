@@ -7,7 +7,7 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/*
 
 # copy only the requirements file to leverage container image build cache
-COPY ./requirements.txt /app/UltraSinger/requirements.txt
+COPY ./requirements.txt /app/UltraSinger/requirements-linux.txt
 WORKDIR /app/UltraSinger
 
 # no need to run as root
@@ -20,7 +20,7 @@ RUN python3 -m venv $VIRTUAL_ENV
 ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 
 # install dependencies
-RUN pip install --no-cache-dir -r requirements.txt \
+RUN pip install --no-cache-dir -r requirements-linux.txt \
     && pip install --no-cache-dir torch==2.3.0 torchvision==0.18.0 torchaudio==2.3.0 --index-url https://download.pytorch.org/whl/cu121 \
     && pip install --no-cache-dir tensorflow[and-cuda]==2.16.1
 

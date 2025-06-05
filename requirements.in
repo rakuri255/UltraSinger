@@ -1,10 +1,23 @@
 # requirements.in
 
+# HOW TO USE:
+# Change the tensorflow version for each OS
+#   pip-compile -o requirements-linux.txt
+#   pip-compile -o requirements-windows.txt
+# Update Package
+#   pip-compile -P yt_dlp
+# Update all packages
+#   pip-compile -U
+
 # Pitching
 crepe
 # machine learning platform (used for crepe)
 # This is only compatible with Python 3.10 and older
-tensorflow==2.10
+# 2.10 is only needed for windows GPU support
+# WINDOWS
+#tensorflow==2.10
+# LINUX
+tensorflow
 
 # Audio to wavefile (used for crepe)
 scipy
