@@ -7,7 +7,7 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/*
 
 # copy only the requirements file to leverage container image build cache
-COPY ./requirements.txt /app/UltraSinger/requirements-linux.txt
+COPY ./requirements-linux.txt /app/UltraSinger/requirements-linux.txt
 WORKDIR /app/UltraSinger
 
 # no need to run as root
