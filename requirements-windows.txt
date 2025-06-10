@@ -442,7 +442,7 @@ regex==2024.11.6
     # via
     #   nltk
     #   transformers
-requests==2.32.3
+requests==2.32.4
     # via
     #   huggingface-hub
     #   music21
