@@ -364,7 +364,7 @@ propcache==0.3.1
     # via
     #   aiohttp
     #   yarl
-protobuf==3.19.6
+protobuf==4.25.8
     # via
     #   onnxruntime
     #   tensorboard
