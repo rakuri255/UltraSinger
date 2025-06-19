@@ -637,7 +637,7 @@ tzdata==2025.2
     # via pandas
 unidecode==1.4.0
     # via -r requirements.in
-urllib3==2.4.0
+urllib3==2.5.0
     # via requests
 webcolors==24.11.1
     # via music21
