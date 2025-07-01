@@ -343,7 +343,7 @@ pandas==2.3.0
     #   whisperx
 pathspec==0.12.1
     # via black
-pillow==11.2.1
+pillow==11.3.0
     # via
     #   imageio
     #   matplotlib
