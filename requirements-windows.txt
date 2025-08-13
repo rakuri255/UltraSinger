@@ -187,7 +187,7 @@ julius==0.2.7
     # via
     #   demucs
     #   torch-audiomentations
-keras==2.10.0
+keras==3.11.0
     # via tensorflow
 keras-preprocessing==1.1.2
     # via tensorflow
