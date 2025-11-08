@@ -1,0 +1,48 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: ../..
+      dockerfile: webapp/docker/Dockerfile.backend
+    container_name: ultrasinger-backend
+    environment:
+      - BACKEND_HOST=0.0.0.0
+      - BACKEND_PORT=8000
+      - FORCE_CPU=${FORCE_CPU:-false}
+    volumes:
+      - uploads:/tmp/ultrasinger/uploads
+      - outputs:/tmp/ultrasinger/outputs
+    ports:
+      - "8000:8000"
+    restart: unless-stopped
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+  frontend:
+    build:
+      context: ../..
+      dockerfile: webapp/docker/Dockerfile.frontend
+    container_name: ultrasinger-frontend
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+volumes:
+  uploads:
+    driver: local
+  outputs:
+    driver: local
