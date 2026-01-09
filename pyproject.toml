@@ -3,9 +3,9 @@ requires = ["setuptools", "setuptools-scm"]
 build-backend = "setuptools.build_meta"
 
 [project]
-requires-python = "3.10"
 name = "UltraSinger"
 dynamic = ["dependencies", "optional-dependencies"]
+requires-python = "==3.10"
 
 [tool.setuptools.dynamic]
 dependencies = { file = ["requirements.in"] }
