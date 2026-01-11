@@ -1,5 +1,7 @@
 import musicbrainzngs
 import string
+import time
+from urllib.error import URLError
 from Levenshtein import ratio
 from dataclasses import dataclass
 from typing import Optional
@@ -25,8 +27,20 @@ title_filter = [
 ]
 
 
+MAX_RETRIES = 3
+
+
 def __clean_string(s: str) -> str:
     return s.translate(str.maketrans('', '', string.punctuation)).lower().strip()
+
+
+def __musicbrainz_request(func):
+    for i in range(MAX_RETRIES):
+        try:
+            return func()
+        except musicbrainzngs.musicbrainz.NetworkError:
+            time.sleep(1)
+    return None
 
 
 def search_musicbrainz(title: str, artist) -> SongInfo:
@@ -68,8 +82,12 @@ def __single_line_search(search_string):
     search_string = __clean_string(search_string)
     search_string = __filter_words(search_string)
 
-    artists = musicbrainzngs.search_artists(search_string, limit=10, artist=search_string)
-    recordings = musicbrainzngs.search_recordings(search_string, limit=100, artistname=search_string)
+    artists = __musicbrainz_request(lambda: musicbrainzngs.search_artists(search_string, limit=10, artist=search_string))
+    recordings = __musicbrainz_request(lambda: musicbrainzngs.search_recordings(search_string, limit=100, artistname=search_string))
+
+    if artists is None or recordings is None:
+        return None
+
     found_artist = None
 
     for record in recordings['recording-list']:
@@ -114,8 +132,13 @@ def __multi_line_search(artist: str, title: str):
     artist1, title1 = artist, title
     artist2, title2 = title, artist
 
-    result1 = musicbrainzngs.search_recordings(recording=title1, limit=10, artist=artist1, artistname=artist1)
-    result2 = musicbrainzngs.search_recordings(recording=title2, limit=10, artist=artist2, artistname=artist2)
+    result1 = __musicbrainz_request(lambda: musicbrainzngs.search_recordings(recording=title1, limit=10, artist=artist1, artistname=artist1))
+    result2 = __musicbrainz_request(lambda: musicbrainzngs.search_recordings(recording=title2, limit=10, artist=artist2, artistname=artist2))
+
+    if result1 is None:
+        result1 = {'recording-count': 0, 'recording-list': []}
+    if result2 is None:
+        result2 = {'recording-count': 0, 'recording-list': []}
 
     # Filter result to ['artist-credit-phrase'] == artist
     record1 = [x for x in result1['recording-list'] if
@@ -157,8 +180,14 @@ def __get_image(recording) -> (bytes, str):
     if 'release-list' in recording:
         for release in recording['release-list']:
             try:
-                image_data = musicbrainzngs.get_image_front(release['id'])
-                image_list = musicbrainzngs.get_image_list(release['id'])
+                image_data = __musicbrainz_request(lambda: musicbrainzngs.get_image_front(release['id']))
+                if image_data is None:
+                    continue
+
+                image_list = __musicbrainz_request(lambda: musicbrainzngs.get_image_list(release['id']))
+                if image_list is None:
+                    continue
+
                 for image in image_list['images']:
                     if image['front']:
                         image_url = image['image']
@@ -179,7 +208,11 @@ def __get_year(recording):
         return year
 
     release_group_id = recording['release-list'][0]['release-group']['id']
-    release_group = musicbrainzngs.get_release_group_by_id(release_group_id)
+    release_group = __musicbrainz_request(lambda: musicbrainzngs.get_release_group_by_id(release_group_id))
+
+    if release_group is None:
+        return year
+
     if 'first-release-date' not in release_group['release-group']:
         return year
 
