@@ -17,7 +17,7 @@
 
 > ⚠️ _This project is still under development!_
 
-UltraSinger is a tool to automatically create UltraStar.txt, midi and notes from music. 
+UltraSinger is a tool to automatically create UltraStar.txt, midi and notes from music.
 It automatically pitches UltraStar files, adding text and tapping to UltraStar files and creates separate UltraStar karaoke files.
 It also can re-pitch current UltraStar files and calculates the possible in-game score.
 
@@ -77,7 +77,7 @@ This will help me a lot to keep this project alive and improve it.
 
 ### Run
 
-* In root folder just run `run_on_windows.bat` or `run_on_linux.sh` to start the app.
+* In root folder just run `run_on_windows.bat`, `run_on_linux.sh` or `run_on_macos.command` to start the app.
 * Now you can use the UltraSinger source code with `py UltraSinger.py [opt] [mode] [transcription] [pitcher] [extra]`. See [How to use](#how-to-use) for more information.
 
 ## 📖 How to use the App
@@ -85,23 +85,23 @@ This will help me a lot to keep this project alive and improve it.
 _Not all options working now!_
 ```commandline
     UltraSinger.py [opt] [mode] [transcription] [pitcher] [extra]
-    
+
     [opt]
     -h      This help text.
     -i      Ultrastar.txt
             audio like .mp3, .wav, youtube link
     -o      Output folder
-    
+
     [mode]
     ## if INPUT is audio ##
     default (Full Automatic Mode) - Creates all, depending on command line options
     --interactive - Interactive Mode. All options are asked at runtime for easier configuration
-    
+
     # Single file creation selection is in progress, you currently getting all!
     (-u      Create ultrastar txt file) # In Progress
     (-m      Create midi file) # In Progress
     (-s      Create sheet file) # In Progress
-    
+
     ## if INPUT is ultrastar.txt ##
     default  Creates all
 
@@ -117,13 +117,13 @@ _Not all options working now!_
     --language              Override the language detected by whisper, does not affect transcription but steps after transcription
     --whisper_batch_size    Reduce if low on GPU mem >> ((default) is 16)
     --whisper_compute_type  Change to "int8" if low on GPU mem (may reduce accuracy) >> ((default) is "float16" for cuda devices, "int8" for cpu)
-    --keep_numbers          Numbers will be transcribed as numerics instead of as words 
-    
+    --keep_numbers          Numbers will be transcribed as numerics instead of as words
+
     [pitcher]
     # Default is crepe
     --crepe            tiny|full >> ((default) is full)
     --crepe_step_size  unit is miliseconds >> ((default) is 10)
-    
+
     [extra]
     --disable_hyphenation   Disable word hyphenation. Hyphenation is enabled by default.
     --disable_separation    Disable track separation. Track separation is enabled by default.
@@ -135,7 +135,7 @@ _Not all options working now!_
     --musescore_path        path to MuseScore executable
     --keep_numbers          Transcribe numbers as digits and not words
     --ffmpeg                Path to ffmpeg and ffprobe executable
-    
+
     [yt-dlp]
     --cookiefile            File name where cookies should be read from
 
@@ -196,8 +196,8 @@ For the first test run, use the `tiny`, to be accurate use the `large-v2` model.
 
 ##### Whisper languages
 
-Currently provided default language models are `en, fr, de, es, it, ja, zh, nl, uk, pt`. 
-If the language is not in this list, you need to find a phoneme-based ASR model from 
+Currently provided default language models are `en, fr, de, es, it, ja, zh, nl, uk, pt`.
+If the language is not in this list, you need to find a phoneme-based ASR model from
 [🤗 huggingface model hub](https://huggingface.co). It will download automatically.
 
 Example for romanian:
@@ -207,9 +207,9 @@ Example for romanian:
 
 #### ✍️ Hyphenation
 
-Is on by default. Can also be deactivated if hyphenation does not produce 
-anything useful. Note that the word is simply split, 
-without paying attention to whether the separated word really 
+Is on by default. Can also be deactivated if hyphenation does not produce
+anything useful. Note that the word is simply split,
+without paying attention to whether the separated word really
 starts at the place or is heard. To disable:
 
 ```commandline
@@ -229,11 +229,11 @@ If you want solid accurate, then use the `full` model.
 
 ### 👄 Separation
 
-The vocals are separated from the audio before they are passed to the models. If problems occur with this, 
+The vocals are separated from the audio before they are passed to the models. If problems occur with this,
 you have the option to disable this function; in which case the original audio file is used instead.
 
 ```commandline
--i XYZ --disable_separation 
+-i XYZ --disable_separation
 ```
 
 ### Sheet Music
@@ -262,11 +262,11 @@ You can choose between different format versions. The default is `1.2.0`.
 
 ### 🏆 Ultrastar Score Calculation
 
-The score that the singer in the audio would receive will be measured. 
-You get 2 scores, simple and accurate. You wonder where the difference is? 
-Ultrastar is not interested in pitch hights. As long as it is in the pitch range A-G you get one point. 
-This makes sense for the game, because otherwise men don't get points for high female voices and women don't get points 
-for low male voices. Accurate is the real tone specified in the txt. I had txt files where the pitch was in a range not 
+The score that the singer in the audio would receive will be measured.
+You get 2 scores, simple and accurate. You wonder where the difference is?
+Ultrastar is not interested in pitch hights. As long as it is in the pitch range A-G you get one point.
+This makes sense for the game, because otherwise men don't get points for high female voices and women don't get points
+for low male voices. Accurate is the real tone specified in the txt. I had txt files where the pitch was in a range not
 singable by humans, but you could still reach the 10k points in the game. The accuracy is important here, because from
 this MIDI and sheet are created. And you also want to have accurate files
 
