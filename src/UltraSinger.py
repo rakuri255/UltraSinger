@@ -444,29 +444,42 @@ def CreateProcessAudio(process_data) -> str:
     )
     os_helper.create_folder(process_data.process_data_paths.cache_folder_path)
 
-    # Separate vocal from audio
-    audio_separation_folder_path = separate_vocal_from_audio(
-        process_data.process_data_paths.cache_folder_path,
-        process_data.process_data_paths.audio_output_file_path,
-        settings.use_separated_vocal,
-        settings.create_karaoke,
-        settings.pytorch_device,
-        settings.demucs_model,
-        settings.skip_cache_vocal_separation
-    )
-    process_data.process_data_paths.vocals_audio_file_path = os.path.join(audio_separation_folder_path, "vocals.wav")
-    process_data.process_data_paths.instrumental_audio_file_path = os.path.join(audio_separation_folder_path,
-                                                                                "no_vocals.wav")
-
+    # Check if we should separate vocals or bypass separation
     if settings.use_separated_vocal:
+
+        audio_separation_folder_path = separate_vocal_from_audio(
+            process_data.process_data_paths.cache_folder_path,
+            process_data.process_data_paths.audio_output_file_path,
+            settings.use_separated_vocal,
+            settings.create_karaoke,
+            settings.pytorch_device,
+            settings.demucs_model,
+            settings.skip_cache_vocal_separation
+        )
+        process_data.process_data_paths.vocals_audio_file_path = os.path.join(audio_separation_folder_path, "vocals.wav")
+        process_data.process_data_paths.instrumental_audio_file_path = os.path.join(audio_separation_folder_path, "no_vocals.wav")
+        
+        # In standard mode, we process the separated vocal file
         input_path = process_data.process_data_paths.vocals_audio_file_path
+
     else:
+        # Skip separation entirely
+        print(f"{ULTRASINGER_HEAD} {gold_highlighted('Bypass Mode:')} {cyan_highlighted('Skipping Demucs separation.')}")
+        
+        # Point the 'vocal' and 'instrumental' variables to the original input file
+        # This prevents "File Not Found" errors later in the script
         input_path = process_data.process_data_paths.audio_output_file_path
+        process_data.process_data_paths.vocals_audio_file_path = input_path
+        process_data.process_data_paths.instrumental_audio_file_path = input_path
+
 
     # Denoise vocal audio
     denoised_output_path = os.path.join(
         process_data.process_data_paths.cache_folder_path, process_data.basename + "_denoised.wav"
     )
+    
+
+    # This ensures it uses the correct file selected in the IF/ELSE block above
     denoise_vocal_audio(input_path, denoised_output_path, settings.skip_cache_denoise_vocal_audio)
 
     # Convert to mono audio
@@ -691,6 +704,8 @@ def init_settings(argv: list[str]) -> Settings:
             settings.keep_cache = True
         elif opt in ("--musescore_path"):
             settings.musescore_path = arg
+        elif opt in ("--cache_override_path"):  # <--- ADD THIS BLOCK
+            settings.cache_override_path = arg
         #Addition of demucs model choice. Work seems to be needed to make sure syntax is same for models. Added error handling for unknown models
         elif opt in ("--demucs"):
             try:
@@ -741,6 +756,7 @@ def arg_options():
         "format_version=",
         "keep_cache",
         "musescore_path=",
+        "cache_override_path=",  # Added this line so the flag is recognized
         "keep_numbers",
         "interactive",
         "cookiefile=",
