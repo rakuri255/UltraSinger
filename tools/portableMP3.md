@@ -48,7 +48,15 @@ The `--cover` flag has been specifically tuned for hardware compatibility.
 | **Sample Rate** | `44100 Hz` | Standard for internal DACs on mobile devices. |
 | **Mapping** | `0:v?` | Non-blocking; only attempts to copy art if the stream exists. |
 
+---
 
+Flag,Option / Format,Default,Description
+"-i, --input",[path],Required,The source file or the root directory of the music tree you want to convert.
+"-o, --output",[path],Required,The target directory where the optimized MP3 tree will be built.
+"-b, --bitrate","128k, 192k, 256k, 320k",128k,Sets audio compression. 128k is recommended for hardware like Fire Sticks to save RAM.
+--cover,None (Flag),Stripped,"If included, the tool attempts to copy album art into the new file using ID3v2.3."
+--start,HH:MM:SS,None,"Tells FFmpeg where to begin the conversion (e.g., 00:00:30 to skip intros)."
+--duration,[seconds],None,Limits output length in seconds. Perfect for creating short preview clips for mobile.
 
 ---
 
