@@ -65,7 +65,7 @@ class Settings:
 
     # UltraSinger Evaluation Configuration
     test_songs_input_folder = None
-    cache_override_path = None  # New class definition
+    cache_override_path = None
     skip_cache_vocal_separation = False
     skip_cache_denoise_vocal_audio = False
     skip_cache_transcription = False
