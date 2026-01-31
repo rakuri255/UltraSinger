@@ -444,7 +444,6 @@ def CreateProcessAudio(process_data) -> str:
     )
     os_helper.create_folder(process_data.process_data_paths.cache_folder_path)
 
-    # Check if we should separate vocals or bypass separation
     if settings.use_separated_vocal:
 
         audio_separation_folder_path = separate_vocal_from_audio(
@@ -459,11 +458,9 @@ def CreateProcessAudio(process_data) -> str:
         process_data.process_data_paths.vocals_audio_file_path = os.path.join(audio_separation_folder_path, "vocals.wav")
         process_data.process_data_paths.instrumental_audio_file_path = os.path.join(audio_separation_folder_path, "no_vocals.wav")
         
-        # In standard mode, we process the separated vocal file
         input_path = process_data.process_data_paths.vocals_audio_file_path
 
     else:
-        # Skip separation entirely
         print(f"{ULTRASINGER_HEAD} {gold_highlighted('Bypass Mode:')} {cyan_highlighted('Skipping Demucs separation.')}")
         
         # Point the 'vocal' and 'instrumental' variables to the original input file
@@ -478,8 +475,6 @@ def CreateProcessAudio(process_data) -> str:
         process_data.process_data_paths.cache_folder_path, process_data.basename + "_denoised.wav"
     )
     
-
-    # This ensures it uses the correct file selected in the IF/ELSE block above
     denoise_vocal_audio(input_path, denoised_output_path, settings.skip_cache_denoise_vocal_audio)
 
     # Convert to mono audio
