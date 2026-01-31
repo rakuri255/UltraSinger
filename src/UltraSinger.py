@@ -461,15 +461,8 @@ def CreateProcessAudio(process_data) -> str:
         input_path = process_data.process_data_paths.vocals_audio_file_path
 
     else:
-        print(f"{ULTRASINGER_HEAD} {gold_highlighted('Bypass Mode:')} {cyan_highlighted('Skipping Demucs separation.')}")
-        
-        # Point the 'vocal' and 'instrumental' variables to the original input file
-        # This prevents "File Not Found" errors later in the script
         input_path = process_data.process_data_paths.audio_output_file_path
-        process_data.process_data_paths.vocals_audio_file_path = input_path
-        process_data.process_data_paths.instrumental_audio_file_path = input_path
-
-
+        
     # Denoise vocal audio
     denoised_output_path = os.path.join(
         process_data.process_data_paths.cache_folder_path, process_data.basename + "_denoised.wav"
