@@ -399,14 +399,23 @@ def CreateUltraStarTxt(process_data: ProcessData):
     if settings.create_karaoke and version.parse(settings.format_version.value) < version.parse(
             FormatVersion.V1_1_0.value):
         karaoke_output_path = os.path.join(settings.output_folder_path, process_data.basename + " [Karaoke].mp3")
-        convert_wav_to_mp3(process_data.process_data_paths.instrumental_audio_file_path, karaoke_output_path)
+    
+        if process_data.process_data_paths.instrumental_audio_file_path:
+            convert_wav_to_mp3(process_data.process_data_paths.instrumental_audio_file_path, karaoke_output_path)
 
     if version.parse(settings.format_version.value) >= version.parse(FormatVersion.V1_1_0.value):
         instrumental_output_path = os.path.join(settings.output_folder_path,
                                                 process_data.basename + " [Instrumental].mp3")
-        convert_wav_to_mp3(process_data.process_data_paths.instrumental_audio_file_path, instrumental_output_path)
+        
+        if process_data.process_data_paths.instrumental_audio_file_path:
+            convert_wav_to_mp3(process_data.process_data_paths.instrumental_audio_file_path, instrumental_output_path)
+        else:
+            print(f"{ULTRASINGER_HEAD} Skipping instrumental conversion (Bypass mode).")
+
         vocals_output_path = os.path.join(settings.output_folder_path, process_data.basename + " [Vocals].mp3")
-        convert_wav_to_mp3(process_data.process_data_paths.vocals_audio_file_path, vocals_output_path)
+        # Safety Check for Vocals
+        if process_data.process_data_paths.vocals_audio_file_path:
+            convert_wav_to_mp3(process_data.process_data_paths.vocals_audio_file_path, vocals_output_path)
 
     # Create Ultrastar txt
     if not settings.ignore_audio:
