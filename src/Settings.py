@@ -59,6 +59,7 @@ class Settings:
 
     # MuseScore
     musescore_path = None
+    cache_override_path = ""
 
     # yt-dlp
     cookiefile = None
