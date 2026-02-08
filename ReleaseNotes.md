@@ -1,5 +1,5 @@
-# Version: 0.0.13dev6
-Date: 2024.12.26
+# Version: 0.0.13dev10
+Date: 2026.02.08
 - Changes:
   - Download Cover from MusicBrainz
   - Fix selection of whisper model
@@ -10,6 +10,7 @@ Date: 2024.12.26
   - Use user defined ffmpeg path
   - Show GPU Name and VRAM
   - No linebreak before the last 'E' word for UltraStar txt files
+  - Download yt video/audio only once
 
 # Version: 0.0.12
 Date: 2024.12.19
