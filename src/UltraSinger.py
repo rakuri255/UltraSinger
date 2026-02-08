@@ -404,14 +404,23 @@ def CreateUltraStarTxt(process_data: ProcessData):
     if settings.create_karaoke and version.parse(settings.format_version.value) < version.parse(
             FormatVersion.V1_1_0.value):
         karaoke_output_path = os.path.join(settings.output_folder_path, process_data.basename + " [Karaoke].mp3")
-        convert_wav_to_mp3(process_data.process_data_paths.instrumental_audio_file_path, karaoke_output_path)
+    
+        if process_data.process_data_paths.instrumental_audio_file_path:
+            convert_wav_to_mp3(process_data.process_data_paths.instrumental_audio_file_path, karaoke_output_path)
 
     if version.parse(settings.format_version.value) >= version.parse(FormatVersion.V1_1_0.value):
         instrumental_output_path = os.path.join(settings.output_folder_path,
                                                 process_data.basename + " [Instrumental].mp3")
-        convert_wav_to_mp3(process_data.process_data_paths.instrumental_audio_file_path, instrumental_output_path)
+        
+        if process_data.process_data_paths.instrumental_audio_file_path:
+            convert_wav_to_mp3(process_data.process_data_paths.instrumental_audio_file_path, instrumental_output_path)
+        else:
+            print(f"{ULTRASINGER_HEAD} Skipping instrumental conversion (Bypass mode).")
+
         vocals_output_path = os.path.join(settings.output_folder_path, process_data.basename + " [Vocals].mp3")
-        convert_wav_to_mp3(process_data.process_data_paths.vocals_audio_file_path, vocals_output_path)
+        # Safety Check for Vocals
+        if process_data.process_data_paths.vocals_audio_file_path:
+            convert_wav_to_mp3(process_data.process_data_paths.vocals_audio_file_path, vocals_output_path)
 
     # Create Ultrastar txt
     if not settings.ignore_audio:
@@ -449,29 +458,30 @@ def CreateProcessAudio(process_data) -> str:
     )
     os_helper.create_folder(process_data.process_data_paths.cache_folder_path)
 
-    # Separate vocal from audio
-    audio_separation_folder_path = separate_vocal_from_audio(
-        process_data.process_data_paths.cache_folder_path,
-        process_data.process_data_paths.audio_output_file_path,
-        settings.use_separated_vocal,
-        settings.create_karaoke,
-        settings.pytorch_device,
-        settings.demucs_model,
-        settings.skip_cache_vocal_separation
-    )
-    process_data.process_data_paths.vocals_audio_file_path = os.path.join(audio_separation_folder_path, "vocals.wav")
-    process_data.process_data_paths.instrumental_audio_file_path = os.path.join(audio_separation_folder_path,
-                                                                                "no_vocals.wav")
-
     if settings.use_separated_vocal:
+
+        audio_separation_folder_path = separate_vocal_from_audio(
+            process_data.process_data_paths.cache_folder_path,
+            process_data.process_data_paths.audio_output_file_path,
+            settings.use_separated_vocal,
+            settings.create_karaoke,
+            settings.pytorch_device,
+            settings.demucs_model,
+            settings.skip_cache_vocal_separation
+        )
+        process_data.process_data_paths.vocals_audio_file_path = os.path.join(audio_separation_folder_path, "vocals.wav")
+        process_data.process_data_paths.instrumental_audio_file_path = os.path.join(audio_separation_folder_path, "no_vocals.wav")
+        
         input_path = process_data.process_data_paths.vocals_audio_file_path
+
     else:
         input_path = process_data.process_data_paths.audio_output_file_path
-
+        
     # Denoise vocal audio
     denoised_output_path = os.path.join(
         process_data.process_data_paths.cache_folder_path, process_data.basename + "_denoised.wav"
     )
+    
     denoise_vocal_audio(input_path, denoised_output_path, settings.skip_cache_denoise_vocal_audio)
 
     # Convert to mono audio
@@ -719,6 +729,8 @@ def init_settings(argv: list[str]) -> Settings:
             settings.keep_cache = True
         elif opt in ("--musescore_path"):
             settings.musescore_path = arg
+        elif opt in ("--cache_override_path"):  # <--- ADD THIS BLOCK
+            settings.cache_override_path = arg
         #Addition of demucs model choice. Work seems to be needed to make sure syntax is same for models. Added error handling for unknown models
         elif opt in ("--demucs"):
             try:
@@ -769,6 +781,7 @@ def arg_options():
         "format_version=",
         "keep_cache",
         "musescore_path=",
+        "cache_override_path=",  # Added this line so the flag is recognized
         "keep_numbers",
         "interactive",
         "cookiefile=",
