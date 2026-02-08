@@ -1,4 +1,4 @@
-# Version: 0.0.13dev10
+# Version: 0.0.13dev11
 Date: 2026.02.08
 - Changes:
   - Download Cover from MusicBrainz
@@ -11,6 +11,7 @@ Date: 2026.02.08
   - Show GPU Name and VRAM
   - No linebreak before the last 'E' word for UltraStar txt files
   - Download yt video/audio only once
+  - Support for video as input
 
 # Version: 0.0.12
 Date: 2024.12.19

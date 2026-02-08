@@ -10,7 +10,7 @@ from modules.Audio.bpm import get_bpm_from_file
 from modules.console_colors import ULTRASINGER_HEAD
 from modules.Image.image_helper import save_image
 from modules.musicbrainz_client import search_musicbrainz
-from modules.ffmpeg_helper import get_ffmpeg_and_ffprobe_paths, extract_audio, remove_audio_from_video
+from modules.ffmpeg_helper import separate_audio_video
 
 
 def get_youtube_title(url: str, cookiefile: str = None) -> tuple[str, str]:
@@ -103,22 +103,10 @@ def download_from_youtube(input_url: str, output_folder_path: str, cookiefile: s
     )
     video_with_audio_path = os.path.join(song_output, f"{basename_without_ext}.{video_ext}")
 
-    ffmpeg_path, _ = get_ffmpeg_and_ffprobe_paths()
-
-    print(f"{ULTRASINGER_HEAD} Extracting audio from video")
-    audio_file_path = os.path.join(song_output, f"{basename_without_ext}.m4a")
-    extract_audio(video_with_audio_path, audio_file_path, ffmpeg_path)
-
-    print(f"{ULTRASINGER_HEAD} Creating video without audio")
-    video_only_path = os.path.join(song_output, f"{basename_without_ext}_video.mp4")
-    remove_audio_from_video(video_with_audio_path, video_only_path, ffmpeg_path)
-
-    # Remove original video with audio
-    os.remove(video_with_audio_path)
-
-    # Rename video without audio to original name
-    final_video_path = os.path.join(song_output, f"{basename_without_ext}.mp4")
-    os.rename(video_only_path, final_video_path)
+    # Separate audio and video
+    audio_file_path, final_video_path = separate_audio_video(
+        video_with_audio_path, basename_without_ext, song_output
+    )
 
     if song_info.cover_url is not None and song_info.cover_image_data is not None:
         cover_url = song_info.cover_url

@@ -67,7 +67,12 @@ from modules.sheet import create_sheet
 from modules.ProcessData import ProcessData, ProcessDataPaths, MediaInfo
 from modules.DeviceDetection.device_detection import check_gpu_support
 from modules.Image.image_helper import save_image
-from modules.ffmpeg_helper import is_ffmpeg_available, get_ffmpeg_and_ffprobe_paths
+from modules.ffmpeg_helper import (
+    is_ffmpeg_available,
+    get_ffmpeg_and_ffprobe_paths,
+    is_video_file,
+    separate_audio_video,
+)
 
 from Settings import Settings
 
@@ -359,7 +364,7 @@ def InitProcessData():
             process_data.media_info
         ) = download_from_youtube(settings.input_file_path, settings.output_folder_path, settings.cookiefile)
     else:
-        # Audio File
+        # Audio/Video File
         print(f"{ULTRASINGER_HEAD} {gold_highlighted('Full Automatic Mode')}")
         process_data = ProcessData()
         (
@@ -367,7 +372,7 @@ def InitProcessData():
             settings.output_folder_path,
             process_data.process_data_paths.audio_output_file_path,
             process_data.media_info,
-        ) = infos_from_audio_input_file()
+        ) = infos_from_audio_video_input_file()
     return process_data
 
 
@@ -517,8 +522,8 @@ def transcribe_audio(cache_folder_path: str, processing_audio_path: str) -> Tran
     return transcription_result
 
 
-def infos_from_audio_input_file() -> tuple[str, str, str, MediaInfo]:
-    """Infos from audio input file"""
+def infos_from_audio_video_input_file() -> tuple[str, str, str, MediaInfo]:
+    """Infos from audio/video input file"""
     basename = os.path.basename(settings.input_file_path)
     basename_without_ext = os.path.splitext(basename)[0]
 
@@ -530,27 +535,50 @@ def infos_from_audio_input_file() -> tuple[str, str, str, MediaInfo]:
 
     song_info = search_musicbrainz(title, artist)
     basename_without_ext = f"{song_info.artist} - {song_info.title}"
-    extension = os.path.splitext(basename)[1]
-    basename = f"{basename_without_ext}{extension}"
 
     song_folder_output_path = os.path.join(settings.output_folder_path, basename_without_ext)
     song_folder_output_path = get_unused_song_output_dir(song_folder_output_path)
     os_helper.create_folder(song_folder_output_path)
-    os_helper.copy(settings.input_file_path, song_folder_output_path)
-    os_helper.rename(
-        os.path.join(song_folder_output_path, os.path.basename(settings.input_file_path)),
-        os.path.join(song_folder_output_path, basename),
-    )
+
+    extension = os.path.splitext(basename)[1]
+    if is_video_file(settings.input_file_path):
+        print(f"{ULTRASINGER_HEAD} {gold_highlighted('Video file detected - separating audio and video')}")
+
+        video_with_audio_basename = f"{basename_without_ext}{extension}"
+        video_with_audio_path = os.path.join(song_folder_output_path, video_with_audio_basename)
+        os_helper.copy(settings.input_file_path, video_with_audio_path)
+
+        # Separate audio and video
+        ultrastar_audio_input_path, final_video_path = separate_audio_video(
+            video_with_audio_path, basename_without_ext, song_folder_output_path
+        )
+    else:
+        # Audio file
+        basename_with_ext = f"{basename_without_ext}{extension}"
+        os_helper.copy(settings.input_file_path, song_folder_output_path)
+        os_helper.rename(
+            os.path.join(song_folder_output_path, os.path.basename(settings.input_file_path)),
+            os.path.join(song_folder_output_path, basename_with_ext),
+        )
+        ultrastar_audio_input_path = os.path.join(song_folder_output_path, basename_with_ext)
+
     # Todo: Read ID3 tags
     if song_info.cover_image_data is not None:
         save_image(song_info.cover_image_data, basename_without_ext, song_folder_output_path)
-    ultrastar_audio_input_path = os.path.join(song_folder_output_path, basename)
-    real_bpm = get_bpm_from_file(settings.input_file_path)
+
+    real_bpm = get_bpm_from_file(ultrastar_audio_input_path)
     return (
         basename_without_ext,
         song_folder_output_path,
         ultrastar_audio_input_path,
-        MediaInfo(artist=song_info.artist, title=song_info.title, year=song_info.year, genre=song_info.genres, bpm=real_bpm, cover_url=song_info.cover_url),
+        MediaInfo(
+            artist=song_info.artist,
+            title=song_info.title,
+            year=song_info.year,
+            genre=song_info.genres,
+            bpm=real_bpm,
+            cover_url=song_info.cover_url,
+        ),
     )
 
 

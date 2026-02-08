@@ -11,7 +11,7 @@ from modules.Ultrastar.ultrastar_txt import FormatVersion
 @dataclass
 class Settings:
 
-    APP_VERSION = "0.0.13-dev10"
+    APP_VERSION = "0.0.13-dev11"
     CONFIDENCE_THRESHOLD = 0.6
     CONFIDENCE_PROMPT_TIMEOUT = 4
 
