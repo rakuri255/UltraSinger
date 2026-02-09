@@ -66,10 +66,10 @@ def create_ultrastar_txt_from_automation(
 
     ultrastar_txt = UltrastarTxtValue()
     ultrastar_txt.version = format_version.value
-    ultrastar_txt.mp3 = basename + ".mp3"
-    ultrastar_txt.audio = basename + ".mp3"
-    ultrastar_txt.vocals = basename + " [Vocals].mp3"
-    ultrastar_txt.instrumental = basename + " [Instrumental].mp3"
+    ultrastar_txt.mp3 = basename + ".m4a"
+    ultrastar_txt.audio = basename + ".m4a"
+    ultrastar_txt.vocals = basename + " [Vocals].m4a"
+    ultrastar_txt.instrumental = basename + " [Instrumental].m4a"
     ultrastar_txt.video = basename + ".mp4"
     ultrastar_txt.language = media_info.language
     cover = basename + " [CO].jpg"
@@ -101,7 +101,7 @@ def create_ultrastar_txt_from_automation(
     if create_karaoke and version.parse(format_version.value) < version.parse(FormatVersion.V1_1_0.value):
         title = basename + " [Karaoke]"
         ultrastar_txt.title = title
-        ultrastar_txt.mp3 = title + ".mp3"
+        ultrastar_txt.mp3 = title + ".m4a"
         karaoke_output_path = os.path.join(song_folder_output_path, title)
         karaoke_txt_output_path = karaoke_output_path + ".txt"
         create_ultrastar_txt(

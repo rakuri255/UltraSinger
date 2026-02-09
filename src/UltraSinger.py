@@ -5,6 +5,7 @@ import getopt
 import os
 import sys
 import Levenshtein
+import librosa
 
 from packaging import version
 
@@ -227,14 +228,21 @@ def run() -> tuple[str, Score, Score]:
 def split_syllables_into_segments(
         transcribed_data: list[TranscribedData],
         real_bpm: float) -> list[TranscribedData]:
-    """Split every syllable into sub-segments"""
+    """Split every syllable into sub-segments
+
+    This splits long syllables (including hyphenated ones) into smaller segments
+    to allow detect for pitch changes within a syllable (e.g., singing a scale).
+    """
     syllable_segment_size = get_sixteenth_note_second(real_bpm)
+    thirtytwo_note = get_thirtytwo_note_second(real_bpm)
 
     segment_size_decimal_points = len(str(syllable_segment_size).split(".")[1])
     new_data = []
 
     for i, data in enumerate(transcribed_data):
         duration = data.end - data.start
+
+        # If duration is less than or equal to a 16th note, don't split
         if duration <= syllable_segment_size:
             new_data.append(data)
             continue
@@ -265,7 +273,9 @@ def split_syllables_into_segments(
                 segment.is_word_end = False
                 new_data.append(segment)
 
-        if partial_segment >= 0.01:
+        # Only add a partial_segment if it's at least as long as a 32nd note
+        # Otherwise add it to the last note
+        if partial_segment >= thirtytwo_note:
             first_segment.is_hyphen = True
             segment = TranscribedData()
             segment.word = "~"
@@ -276,6 +286,9 @@ def split_syllables_into_segments(
             segment.is_hyphen = True
             segment.is_word_end = False
             new_data.append(segment)
+        elif full_segments >= 1 or len(new_data) > 0:
+            # Add remaining time to the last note
+            new_data[-1].end += partial_segment
 
         if has_space:
             new_data[-1].word += " "
@@ -286,10 +299,16 @@ def split_syllables_into_segments(
 def merge_syllable_segments(midi_segments: list[MidiSegment],
                             transcribed_data: list[TranscribedData],
                             real_bpm: float) -> tuple[list[MidiSegment], list[TranscribedData]]:
-    """Merge sub-segments of a syllable where the pitch is the same"""
+    """Merge sub-segments of a syllable where the pitch is the same
 
-    thirtytwo_note = get_thirtytwo_note_second(real_bpm)
+    This function handles two cases:
+    1. Merge consecutive ~ segments with the SAME pitch (same note held)
+    2. Detect and merge SLIDES: short ~ segments with ±1-2 semitone jumps between syllables
+    """
+
     sixteenth_note = get_sixteenth_note_second(real_bpm)
+    # Slides are typically very short (1-2 16th notes)
+    max_slide_duration = sixteenth_note * 2
 
     new_data = []
     new_midi_notes = []
@@ -297,26 +316,61 @@ def merge_syllable_segments(midi_segments: list[MidiSegment],
     previous_data = None
 
     for i, data in enumerate(transcribed_data):
-        is_note_short = (data.end - data.start) < thirtytwo_note
-        is_same_note = midi_segments[i].note == midi_segments[i - 1].note
+        # Check if previous element exists
+        is_same_note = i > 0 and midi_segments[i].note == midi_segments[i - 1].note
         has_breath_pause = False
 
         if previous_data is not None:
             has_breath_pause = (data.start - previous_data.end) > sixteenth_note
 
-        if (str(data.word).startswith("~")
-                and previous_data is not None
-                and (is_note_short or is_same_note)
-                and not has_breath_pause):
+        # Slide detection: Detect short ~ segments with small pitch jumps
+        is_potential_slide = False
+        if i > 0 and str(data.word).strip().startswith("~"):
+            duration = data.end - data.start
+
+            # Calculate pitch jump in semitones
+            try:
+                prev_midi = librosa.note_to_midi(midi_segments[i - 1].note)
+                curr_midi = librosa.note_to_midi(midi_segments[i].note)
+                semitone_diff = abs(curr_midi - prev_midi)
+
+                # Slide: Short duration AND small pitch jump (1-2 semitones)
+                is_potential_slide = (duration <= max_slide_duration and
+                                     semitone_diff <= 2 and
+                                     semitone_diff > 0)
+            except:
+                # ignore slide detection
+                pass
+
+        # Merge only when:
+        # Case 1: Same note directly consecutive (not a slide, but held note)
+        # Case 2: Potential slide (short ~ with small pitch jump)
+        should_merge = (str(data.word).strip().startswith("~")
+                       and previous_data is not None
+                       and (is_same_note or is_potential_slide)
+                       and not has_breath_pause)
+
+        if should_merge:
+            # Merge with previous segment
+            # For a slide: Take the note of the previous segment (ignore transition note)
             new_data[-1].end = data.end
             new_midi_notes[-1].end = data.end
 
+            # For slides: Keep the original note (not the transition note)
+            if is_potential_slide and not is_same_note:
+                # The note remains the one from the previous segment
+                new_midi_notes[-1].note = midi_segments[i - 1].note
+
+            # Take over space and word_end flag from current segment
             if str(data.word).endswith(" "):
-                new_data[-1].word += " "
-                new_midi_notes[-1].word += " "
+                if not new_data[-1].word.endswith(" "):
+                    new_data[-1].word += " "
+                if not new_midi_notes[-1].word.endswith(" "):
+                    new_midi_notes[-1].word += " "
                 new_data[-1].is_word_end = True
 
         else:
+            # Add as new segment
             new_data.append(data)
             new_midi_notes.append(midi_segments[i])
 
@@ -403,14 +457,14 @@ def CreateUltraStarTxt(process_data: ProcessData):
     # Move instrumental and vocals
     if settings.create_karaoke and version.parse(settings.format_version.value) < version.parse(
             FormatVersion.V1_1_0.value):
-        karaoke_output_path = os.path.join(settings.output_folder_path, process_data.basename + " [Karaoke].mp3")
+        karaoke_output_path = os.path.join(settings.output_folder_path, process_data.basename + " [Karaoke].m4a")
         convert_wav_to_mp3(process_data.process_data_paths.instrumental_audio_file_path, karaoke_output_path)
 
     if version.parse(settings.format_version.value) >= version.parse(FormatVersion.V1_1_0.value):
         instrumental_output_path = os.path.join(settings.output_folder_path,
-                                                process_data.basename + " [Instrumental].mp3")
+                                                process_data.basename + " [Instrumental].m4a")
         convert_wav_to_mp3(process_data.process_data_paths.instrumental_audio_file_path, instrumental_output_path)
-        vocals_output_path = os.path.join(settings.output_folder_path, process_data.basename + " [Vocals].mp3")
+        vocals_output_path = os.path.join(settings.output_folder_path, process_data.basename + " [Vocals].m4a")
         convert_wav_to_mp3(process_data.process_data_paths.vocals_audio_file_path, vocals_output_path)
 
     # Create Ultrastar txt
