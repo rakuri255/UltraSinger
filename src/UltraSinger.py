@@ -701,7 +701,7 @@ def init_settings(argv: list[str]) -> Settings:
             settings.keep_cache = True
         elif opt in ("--musescore_path"):
             settings.musescore_path = arg
-        elif opt in ("--cache_override_path"):  # <--- ADD THIS BLOCK
+        elif opt in ("--cache_override_path"):
             settings.cache_override_path = arg
         #Addition of demucs model choice. Work seems to be needed to make sure syntax is same for models. Added error handling for unknown models
         elif opt in ("--demucs"):
@@ -753,7 +753,7 @@ def arg_options():
         "format_version=",
         "keep_cache",
         "musescore_path=",
-        "cache_override_path=",  # Added this line so the flag is recognized
+        "cache_override_path=",
         "keep_numbers",
         "interactive",
         "cookiefile=",
