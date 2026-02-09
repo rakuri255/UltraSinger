@@ -11,7 +11,7 @@ def print_help() -> None:
     [opt]
     -h      This help text.
     -i      Ultrastar.txt
-            audio like .mp3, .wav, youtube link
+            audio/video like .mp3, .mp4, .wav, youtube link
     -o      Output folder
     
     [mode]
