@@ -1,4 +1,4 @@
-# Version: 0.0.13dev11
+# Version: 0.0.13dev12
 Date: 2026.02.08
 - Changes:
   - Download Cover from MusicBrainz
@@ -12,6 +12,7 @@ Date: 2026.02.08
   - No linebreak before the last 'E' word for UltraStar txt files
   - Download yt video/audio only once
   - Support for video as input
+  - Optimise scale detection
 
 # Version: 0.0.12
 Date: 2024.12.19
