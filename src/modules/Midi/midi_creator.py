@@ -83,9 +83,20 @@ def find_nearest_index(array: list[float], value: float) -> int:
     return idx
 
 
-def create_midi_notes_from_pitched_data(start_times: list[float], end_times: list[float], words: list[str], pitched_data: PitchedData) -> list[
-    MidiSegment]:
-    """Create midi notes from pitched data"""
+def create_midi_notes_from_pitched_data(start_times: list[float], end_times: list[float], words: list[str],
+                                         pitched_data: PitchedData, allowed_notes: set[str] = None) -> list[MidiSegment]:
+    """Create midi notes from pitched data
+
+    Args:
+        start_times: List of start times
+        end_times: List of end times
+        words: List of words/syllables
+        pitched_data: Pitched data containing frequencies and confidence
+        allowed_notes: Optional set of allowed note names for key quantization
+
+    Returns:
+        List of MidiSegments
+    """
     print(f"{ULTRASINGER_HEAD} Creating midi_segments")
 
     midi_segments = []
@@ -94,7 +105,7 @@ def create_midi_notes_from_pitched_data(start_times: list[float], end_times: lis
         end_time = end_times[index]
         word = str(words[index])
 
-        midi_segment = create_midi_note_from_pitched_data(start_time, end_time, pitched_data, word)
+        midi_segment = create_midi_note_from_pitched_data(start_time, end_time, pitched_data, word, allowed_notes)
         midi_segments.append(midi_segment)
 
         # todo: Progress?
@@ -102,8 +113,20 @@ def create_midi_notes_from_pitched_data(start_times: list[float], end_times: lis
     return midi_segments
 
 
-def create_midi_note_from_pitched_data(start_time: float, end_time: float, pitched_data: PitchedData, word: str) -> MidiSegment:
-    """Create midi note from pitched data"""
+def create_midi_note_from_pitched_data(start_time: float, end_time: float, pitched_data: PitchedData, word: str,
+                                        allowed_notes: set[str] = None) -> MidiSegment:
+    """Create midi note from pitched data
+
+    Args:
+        start_time: Start time of the note
+        end_time: End time of the note
+        pitched_data: Pitched data containing frequencies and confidence
+        word: The word/syllable for this note
+        allowed_notes: Optional set of allowed note names (without octave) for key quantization
+
+    Returns:
+        One MidiSegment
+    """
 
     start = find_nearest_index(pitched_data.times, start_time)
     end = find_nearest_index(pitched_data.times, end_time)
@@ -121,10 +144,25 @@ def create_midi_note_from_pitched_data(start_time: float, end_time: float, pitch
 
     note = most_frequent(notes)[0][0]
 
+    if allowed_notes is not None:
+        from modules.Audio.key_detector import quantize_note_to_key
+        note = quantize_note_to_key(note, allowed_notes)
+
     return MidiSegment(note, start_time, end_time, word)
 
 
-def create_midi_segments_from_transcribed_data(transcribed_data: list[TranscribedData], pitched_data: PitchedData) -> list[MidiSegment]:
+def create_midi_segments_from_transcribed_data(transcribed_data: list[TranscribedData], pitched_data: PitchedData,
+                                                allowed_notes: set[str] = None) -> list[MidiSegment]:
+    """Create MIDI segments from transcribed data
+
+    Args:
+        transcribed_data: List of transcribed data segments
+        pitched_data: Pitched data containing frequencies and confidence
+        allowed_notes: Optional set of allowed note names for key quantization
+
+    Returns:
+        List of MidiSegments
+    """
     start_times = []
     end_times = []
     words = []
@@ -135,7 +173,7 @@ def create_midi_segments_from_transcribed_data(transcribed_data: list[Transcribe
             end_times.append(midi_segment.end)
             words.append(midi_segment.word)
         midi_segments = create_midi_notes_from_pitched_data(start_times, end_times, words,
-                                                            pitched_data)
+                                                            pitched_data, allowed_notes)
         return midi_segments
 
 

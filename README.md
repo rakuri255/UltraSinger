@@ -131,6 +131,7 @@ _Not all options working now!_
     --create_audio_chunks   Enable creation of audio chunks. Audio chunks are disabled by default.
     --keep_cache            Keep cache folder after creation. Cache folder is removed by default.
     --plot                  Enable creation of plots. Plots are disabled by default.
+    --quantize_to_key       Quantize notes to detected musical key. Removes pitch slides and out-of-key notes. >> ((default) is enabled)
     --format_version        0.3.0|1.0.0|1.1.0|1.2.0 >> ((default) is 1.2.0)
     --musescore_path        path to MuseScore executable
     --keep_numbers          Transcribe numbers as digits and not words
@@ -235,6 +236,15 @@ you have the option to disable this function; in which case the original audio f
 ```commandline
 -i XYZ --disable_separation
 ```
+
+### 🎵 Key Quantization
+
+By default, UltraSinger quantizes all detected notes to the detected musical key of the song. This helps to:
+* Remove pitch slides and vocal transitions between notes
+* Correct out-of-key notes from pitch detection errors
+
+If you want to keep the raw pitch detection without quantization, set `quantize_to_key = False`.
+For most songs  quantization should produces better results.
 
 ### Sheet Music
 

@@ -17,6 +17,7 @@ from modules.Audio.vocal_chunks import (
     create_audio_chunks_from_transcribed_data,
     create_audio_chunks_from_ultrastar_data,
 )
+from modules.Audio.key_detector import detect_key_from_audio, get_allowed_notes_for_key
 from modules.Audio.silence_processing import remove_silence_from_transcription_data, mute_no_singing_parts
 from modules.Audio.separation import DemucsModel
 from modules.Audio.convert_audio import convert_audio_to_mono_wav, convert_wav_to_mp3
@@ -156,6 +157,8 @@ def run() -> tuple[str, Score, Score]:
         print(f"{ULTRASINGER_HEAD} {bright_green_highlighted('Option:')} {cyan_highlighted('Vocals will not be separated')}")
     if not settings.hyphenation:
         print(f"{ULTRASINGER_HEAD} {bright_green_highlighted('Option:')} {cyan_highlighted('Hyphenation will not be applied')}")
+    if settings.quantize_to_key:
+        print(f"{ULTRASINGER_HEAD} {bright_green_highlighted('Option:')} {cyan_highlighted('Notes will be quantized to the detected musical key')}")
 
     process_data = InitProcessData()
 
@@ -167,6 +170,11 @@ def run() -> tuple[str, Score, Score]:
 
     # Create process audio
     process_data.process_data_paths.processing_audio_path = CreateProcessAudio(process_data)
+
+    # Detect key
+    detected_key, detected_mode = detect_key_from_audio(process_data.process_data_paths.processing_audio_path)
+    if process_data.media_info.music_key is None:
+        process_data.media_info.music_key = f"{detected_key} {detected_mode}"
 
     # Audio transcription
     process_data.media_info.language = settings.language
@@ -185,10 +193,18 @@ def run() -> tuple[str, Score, Score]:
     # Pitch audio
     process_data.pitched_data = pitch_audio(process_data.process_data_paths)
 
+    # Allowed keys for quantization
+    allowed_notes_for_key = None
+    if settings.quantize_to_key and not settings.ignore_audio:
+        allowed_notes_for_key = get_allowed_notes_for_key(detected_key, detected_mode)
+
     # Create Midi_Segments
     if not settings.ignore_audio:
-        process_data.midi_segments = create_midi_segments_from_transcribed_data(process_data.transcribed_data,
-                                                                                process_data.pitched_data)
+        process_data.midi_segments = create_midi_segments_from_transcribed_data(
+            process_data.transcribed_data,
+            process_data.pitched_data,
+            allowed_notes_for_key
+        )
     else:
         process_data.midi_segments = create_repitched_midi_segments_from_ultrastar_txt(process_data.pitched_data,
                                                                                        process_data.parsed_file)
@@ -301,9 +317,10 @@ def merge_syllable_segments(midi_segments: list[MidiSegment],
                             real_bpm: float) -> tuple[list[MidiSegment], list[TranscribedData]]:
     """Merge sub-segments of a syllable where the pitch is the same
 
-    This function handles two cases:
+    This function handles three cases:
     1. Merge consecutive ~ segments with the SAME pitch (same note held)
     2. Detect and merge SLIDES: short ~ segments with ±1-2 semitone jumps between syllables
+    3. Merge ANY consecutive segments (including regular syllables) with the SAME pitch into one word
     """
 
     sixteenth_note = get_sixteenth_note_second(real_bpm)
@@ -323,9 +340,13 @@ def merge_syllable_segments(midi_segments: list[MidiSegment],
         if previous_data is not None:
             has_breath_pause = (data.start - previous_data.end) > sixteenth_note
 
+        # Check if current word is a ~ segment (continuation marker)
+        current_word_stripped = str(data.word).strip()
+        is_tilde_segment = current_word_stripped == "~"
+
         # Slide detection: Detect short ~ segments with small pitch jumps
         is_potential_slide = False
-        if i > 0 and str(data.word).strip().startswith("~"):
+        if i > 0 and is_tilde_segment:
             duration = data.end - data.start
 
             # Calculate pitch jump in semitones
@@ -339,35 +360,74 @@ def merge_syllable_segments(midi_segments: list[MidiSegment],
                                      semitone_diff <= 2 and
                                      semitone_diff > 0)
             except:
-                # ignore slide detection
+                # Ignore slide detection on error
                 pass
 
-        # Merge only when:
-        # Case 1: Same note directly consecutive (not a slide, but held note)
-        # Case 2: Potential slide (short ~ with small pitch jump)
-        should_merge = (str(data.word).strip().startswith("~")
-                       and previous_data is not None
-                       and (is_same_note or is_potential_slide)
-                       and not has_breath_pause)
+        # Check if current segment should be merged with previous due to same pitch
+        should_merge_same_pitch = False
+        if (i > 0 and
+            previous_data is not None and
+            not is_tilde_segment and  # Not a ~ segment
+            is_same_note and
+            not has_breath_pause and
+            not previous_data.is_word_end):  # Don't merge across word boundaries
+            should_merge_same_pitch = True
 
-        if should_merge:
-            # Merge with previous segment
-            # For a slide: Take the note of the previous segment (ignore transition note)
+        should_merge_tilde = (is_tilde_segment and
+                             previous_data is not None and
+                             (is_same_note or is_potential_slide) and
+                             not has_breath_pause)
+
+        if should_merge_tilde:
             new_data[-1].end = data.end
             new_midi_notes[-1].end = data.end
 
             # For slides: Keep the original note (not the transition note)
             if is_potential_slide and not is_same_note:
-                # The note remains the one from the previous segment
                 new_midi_notes[-1].note = midi_segments[i - 1].note
 
             # Take over space and word_end flag from current segment
+            # "~ " means end of word - add space to previous segment
             if str(data.word).endswith(" "):
                 if not new_data[-1].word.endswith(" "):
                     new_data[-1].word += " "
                 if not new_midi_notes[-1].word.endswith(" "):
                     new_midi_notes[-1].word += " "
                 new_data[-1].is_word_end = True
+
+        elif should_merge_same_pitch:
+            # Merge regular syllable with previous syllable (same pitch)
+            new_data[-1].end = data.end
+            new_midi_notes[-1].end = data.end
+
+            # Check if current word has space at end before stripping
+            has_space = str(data.word).endswith(" ")
+
+            # Concatenate the words (remove trailing space from previous, add current word)
+            prev_word = new_data[-1].word.rstrip()
+            curr_word = data.word.rstrip()
+
+            # Remove ~ from BOTH previous and current word if present
+            if prev_word == "~":
+                prev_word = ""
+            if curr_word.startswith("~"):
+                curr_word = curr_word[1:]
+
+            # Concatenate
+            new_data[-1].word = prev_word + curr_word
+            new_midi_notes[-1].word = prev_word + curr_word
+
+            # Preserve space at end if current segment had it
+            if has_space:
+                new_data[-1].word += " "
+                new_midi_notes[-1].word += " "
+
+            if data.is_word_end:
+                new_data[-1].is_word_end = True
+                new_data[-1].is_hyphen = False
+            else:
+                # Keep hyphen status if either segment was hyphenated
+                new_data[-1].is_hyphen = new_data[-1].is_hyphen or data.is_hyphen
 
         else:
             # Add as new segment
@@ -596,7 +656,7 @@ def infos_from_audio_video_input_file() -> tuple[str, str, str, MediaInfo]:
 
     extension = os.path.splitext(basename)[1]
     if is_video_file(settings.input_file_path):
-        print(f"{ULTRASINGER_HEAD} {gold_highlighted('Video file detected - separating audio and video')}")
+        print(f"{ULTRASINGER_HEAD} Video file detected - separating audio and video")
 
         video_with_audio_basename = f"{basename_without_ext}{extension}"
         video_with_audio_path = os.path.join(song_folder_output_path, video_with_audio_basename)
@@ -784,6 +844,8 @@ def init_settings(argv: list[str]) -> Settings:
             settings.cookiefile = arg
         elif opt in ("--interactive"):
             settings.interactive_mode = True
+        elif opt in ("--quantize_to_key"):
+            settings.quantize_to_key = arg
         elif opt in ("--ffmpeg"):
             settings.user_ffmpeg_path = arg
     if settings.output_folder_path == "":
@@ -824,6 +886,7 @@ def arg_options():
         "keep_cache",
         "musescore_path=",
         "keep_numbers",
+        "quantize_to_key",
         "interactive",
         "cookiefile=",
         "ffmpeg="

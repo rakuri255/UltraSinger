@@ -25,6 +25,7 @@ class MediaInfo:
     language: Optional[str] = None
     cover_url: Optional[str] = None
     video_url: Optional[str] = None
+    music_key: Optional[str] = None  # (e.g., "C major", "A minor")
 
 @dataclass
 class ProcessData:

@@ -1,5 +1,5 @@
-# Version: 0.0.13dev12
-Date: 2026.02.08
+# Version: 0.0.13dev13
+Date: 2026.02.10
 - Changes:
   - Download Cover from MusicBrainz
   - Fix selection of whisper model
@@ -13,6 +13,7 @@ Date: 2026.02.08
   - Download yt video/audio only once
   - Support for video as input
   - Optimise scale detection
+  - Added quantization by key
 
 # Version: 0.0.12
 Date: 2024.12.19

@@ -11,7 +11,7 @@ from modules.Ultrastar.ultrastar_txt import FormatVersion
 @dataclass
 class Settings:
 
-    APP_VERSION = "0.0.13-dev12"
+    APP_VERSION = "0.0.13-dev13"
     CONFIDENCE_THRESHOLD = 0.6
     CONFIDENCE_PROMPT_TIMEOUT = 4
 
@@ -26,6 +26,7 @@ class Settings:
     keep_cache = False
     interactive_mode = False
     user_ffmpeg_path = ""
+    quantize_to_key = True  # Quantize notes to the detected key of the song
 
     # Process data Paths
     input_file_path = ""

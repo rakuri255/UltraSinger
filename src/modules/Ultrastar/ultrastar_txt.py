@@ -33,7 +33,7 @@ class UltrastarTxtTag(str, Enum):
     AUDIO = 'AUDIO'  # Its instead of MP3. Just renamed
     VOCALS = 'VOCALS'  # Vocals only audio
     INSTRUMENTAL = 'INSTRUMENTAL'  # Instrumental only audio
-    TAGS = 'TAGS'  # Tags for the song. Can be used for filtering
+    TAGS = 'TAGS'  # Tags for the song. Can be used for filtering. Separation with ","
 
     # 1.2.0
     VIDEOURL = 'VIDEOURL'  # URL to the video file
