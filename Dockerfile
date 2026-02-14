@@ -13,20 +13,19 @@ ENV UV_LINK_MODE=copy
 
 # copy pyproject.toml first to leverage container image build cache
 COPY ./pyproject.toml /app/UltraSinger/pyproject.toml
+# Need to copy some minimal source structure for editable install
+RUN mkdir -p /app/UltraSinger/src
 WORKDIR /app/UltraSinger
 
-# Sync dependencies from pyproject.toml (will create uv.lock if not present)
-RUN uv sync
+# Install dependencies from pyproject.toml directly without venv (container is already isolated)
+RUN uv pip install --system --python 3.12 -e . --no-build-isolation
 
 # Install PyTorch with CUDA support (override the CPU version from pyproject.toml)
-RUN uv pip install torch==2.8.0 torchvision==0.23.0 torchaudio==2.8.0 --index-url https://download.pytorch.org/whl/cu128 --force-reinstall
+RUN uv pip install --system --python 3.12 torch==2.8.0 torchvision==0.23.0 torchaudio==2.8.0 --index-url https://download.pytorch.org/whl/cu128 --reinstall
 
 # copy sources late to allow for caching of layers which contain all the dependencies
 COPY . /app/UltraSinger
 
-# Set venv path
-ENV VIRTUAL_ENV=/app/UltraSinger/.venv
-ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 
 # no need to run as root
 RUN chown -R 1000:1000 /app/UltraSinger
