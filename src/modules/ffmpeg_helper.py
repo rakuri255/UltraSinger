@@ -91,18 +91,65 @@ def is_video_file(file_path: str) -> bool:
         return False
 
 
+def get_audio_codec_and_extension(video_file_path: str) -> str:
+    """
+    Detect audio codec from video file and return codec name and appropriate file extension.
+    """
+    try:
+        _, ffprobe_path = get_ffmpeg_and_ffprobe_paths()
+
+        cmd = [
+            ffprobe_path,
+            "-v", "error",
+            "-select_streams", "a:0",
+            "-show_entries", "stream=codec_name",
+            "-of", "default=noprint_wrappers=1:nokey=1",
+            video_file_path
+        ]
+
+        result = subprocess.run(cmd, capture_output=True, text=True)
+        if result.returncode != 0 or not result.stdout.strip():
+            # Default to wav if detection fails
+            return "wav"
+
+        codec_name = result.stdout.strip()
+
+        codec_to_extension = {
+            "aac": "aac",
+            "mp3": "mp3",
+            "opus": "opus",
+            "vorbis": "ogg",
+            "flac": "flac",
+            "pcm_s16le": "wav",
+            "pcm_s24le": "wav",
+            "pcm_s32le": "wav",
+            "ac3": "ac3",
+            "eac3": "eac3",
+        }
+
+        extension = codec_to_extension.get(codec_name, ".wav")
+        return extension
+
+    except Exception:
+        # Default to wav if detection fails
+        return "wav"
+
+
 def separate_audio_video(video_with_audio_path: str, basename_without_ext: str, output_folder: str) -> tuple[str, str]:
     """
     Separate audio and video from a video file.
-    Returns tuple of (audio_file_path, video_file_path)
+    Automatically detects the audio codec and uses the appropriate file extension.
     """
     from modules.console_colors import ULTRASINGER_HEAD
 
     # Get original video file extension
     _, video_ext = os.path.splitext(video_with_audio_path)
 
+    # Detect audio codec and get appropriate extension
+    audio_ext = get_audio_codec_and_extension(video_with_audio_path)
+
     print(f"{ULTRASINGER_HEAD} Extracting audio from video")
-    audio_file_path = os.path.join(output_folder, f"{basename_without_ext}.m4a")
+    audio_file_path = os.path.join(output_folder, f"{basename_without_ext}.{audio_ext}")
     extract_audio(video_with_audio_path, audio_file_path)
 
     print(f"{ULTRASINGER_HEAD} Creating video without audio")

@@ -43,7 +43,7 @@ from modules.Midi.midi_creator import (
 from modules.Midi.MidiSegment import MidiSegment
 from modules.Midi.note_length_calculator import get_thirtytwo_note_second, get_sixteenth_note_second
 from modules.Pitcher.pitcher import (
-    get_pitch_with_crepe_file,
+    get_pitch_with_file,
 )
 from modules.Pitcher.pitched_data import PitchedData
 from modules.Speech_Recognition.TranscriptionResult import TranscriptionResult
@@ -700,16 +700,13 @@ def pitch_audio(
         process_data_paths: ProcessDataPaths) -> PitchedData:
     """Pitch audio"""
 
-    pitching_config = f"crepe_{settings.ignore_audio}_{settings.crepe_model_capacity}_{settings.crepe_step_size}_{settings.tensorflow_device}"
+    pitching_config = f"swiftf0_{settings.ignore_audio}"
     pitched_data_path = os.path.join(process_data_paths.cache_folder_path, f"{pitching_config}.json")
     cache_available = check_file_exists(pitched_data_path)
 
     if settings.skip_cache_transcription or not cache_available:
-        pitched_data = get_pitch_with_crepe_file(
-            process_data_paths.processing_audio_path,
-            settings.crepe_model_capacity,
-            settings.crepe_step_size,
-            settings.tensorflow_device,
+        pitched_data = get_pitch_with_file(
+            process_data_paths.processing_audio_path
         )
 
         pitched_data_json = pitched_data.to_json()
@@ -737,7 +734,7 @@ def main(argv: list[str]) -> None:
 
 def check_requirements() -> None:
     if not settings.force_cpu:
-        settings.tensorflow_device, settings.pytorch_device = check_gpu_support()
+        settings.pytorch_device = check_gpu_support()
     print(f"{ULTRASINGER_HEAD} ----------------------")
 
     if not is_ffmpeg_available(settings.user_ffmpeg_path):

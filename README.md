@@ -69,16 +69,16 @@ This will help me a lot to keep this project alive and improve it.
 
 ### Installation
 
-* Install Python 3.10 **(older and newer versions has some breaking changes)**. [Download](https://www.python.org/downloads/)
+* Install Python 3.12 **(older/newer versions may have compatibility issues)**. [Download](https://www.python.org/downloads/)
 * Also download or install ffmpeg with PATH. [Download](https://www.ffmpeg.org/download.html)
-* Go to folder `install` and run install script for your OS.
-  * Choose `GPU` if you have an nvidia CUDA GPU.
-  * Choose `CPU` if you don't have an nvidia CUDA GPU.
+* Go to folder `install` and run install script for your OS:
+  * Choose `GPU` if you have an NVIDIA CUDA GPU.
+  * Choose `CPU` if you don't have an NVIDIA GPU or want CPU-only processing.
 
 ### Run
 
-* In root folder just run `run_on_windows.bat`, `run_on_linux.sh` or `run_on_macos.command` to start the app.
-* Now you can use the UltraSinger source code with `py UltraSinger.py [opt] [mode] [transcription] [pitcher] [extra]`. See [How to use](#how-to-use) for more information.
+* In root folder just run `run_on_windows.bat`, `run_on_linux.sh` or `run_on_mac.command` to start the app.
+* Now you can use the UltraSinger source code with `py UltraSinger.py [opt] [mode] [transcription] [pitcher] [extra]`. See [How to use](#-how-to-use-the-app) for more information.
 
 ## 📖 How to use the App
 
@@ -119,11 +119,6 @@ _Not all options working now!_
     --whisper_compute_type  Change to "int8" if low on GPU mem (may reduce accuracy) >> ((default) is "float16" for cuda devices, "int8" for cpu)
     --keep_numbers          Numbers will be transcribed as numerics instead of as words
 
-    [pitcher]
-    # Default is crepe
-    --crepe            tiny|full >> ((default) is full)
-    --crepe_step_size  unit is miliseconds >> ((default) is 10)
-
     [extra]
     --disable_hyphenation   Disable word hyphenation. Hyphenation is enabled by default.
     --disable_separation    Disable track separation. Track separation is enabled by default.
@@ -143,7 +138,6 @@ _Not all options working now!_
     [device]
     --force_cpu             Force all steps to be processed on CPU.
     --force_whisper_cpu     Only whisper will be forced to cpu
-    --force_crepe_cpu       Only crepe will be forced to cpu
 ```
 
 For standard use, you only need to use [opt]. All other options are optional.
@@ -219,14 +213,9 @@ starts at the place or is heard. To disable:
 
 ### 👂 Pitcher
 
-Pitching is done with the `crepe` model.
-Also consider that a bigger model is more accurate, but also takes longer to pitch.
-For just testing you should use `tiny`.
-If you want solid accurate, then use the `full` model.
-
-```commandline
--i XYZ --crepe full
-```
+Pitching is done with the `SwiftF0` model, which is faster and more accurate than CREPE.
+SwiftF0 automatically detects pitch frequencies between 46.875 Hz (G1) and 2093.75 Hz (C7).
+UltraSinger uses 60hz and 400hz
 
 ### 👄 Separation
 
@@ -285,33 +274,24 @@ this MIDI and sheet are created. And you also want to have accurate files
 
 With a GPU you can speed up the process. Also the quality of the transcription and pitching is better.
 
-You need a cuda device for this to work. Sorry, there is no cuda device for macOS.
+You need an NVIDIA CUDA device for this to work. Sorry, there is no CUDA device for macOS.
 
-It is optional (but recommended) to install the cuda driver for your gpu: see [driver](https://developer.nvidia.com/cuda-downloads).
-Install torch with cuda separately in your `venv`. See [tourch+cuda](https://pytorch.org/get-started/locally/).
-Also check you GPU cuda support. See [cuda support](https://gist.github.com/standaloneSA/99788f30466516dbcc00338b36ad5acf)
+For GPU support on Windows and Linux, the installation script automatically installs PyTorch with CUDA support.
 
-Command for `pip`:
+It is optional (but recommended) to install the CUDA driver for your GPU: see [CUDA driver](https://developer.nvidia.com/cuda-downloads).
+Also check your GPU CUDA support. See [CUDA support](https://gist.github.com/standaloneSA/99788f30466516dbcc00338b36ad5acf)
+
+For manual installation, you can use:
+```bash
+uv pip install --index-url https://download.pytorch.org/whl/cu121 torch torchvision torchaudio
 ```
-pip3 install torch==2.0.1+cu117 torchvision==0.15.2+cu117 torchaudio==2.0.2+cu117 --index-url https://download.pytorch.org/whl/cu117
-```
 
-When you want to use `conda` instead you need a [different installation command](https://pytorch.org/get-started/locally/).
-
-#### Considerations for Windows users
-
-The pitch tracker used by UltraSinger (crepe) uses TensorFlow as its backend.
-TensorFlow dropped GPU support for Windows for versions >2.10 as you can see in this [release note](https://github.com/tensorflow/tensorflow/releases/tag/v2.11.1) and their [installation instructions](https://www.tensorflow.org/install/pip#windows-native).
-
-For now UltraSinger runs the latest version available that still supports GPUs on windows.
-
-For running later versions of TensorFlow on windows while still taking advantage of GPU support the suggested solution is to [run UltraSinger in a container](container/README.md).
 #### Crashes due to low VRAM
 
-If something crashes because of low VRAM then use a smaller model.
+If something crashes because of low VRAM then use a smaller Whisper model.
 Whisper needs more than 8GB VRAM in the `large` model!
 
-You can also force cpu usage with the extra option `--force_cpu`.
+You can also force CPU usage with the extra option `--force_cpu`.
 
 ### 📦 Containerized (Docker or Podman)
 

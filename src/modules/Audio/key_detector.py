@@ -1,10 +1,8 @@
 """Key detection and pitch quantization to musical scale"""
 
-import copy
 import librosa
 import numpy as np
 
-from modules.Midi.MidiSegment import MidiSegment
 from modules.console_colors import (
     ULTRASINGER_HEAD,
 blue_highlighted)
@@ -96,6 +94,7 @@ def quantize_note_to_key(note: str, allowed_notes: set[str]) -> str:
     Returns:
         Quantized note name
     """
+    print(f"{ULTRASINGER_HEAD} Quantizing note {blue_highlighted(note)} to key with allowed notes")
     # Parse note and octave
     if len(note) == 0:
         return note

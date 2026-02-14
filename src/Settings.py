@@ -11,7 +11,7 @@ from modules.Ultrastar.ultrastar_txt import FormatVersion
 @dataclass
 class Settings:
 
-    APP_VERSION = "0.0.13-dev13"
+    APP_VERSION = "0.0.13-dev14"
     CONFIDENCE_THRESHOLD = 0.6
     CONFIDENCE_PROMPT_TIMEOUT = 4
 
@@ -47,16 +47,10 @@ class Settings:
     whisper_compute_type = None   # change to "int8" if low on GPU mem (may reduce accuracy)
     keep_numbers = False
 
-    # Pitch
-    crepe_model_capacity = "full"  # tiny|small|medium|large|full
-    crepe_step_size = 10 # in miliseconds
-
     # Device
     pytorch_device = 'cpu'  # cpu|cuda
-    tensorflow_device = 'cpu'  # cpu|cuda
     force_cpu = False
     force_whisper_cpu = False
-    force_crepe_cpu = False
 
     # MuseScore
     musescore_path = None
@@ -66,7 +60,7 @@ class Settings:
 
     # UltraSinger Evaluation Configuration
     test_songs_input_folder = None
-    cache_override_path = None
+    cache_override_path = None #"C:\\UltraSinger\\test_output"
     skip_cache_vocal_separation = False
     skip_cache_denoise_vocal_audio = False
     skip_cache_transcription = False

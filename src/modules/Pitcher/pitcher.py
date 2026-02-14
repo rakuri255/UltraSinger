@@ -1,41 +1,63 @@
 """Pitcher module"""
-import os
+import numpy as np
 
-import crepe
 from scipy.io import wavfile
+from swift_f0 import SwiftF0
 
-from modules.console_colors import ULTRASINGER_HEAD, blue_highlighted, red_highlighted
-from modules.Midi.midi_creator import convert_frequencies_to_notes, most_frequent
+from modules.console_colors import ULTRASINGER_HEAD, blue_highlighted
 from modules.Pitcher.pitched_data import PitchedData
-from modules.Pitcher.pitched_data_helper import get_frequencies_with_high_confidence
+
+_swift_f0_detector = None
+
+def _get_detector():
+    """Lazy initialize SwiftF0 detector"""
+    global _swift_f0_detector
+    if _swift_f0_detector is None:
+        # Initialize for general music/speech (wide frequency range) fmin=46.875, fmax=2093.75
+        # fixme: is this correct?
+        # For speech only: fmin=65, fmax=400
+        _swift_f0_detector = SwiftF0(fmin=65, fmax=400, confidence_threshold=0.9)
+    return _swift_f0_detector
 
 
-def get_pitch_with_crepe_file(
-    filename: str, model_capacity: str, step_size: int = 10, device: str = "cpu"
+def get_pitch_with_file(
+    filename: str
 ) -> PitchedData:
-    """Pitch with crepe"""
+    """Pitch detection using SwiftF0"""
 
     print(
-        f"{ULTRASINGER_HEAD} Pitching with {blue_highlighted('crepe')} and model {blue_highlighted(model_capacity)} and {red_highlighted(device)} as worker"
+        f"{ULTRASINGER_HEAD} Pitching with {blue_highlighted('SwiftF0')}"
     )
     sample_rate, audio = wavfile.read(filename)
 
-    return get_pitch_with_crepe(audio, sample_rate, model_capacity, step_size)
+    # Convert stereo to mono if needed
+    if len(audio.shape) > 1:
+        audio = np.mean(audio, axis=1)
+
+    # Normalize audio to float if needed
+    if audio.dtype != np.float32 and audio.dtype != np.float64:
+        audio = audio.astype(np.float32) / (2**15)
+
+    return get_pitch_with_swift_f0(audio, sample_rate)
 
 
-def get_pitch_with_crepe(
-    audio, sample_rate: int, model_capacity: str, step_size: int = 10
+def get_pitch_with_swift_f0(
+    audio: np.ndarray, sample_rate: int
 ) -> PitchedData:
-    """Pitch with crepe"""
+    """Pitch detection using SwiftF0
 
-    # Info: The model is trained on 16 kHz audio, so if the input audio has a different sample rate, it will be first resampled to 16 kHz using resampy inside crepe.
+    SwiftF0 processes audio at 16kHz with 256-sample hop size internally.
+    Returns frames at approximately 62.5 ms intervals.
+    """
+    detector = _get_detector()
 
-    times, frequencies, confidence, activation = crepe.predict(
-        audio, sample_rate, model_capacity, step_size=step_size, viterbi=True
-    )
+    # Detect pitch
+    result = detector.detect_from_array(audio, sample_rate)
 
-    # convert to native float for serialization
-    confidence = [float(x) for x in confidence]
+    # Convert to PitchedData format
+    times = [float(t) for t in result.timestamps]
+    frequencies = [float(f) for f in result.pitch_hz]
+    confidence = [float(c) for c in result.confidence]
 
     return PitchedData(times, frequencies, confidence)
 
@@ -53,39 +75,6 @@ def get_pitched_data_with_high_confidence(
 
     return new_pitched_data
 
-# Todo: Unused
-def pitch_each_chunk_with_crepe(directory: str,
-                                crepe_model_capacity: str,
-                                crepe_step_size: int,
-                                tensorflow_device: str) -> list[str]:
-    """Pitch each chunk with crepe and return midi notes"""
-    print(f"{ULTRASINGER_HEAD} Pitching each chunk with {blue_highlighted('crepe')}")
-
-    midi_notes = []
-    for filename in sorted(
-            [f for f in os.listdir(directory) if f.endswith(".wav")],
-            key=lambda x: int(x.split("_")[1]),
-    ):
-        filepath = os.path.join(directory, filename)
-        # todo: stepsize = duration? then when shorter than "it" it should take the duration. Otherwise there a more notes
-        pitched_data = get_pitch_with_crepe_file(
-            filepath,
-            crepe_model_capacity,
-            crepe_step_size,
-            tensorflow_device,
-        )
-        conf_f = get_frequencies_with_high_confidence(
-            pitched_data.frequencies, pitched_data.confidence
-        )
-
-        notes = convert_frequencies_to_notes(conf_f)
-        note = most_frequent(notes)[0][0]
-
-        midi_notes.append(note)
-        # todo: Progress?
-        # print(filename + " f: " + str(mean))
-
-    return midi_notes
 
 class Pitcher:
     """Docstring"""
