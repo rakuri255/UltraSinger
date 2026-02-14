@@ -3,13 +3,13 @@ name: Check Requirements
 on:
   push:
     paths:
-      - "requirements-linux.txt"
-      - "requirements-windows.txt"
+      - "pyproject.toml"
+      - "uv.lock"
 
   pull_request:
     paths:
-      - "requirements-linux.txt"
-      - "requirements-windows.txt"
+      - "pyproject.toml"
+      - "uv.lock"
 
 jobs:
   build:
@@ -23,29 +23,35 @@ jobs:
             TARGET: macOS
           - os: windows-latest
             TARGET: Windows
-        python-version: [ "3.10" ]
+        python-version: [ "3.12" ]
 
     steps:
     - name: Checkout repository
       uses: actions/checkout@v3
 
-    - name: Set up Python 3.10
+    - name: Set up Python 3.12
       uses: actions/setup-python@v4
       with:
         python-version: ${{ matrix.python-version }}
 
-    - name: Install dependencies (Windows)
-      if: matrix.TARGET == 'Windows'
+    - name: Install uv
       run: |
-        python -m pip install --upgrade pip
-        pip install -r requirements-windows.txt
+        curl -LsSf https://astral.sh/uv/install.sh | sh
+      shell: bash
 
-    - name: Install dependencies (others)
+    - name: Add uv to PATH (Unix)
       if: matrix.TARGET != 'Windows'
-      run: |
-        python -m pip install --upgrade pip
-        pip install -r requirements-linux.txt
-      
-    - name: Install gpu dependencies
-      if: matrix.TARGET != 'macOS'
-      run: pip3 install torch==2.0.1+cu117 torchvision==0.15.2+cu117 torchaudio==2.0.2+cu117 --index-url https://download.pytorch.org/whl/cu117
+      run: echo "$HOME/.local/bin" >> $GITHUB_PATH
+      shell: bash
+
+    - name: Add uv to PATH (Windows)
+      if: matrix.TARGET == 'Windows'
+      run: echo "$env:USERPROFILE\.local\bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+      shell: pwsh
+
+    - name: Sync dependencies from pyproject.toml
+      run: uv sync
+      shell: bash
+
+
+
