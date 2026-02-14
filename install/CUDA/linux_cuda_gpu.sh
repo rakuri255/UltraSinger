@@ -27,9 +27,9 @@ uv --version
 
 # Sync dependencies from pyproject.toml
 echo "Syncing dependencies from pyproject.toml..."
-uv sync
+uv sync --extra linux
 
-# Install PyTorch with CUDA support (override the CPU version from pyproject.toml)
+# Install PyTorch with CUDA support
 echo "Installing PyTorch with CUDA support..."
 uv pip install torch==2.8.0 torchvision==0.23.0 torchaudio==2.8.0 --index-url https://download.pytorch.org/whl/cu128 --force-reinstall
 
