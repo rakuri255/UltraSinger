@@ -24,6 +24,9 @@ COPY ./pyproject.toml /app/UltraSinger/pyproject.toml
 RUN mkdir -p /app/UltraSinger/src
 WORKDIR /app/UltraSinger
 
+# Install setuptools first (required by demucs and other packages as build dependency)
+RUN uv pip install --system --python 3.12 setuptools wheel
+
 # Install dependencies from pyproject.toml directly without venv (container is already isolated)
 RUN uv pip install --system --python 3.12 -e . --no-build-isolation
 
