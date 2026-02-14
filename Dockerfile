@@ -24,11 +24,9 @@ COPY ./pyproject.toml /app/UltraSinger/pyproject.toml
 RUN mkdir -p /app/UltraSinger/src
 WORKDIR /app/UltraSinger
 
-# Install build dependencies first (required by various packages when using --no-build-isolation)
-RUN uv pip install --system --python 3.12 setuptools wheel hatchling
-
 # Install dependencies from pyproject.toml directly without venv (container is already isolated)
-RUN uv pip install --system --python 3.12 -e . --no-build-isolation
+# Using build isolation (without --no-build-isolation) so uv handles all build dependencies automatically
+RUN uv pip install --system --python 3.12 -e .
 
 # Install PyTorch with CUDA support (override the CPU version from pyproject.toml)
 RUN uv pip install --system --python 3.12 torch==2.8.0 torchvision==0.23.0 torchaudio==2.8.0 --index-url https://download.pytorch.org/whl/cu128 --reinstall
