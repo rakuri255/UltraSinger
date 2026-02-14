@@ -1,8 +1,11 @@
 FROM nvidia/cuda:12.6.3-runtime-ubuntu22.04
 
-# note: the python3-pip package contains Python 3.12 on Ubuntu 22.04
+# Install Python 3.12 from deadsnakes PPA
 RUN apt-get update \
-    && apt-get install git python3 python3-venv ffmpeg curl -y  \
+    && apt-get install -y software-properties-common \
+    && add-apt-repository ppa:deadsnakes/ppa -y \
+    && apt-get update \
+    && apt-get install git python3.12 python3.12-venv python3.12-dev ffmpeg curl -y  \
     && apt-get clean  \
     && rm -rf /var/lib/apt/lists/*
 
