@@ -1,4 +1,4 @@
-FROM nvidia/cuda:12.6.3-runtime-ubuntu22.04
+FROM nvidia/cuda:12.8.1-runtime-ubuntu22.04
 
 # Set timezone and configure non-interactive installation
 ENV DEBIAN_FRONTEND=noninteractive
