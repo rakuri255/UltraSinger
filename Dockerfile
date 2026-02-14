@@ -1,11 +1,15 @@
 FROM nvidia/cuda:12.6.3-runtime-ubuntu22.04
 
+# Set timezone and configure non-interactive installation
+ENV DEBIAN_FRONTEND=noninteractive
+ENV TZ=UTC
+
 # Install Python 3.12 from deadsnakes PPA
 RUN apt-get update \
     && apt-get install -y software-properties-common \
     && add-apt-repository ppa:deadsnakes/ppa -y \
     && apt-get update \
-    && apt-get install git python3.12 python3.12-venv python3.12-dev ffmpeg curl -y  \
+    && apt-get install -y git python3.12 python3.12-venv python3.12-dev ffmpeg curl tzdata \
     && apt-get clean  \
     && rm -rf /var/lib/apt/lists/*
 
