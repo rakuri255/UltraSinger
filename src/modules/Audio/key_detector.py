@@ -1,10 +1,8 @@
 """Key detection and pitch quantization to musical scale"""
 
-import copy
 import librosa
 import numpy as np
 
-from modules.Midi.MidiSegment import MidiSegment
 from modules.console_colors import (
     ULTRASINGER_HEAD,
 blue_highlighted)

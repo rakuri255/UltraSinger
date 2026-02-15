@@ -17,7 +17,7 @@ from modules.console_colors import (
 from modules.Ultrastar.ultrastar_txt import UltrastarTxtValue
 from modules.Pitcher.pitched_data import PitchedData
 from modules.Pitcher.pitched_data_helper import get_frequencies_with_high_confidence
-
+from modules.Audio.key_detector import quantize_note_to_key
 
 def create_midi_instrument(midi_segments: list[MidiSegment]) -> object:
     """Converts an Ultrastar data to a midi instrument"""
@@ -145,7 +145,6 @@ def create_midi_note_from_pitched_data(start_time: float, end_time: float, pitch
     note = most_frequent(notes)[0][0]
 
     if allowed_notes is not None:
-        from modules.Audio.key_detector import quantize_note_to_key
         note = quantize_note_to_key(note, allowed_notes)
 
     return MidiSegment(note, start_time, end_time, word)

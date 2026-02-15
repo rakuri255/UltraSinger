@@ -14,6 +14,9 @@ Date: 2026.02.10
   - Support for video as input
   - Optimise scale detection
   - Added quantization by key
+  - Changed installer to uv
+  - Drop crepe for SwiftF0
+  - upgrade to python 3.12
 
 # Version: 0.0.12
 Date: 2024.12.19

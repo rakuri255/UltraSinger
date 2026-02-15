@@ -104,7 +104,7 @@ def download_from_youtube(input_url: str, output_folder_path: str, cookiefile: s
     video_with_audio_path = os.path.join(song_output, f"{basename_without_ext}.{video_ext}")
 
     # Separate audio and video
-    audio_file_path, final_video_path = separate_audio_video(
+    audio_file_path, final_video_path, audio_ext, video_ext = separate_audio_video(
         video_with_audio_path, basename_without_ext, song_output
     )
 
@@ -129,5 +129,7 @@ def download_from_youtube(input_url: str, output_folder_path: str, cookiefile: s
             bpm=real_bpm,
             cover_url=cover_url,
             video_url=input_url,
+            audio_extension=audio_ext,
+            video_extension=video_ext
         ),
     )

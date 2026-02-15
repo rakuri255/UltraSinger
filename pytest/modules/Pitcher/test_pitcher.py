@@ -18,7 +18,7 @@ class PitcherTest(unittest.TestCase):
         test_output = root_dir + "/test_output"
 
         # Act
-        pitched_data = test_subject.get_pitch_with_crepe_file(test_file_abs_path, 'full', device="cuda")
+        pitched_data = test_subject.get_pitch_with_file(test_file_abs_path)
         # test_subject.get_pitch_with_crepe_file(test_file_abs_path, 'full', 'cpu', batch_size=1024)
         plot(pitched_data, test_output, title="pitching test")
         print("done")

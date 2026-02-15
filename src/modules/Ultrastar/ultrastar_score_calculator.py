@@ -43,13 +43,13 @@ class Points:
 def add_point(note_type: str, points: Points) -> Points:
     """Add calculated points to the points object."""
 
-    if note_type == UltrastarTxtNoteTypeTag.NORMAL:
+    if note_type == UltrastarTxtNoteTypeTag.NORMAL.value:
         points.notes += 1
-    elif note_type == UltrastarTxtNoteTypeTag.GOLDEN:
+    elif note_type == UltrastarTxtNoteTypeTag.GOLDEN.value:
         points.golden_notes += 2
-    elif note_type == UltrastarTxtNoteTypeTag.RAP:
+    elif note_type == UltrastarTxtNoteTypeTag.RAP.value:
         points.rap += 1
-    elif note_type == UltrastarTxtNoteTypeTag.RAP_GOLDEN:
+    elif note_type == UltrastarTxtNoteTypeTag.RAP_GOLDEN.value:
         points.golden_rap += 2
     return points
 
@@ -75,6 +75,9 @@ def get_score(points: Points) -> Score:
         if points.line_bonus == 0
         else MAX_SONG_SCORE - MAX_SONG_LINE_BONUS
     )
+    if(points.parts == 0):
+        print(f"{ULTRASINGER_HEAD} No parts found, returning 0 score")
+        return score
     score.notes = round(
         score.max_score * (points.notes + points.rap) / points.parts
     )
@@ -100,6 +103,9 @@ def calculate_score(pitched_data: PitchedData, ultrastar_class: UltrastarTxtValu
     simple_points = Points()
     accurate_points = Points()
 
+    if(len(ultrastar_class.UltrastarNoteLines) == 0):
+        print(f"{ULTRASINGER_HEAD} No note lines found in Ultrastar txt, returning 0 points")
+        return get_score(simple_points), get_score(accurate_points)
     reachable_line_bonus_per_word = MAX_SONG_LINE_BONUS / len(ultrastar_class.UltrastarNoteLines)
     step_size = 0.09  # Todo: Whats is the step size of the game? Its not 1/bps -> one beat in seconds s = 60/bpm
 

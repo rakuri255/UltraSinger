@@ -33,35 +33,33 @@ def parse(input_file: str) -> UltrastarTxtValue:
     for line in txt:
         count += 1
         if line.startswith("#"):
-            if line.startswith(f"#{UltrastarTxtTag.ARTIST}"):
+            if line.startswith(f"#{UltrastarTxtTag.ARTIST.value}"):
                 ultrastar_class.artist = line.split(":")[1].replace("\n", "")
-            elif line.startswith(f"#{UltrastarTxtTag.TITLE}"):
+            elif line.startswith(f"#{UltrastarTxtTag.TITLE.value}"):
                 ultrastar_class.title = line.split(":")[1].replace("\n", "")
-            elif line.startswith(f"#{UltrastarTxtTag.MP3}"):
+            elif line.startswith(f"#{UltrastarTxtTag.MP3.value}"):
                 ultrastar_class.mp3 = line.split(":")[1].replace("\n", "")
-            elif line.startswith(f"#{UltrastarTxtTag.AUDIO}"):
+            elif line.startswith(f"#{UltrastarTxtTag.AUDIO.value}"):
                 ultrastar_class.audio = line.split(":")[1].replace("\n", "")
-            elif line.startswith(f"#{UltrastarTxtTag.VIDEO}"):
+            elif line.startswith(f"#{UltrastarTxtTag.VIDEO.value}"):
                 ultrastar_class.video = line.split(":")[1].replace("\n", "")
-            elif line.startswith(f"#{UltrastarTxtTag.GAP}"):
+            elif line.startswith(f"#{UltrastarTxtTag.GAP.value}"):
                 ultrastar_class.gap = line.split(":")[1].replace("\n", "")
-            elif line.startswith(f"#{UltrastarTxtTag.BPM}"):
+            elif line.startswith(f"#{UltrastarTxtTag.BPM.value}"):
                 ultrastar_class.bpm = line.split(":")[1].replace("\n", "")
-            elif line.startswith(f"#{UltrastarTxtTag.VIDEO}"):
-                ultrastar_class.video = line.split(":")[1].replace("\n", "")
-            elif line.startswith(f"#{UltrastarTxtTag.VIDEOGAP}"):
+            elif line.startswith(f"#{UltrastarTxtTag.VIDEOGAP.value}"):
                 ultrastar_class.videoGap = line.split(":")[1].replace("\n", "")
-            elif line.startswith(f"#{UltrastarTxtTag.COVER}"):
+            elif line.startswith(f"#{UltrastarTxtTag.COVER.value}"):
                 ultrastar_class.cover = line.split(":")[1].replace("\n", "")
-            elif line.startswith(f"#{UltrastarTxtTag.BACKGROUND}"):
+            elif line.startswith(f"#{UltrastarTxtTag.BACKGROUND.value}"):
                 ultrastar_class.background = line.split(":")[1].replace("\n", "")
         elif line.startswith(
             (
-                f"{UltrastarTxtNoteTypeTag.FREESTYLE} ",
-                f"{UltrastarTxtNoteTypeTag.NORMAL} ",
-                f"{UltrastarTxtNoteTypeTag.GOLDEN} ",
-                f"{UltrastarTxtNoteTypeTag.RAP} ",
-                f"{UltrastarTxtNoteTypeTag.RAP_GOLDEN} ",
+                f"{UltrastarTxtNoteTypeTag.FREESTYLE.value} ",
+                f"{UltrastarTxtNoteTypeTag.NORMAL.value} ",
+                f"{UltrastarTxtNoteTypeTag.GOLDEN.value} ",
+                f"{UltrastarTxtNoteTypeTag.RAP.value} ",
+                f"{UltrastarTxtNoteTypeTag.RAP_GOLDEN.value} ",
             )
         ):
             parts = line.split()
@@ -86,7 +84,7 @@ def parse(input_file: str) -> UltrastarTxtValue:
     return ultrastar_class
 
 
-def parse_ultrastar_txt(input_file_path: str, output_folder_path: str) -> tuple[str, str, str, UltrastarTxtValue]:
+def parse_ultrastar_txt(input_file_path: str, output_folder_path: str) -> tuple[str, str, str, UltrastarTxtValue, str]:
     """Parse Ultrastar txt"""
     ultrastar_class = parse(input_file_path)
 
@@ -100,6 +98,8 @@ def parse_ultrastar_txt(input_file_path: str, output_folder_path: str) -> tuple[
             f"an audio file."
         )
         exit(1)
+    _, audio_ext_with_dot = os.path.splitext(ultrastar_mp3_name)
+    audio_ext = audio_ext_with_dot.lstrip('.')
 
     song_output = os.path.join(
         output_folder_path,
@@ -118,4 +118,5 @@ def parse_ultrastar_txt(input_file_path: str, output_folder_path: str) -> tuple[
         song_output,
         str(audio_file_path),
         ultrastar_class,
+        audio_ext
     )

@@ -1,6 +1,7 @@
 """Convert audio to other formats"""
 
-from pydub import AudioSegment
+import subprocess
+import os
 import librosa
 import soundfile as sf
 
@@ -14,9 +15,27 @@ def convert_audio_to_mono_wav(input_file_path: str, output_file_path: str) -> No
     sf.write(output_file_path, y, sr)
 
 
-def convert_wav_to_mp3(input_file_path: str, output_file_path: str) -> None:
-    """Convert wav to mp3"""
-    print(f"{ULTRASINGER_HEAD} Converting wav to mp3. -> {output_file_path}")
+def convert_audio_format(input_file_path: str, output_file_path: str) -> None:
+    """Convert audio to the format specified by the output file extension using ffmpeg"""
+    output_format = os.path.splitext(output_file_path)[1].lstrip('.')
 
-    sound = AudioSegment.from_wav(input_file_path)
-    sound.export(output_file_path, format="mp3")
+    print(f"{ULTRASINGER_HEAD} Converting audio to {output_format}. -> {output_file_path}")
+    # todo: makes it sense to reencode here? Its only used for Instrumental and Vocal
+    # Use ffmpeg for audio conversion
+    # -i: input file
+    # -y: overwrite output file without asking
+    # -loglevel error: only show errors
+    # -q:a 0: best quality for VBR formats (mp3, ogg)
+    # -codec:a copy would be fastest but only works if formats match
+    cmd = [
+        "ffmpeg",
+        "-i", input_file_path,
+        "-y",
+        "-loglevel", "error",
+        "-q:a", "0",
+        output_file_path
+    ]
+
+    result = subprocess.run(cmd, capture_output=True, text=True)
+    if result.returncode != 0:
+        raise RuntimeError(f"FFmpeg audio conversion failed: {result.stderr}")
