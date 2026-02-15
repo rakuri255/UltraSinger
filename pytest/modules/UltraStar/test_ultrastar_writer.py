@@ -148,12 +148,13 @@ class TestCreateUltrastarTxt(unittest.TestCase):
             expected_calls.append(f"#{UltrastarTxtTag.AUDIO.value}:{default_ultrastar_class.audio}\n")
             expected_calls.append(f"#{UltrastarTxtTag.VOCALS.value}:{default_ultrastar_class.vocals}\n")
             expected_calls.append(f"#{UltrastarTxtTag.INSTRUMENTAL.value}:{default_ultrastar_class.instrumental}\n")
-            expected_calls.append(f"#{UltrastarTxtTag.TAGS.value}:{default_ultrastar_class.tags}\n")
         expected_calls.append(f"#{UltrastarTxtTag.VIDEO.value}:{default_ultrastar_class.video}\n")
         if version.parse(ver) >= version.parse("1.2.0"):
             expected_calls.append(f"#{UltrastarTxtTag.VIDEOURL.value}:{default_ultrastar_class.videoUrl}\n")
         expected_calls.append(f"#{UltrastarTxtTag.BPM.value}:390.0\n")
         expected_calls.append(f"#{UltrastarTxtTag.GAP.value}:500\n")
+        if version.parse(ver) >= version.parse("1.1.0"):
+            expected_calls.append(f"#{UltrastarTxtTag.TAGS.value}:{default_ultrastar_class.tags}\n")
         expected_calls.append(f"#{UltrastarTxtTag.CREATOR.value}:{default_ultrastar_class.creator}\n")
         expected_calls.append(f"#{UltrastarTxtTag.COMMENT.value}:{default_ultrastar_class.comment}\n")
         expected_calls.append(": 0 52 1 UltraSinger \n")
