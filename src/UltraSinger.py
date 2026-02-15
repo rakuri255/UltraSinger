@@ -20,7 +20,7 @@ from modules.Audio.vocal_chunks import (
 from modules.Audio.key_detector import detect_key_from_audio, get_allowed_notes_for_key
 from modules.Audio.silence_processing import remove_silence_from_transcription_data, mute_no_singing_parts
 from modules.Audio.separation import DemucsModel
-from modules.Audio.convert_audio import convert_audio_to_mono_wav, convert_wav_to_mp3
+from modules.Audio.convert_audio import convert_audio_to_mono_wav, convert_audio_format
 from modules.Audio.youtube import (
     download_from_youtube,
 )
@@ -43,7 +43,7 @@ from modules.Midi.midi_creator import (
 from modules.Midi.MidiSegment import MidiSegment
 from modules.Midi.note_length_calculator import get_thirtytwo_note_second, get_sixteenth_note_second
 from modules.Pitcher.pitcher import (
-    get_pitch_with_crepe_file,
+    get_pitch_with_file,
 )
 from modules.Pitcher.pitched_data import PitchedData
 from modules.Speech_Recognition.TranscriptionResult import TranscriptionResult
@@ -460,10 +460,12 @@ def InitProcessData():
             settings.output_folder_path,
             audio_file_path,
             ultrastar_class,
+            audio_extension,
         ) = parse_ultrastar_txt(settings.input_file_path, settings.output_folder_path)
         process_data = from_ultrastar_txt(ultrastar_class)
         process_data.basename = basename
         process_data.process_data_paths.audio_output_file_path = audio_file_path
+        process_data.media_info.audio_extension = audio_extension
         # todo: ignore transcribe
         settings.ignore_audio = True
 
@@ -517,15 +519,15 @@ def CreateUltraStarTxt(process_data: ProcessData):
     # Move instrumental and vocals
     if settings.create_karaoke and version.parse(settings.format_version.value) < version.parse(
             FormatVersion.V1_1_0.value):
-        karaoke_output_path = os.path.join(settings.output_folder_path, process_data.basename + " [Karaoke].m4a")
-        convert_wav_to_mp3(process_data.process_data_paths.instrumental_audio_file_path, karaoke_output_path)
+        karaoke_output_path = os.path.join(settings.output_folder_path, process_data.basename + " [Karaoke]." + process_data.media_info.audio_extension)
+        convert_audio_format(process_data.process_data_paths.instrumental_audio_file_path, karaoke_output_path)
 
     if version.parse(settings.format_version.value) >= version.parse(FormatVersion.V1_1_0.value):
         instrumental_output_path = os.path.join(settings.output_folder_path,
-                                                process_data.basename + " [Instrumental].m4a")
-        convert_wav_to_mp3(process_data.process_data_paths.instrumental_audio_file_path, instrumental_output_path)
-        vocals_output_path = os.path.join(settings.output_folder_path, process_data.basename + " [Vocals].m4a")
-        convert_wav_to_mp3(process_data.process_data_paths.vocals_audio_file_path, vocals_output_path)
+                                                process_data.basename + " [Instrumental]." + process_data.media_info.audio_extension)
+        convert_audio_format(process_data.process_data_paths.instrumental_audio_file_path, instrumental_output_path)
+        vocals_output_path = os.path.join(settings.output_folder_path, process_data.basename + " [Vocals]." + process_data.media_info.audio_extension)
+        convert_audio_format(process_data.process_data_paths.vocals_audio_file_path, vocals_output_path)
 
     # Create Ultrastar txt
     if not settings.ignore_audio:
@@ -663,12 +665,14 @@ def infos_from_audio_video_input_file() -> tuple[str, str, str, MediaInfo]:
         os_helper.copy(settings.input_file_path, video_with_audio_path)
 
         # Separate audio and video
-        ultrastar_audio_input_path, final_video_path = separate_audio_video(
+        ultrastar_audio_input_path, final_video_path, audio_ext, video_ext = separate_audio_video(
             video_with_audio_path, basename_without_ext, song_folder_output_path
         )
     else:
         # Audio file
         basename_with_ext = f"{basename_without_ext}{extension}"
+        audio_ext = extension.lstrip('.')
+        video_ext = None
         os_helper.copy(settings.input_file_path, song_folder_output_path)
         os_helper.rename(
             os.path.join(song_folder_output_path, os.path.basename(settings.input_file_path)),
@@ -692,6 +696,8 @@ def infos_from_audio_video_input_file() -> tuple[str, str, str, MediaInfo]:
             genre=song_info.genres,
             bpm=real_bpm,
             cover_url=song_info.cover_url,
+            audio_extension=audio_ext,
+            video_extension=video_ext
         ),
     )
 
@@ -700,16 +706,13 @@ def pitch_audio(
         process_data_paths: ProcessDataPaths) -> PitchedData:
     """Pitch audio"""
 
-    pitching_config = f"crepe_{settings.ignore_audio}_{settings.crepe_model_capacity}_{settings.crepe_step_size}_{settings.tensorflow_device}"
+    pitching_config = f"swiftf0_{settings.ignore_audio}"
     pitched_data_path = os.path.join(process_data_paths.cache_folder_path, f"{pitching_config}.json")
     cache_available = check_file_exists(pitched_data_path)
 
-    if settings.skip_cache_transcription or not cache_available:
-        pitched_data = get_pitch_with_crepe_file(
-            process_data_paths.processing_audio_path,
-            settings.crepe_model_capacity,
-            settings.crepe_step_size,
-            settings.tensorflow_device,
+    if settings.skip_cache_pitch_detection or not cache_available:
+        pitched_data = get_pitch_with_file(
+            process_data_paths.processing_audio_path
         )
 
         pitched_data_json = pitched_data.to_json()
@@ -737,7 +740,7 @@ def main(argv: list[str]) -> None:
 
 def check_requirements() -> None:
     if not settings.force_cpu:
-        settings.tensorflow_device, settings.pytorch_device = check_gpu_support()
+        settings.pytorch_device = check_gpu_support()
     print(f"{ULTRASINGER_HEAD} ----------------------")
 
     if not is_ffmpeg_available(settings.user_ffmpeg_path):

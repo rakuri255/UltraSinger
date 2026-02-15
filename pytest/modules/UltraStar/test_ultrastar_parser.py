@@ -29,7 +29,8 @@ class TestUltraStarParser(unittest.TestCase):
         self.assertEqual(result, ("Test Artist - Test Title",
                                   os.path.join("path", "to", "output", "Test Artist - Test Title"),
                                   os.path.join("path", "to", "input", "test.mp3"),
-                                  mock_parse.return_value))
+                                  mock_parse.return_value,
+                                  "mp3"))
         #
         mock_parse.assert_called_once()
         mock_dirname.assert_called_once()

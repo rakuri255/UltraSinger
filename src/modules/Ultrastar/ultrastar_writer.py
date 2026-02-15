@@ -53,42 +53,43 @@ def create_ultrastar_txt(
         gap = midi_segments[0].start
 
         if version.parse(ultrastar_class.version) >= version.parse("1.0.0"):
-            file.write(f"#{UltrastarTxtTag.VERSION}:{ultrastar_class.version}\n"),
-        file.write(f"#{UltrastarTxtTag.ARTIST}:{ultrastar_class.artist}\n")
-        file.write(f"#{UltrastarTxtTag.TITLE}:{ultrastar_class.title}\n")
+            file.write(f"#{UltrastarTxtTag.VERSION.value}:{ultrastar_class.version}\n")
+        file.write(f"#{UltrastarTxtTag.ARTIST.value}:{ultrastar_class.artist}\n")
+        file.write(f"#{UltrastarTxtTag.TITLE.value}:{ultrastar_class.title}\n")
         if ultrastar_class.year is not None:
-            file.write(f"#{UltrastarTxtTag.YEAR}:{ultrastar_class.year}\n")
+            file.write(f"#{UltrastarTxtTag.YEAR.value}:{ultrastar_class.year}\n")
         if ultrastar_class.language is not None:
-            file.write(f"#{UltrastarTxtTag.LANGUAGE}:{get_language_name(ultrastar_class.language)}\n")
+            file.write(f"#{UltrastarTxtTag.LANGUAGE.value}:{get_language_name(ultrastar_class.language)}\n")
         if ultrastar_class.genre:
-            file.write(f"#{UltrastarTxtTag.GENRE}:{ultrastar_class.genre}\n")
+            file.write(f"#{UltrastarTxtTag.GENRE.value}:{ultrastar_class.genre}\n")
         if ultrastar_class.cover is not None:
-            file.write(f"#{UltrastarTxtTag.COVER}:{ultrastar_class.cover}\n")
+            file.write(f"#{UltrastarTxtTag.COVER.value}:{ultrastar_class.cover}\n")
         if version.parse(ultrastar_class.version) >= version.parse("1.2.0"):
             if ultrastar_class.coverUrl is not None:
-                file.write(f"#{UltrastarTxtTag.COVERURL}:{ultrastar_class.coverUrl}\n")
+                file.write(f"#{UltrastarTxtTag.COVERURL.value}:{ultrastar_class.coverUrl}\n")
         if ultrastar_class.background is not None:
-            file.write(f"#{UltrastarTxtTag.BACKGROUND}:{ultrastar_class.background}\n")
-        file.write(f"#{UltrastarTxtTag.MP3}:{ultrastar_class.mp3}\n")
+            file.write(f"#{UltrastarTxtTag.BACKGROUND.value}:{ultrastar_class.background}\n")
+        file.write(f"#{UltrastarTxtTag.MP3.value}:{ultrastar_class.mp3}\n")
         if version.parse(ultrastar_class.version) >= version.parse("1.1.0"):
-            file.write(f"#{UltrastarTxtTag.AUDIO}:{ultrastar_class.audio}\n")
+            file.write(f"#{UltrastarTxtTag.AUDIO.value}:{ultrastar_class.audio}\n")
             if ultrastar_class.vocals is not None:
-                file.write(f"#{UltrastarTxtTag.VOCALS}:{ultrastar_class.vocals}\n")
+                file.write(f"#{UltrastarTxtTag.VOCALS.value}:{ultrastar_class.vocals}\n")
             if ultrastar_class.instrumental is not None:
-                file.write(f"#{UltrastarTxtTag.INSTRUMENTAL}:{ultrastar_class.instrumental}\n")
-            if ultrastar_class.tags is not None:
-                file.write(f"#{UltrastarTxtTag.TAGS}:{ultrastar_class.tags}\n")
+                file.write(f"#{UltrastarTxtTag.INSTRUMENTAL.value}:{ultrastar_class.instrumental}\n")
         if ultrastar_class.video is not None:
-            file.write(f"#{UltrastarTxtTag.VIDEO}:{ultrastar_class.video}\n")
+            file.write(f"#{UltrastarTxtTag.VIDEO.value}:{ultrastar_class.video}\n")
         if ultrastar_class.videoGap is not None:
-            file.write(f"#{UltrastarTxtTag.VIDEOGAP}:{ultrastar_class.videoGap}\n")
+            file.write(f"#{UltrastarTxtTag.VIDEOGAP.value}:{ultrastar_class.videoGap}\n")
         if version.parse(ultrastar_class.version) >= version.parse("1.2.0"):
             if ultrastar_class.videoUrl is not None:
-                file.write(f"#{UltrastarTxtTag.VIDEOURL}:{ultrastar_class.videoUrl}\n")
-        file.write(f"#{UltrastarTxtTag.BPM}:{round(ultrastar_bpm, 2)}\n")  # not the real BPM!
-        file.write(f"#{UltrastarTxtTag.GAP}:{int(gap * 1000)}\n")
-        file.write(f"#{UltrastarTxtTag.CREATOR}:{ultrastar_class.creator}\n")
-        file.write(f"#{UltrastarTxtTag.COMMENT}:{ultrastar_class.comment}\n")
+                file.write(f"#{UltrastarTxtTag.VIDEOURL.value}:{ultrastar_class.videoUrl}\n")
+        file.write(f"#{UltrastarTxtTag.BPM.value}:{round(ultrastar_bpm, 2)}\n")  # not the real BPM!
+        file.write(f"#{UltrastarTxtTag.GAP.value}:{int(gap * 1000)}\n")
+        if version.parse(ultrastar_class.version) >= version.parse("1.1.0"):
+            if ultrastar_class.tags is not None:
+                file.write(f"#{UltrastarTxtTag.TAGS.value}:{ultrastar_class.tags}\n")
+        file.write(f"#{UltrastarTxtTag.CREATOR.value}:{ultrastar_class.creator}\n")
+        file.write(f"#{UltrastarTxtTag.COMMENT.value}:{ultrastar_class.comment}\n")
 
         # Write the singing part
         previous_end_beat = 0
@@ -118,7 +119,7 @@ def create_ultrastar_txt(
             # 'n2'  duration at real beat
             # 'n3'  pitch where 0 == C4
             # 'w'   lyric
-            line = f"{UltrastarTxtNoteTypeTag.NORMAL} " \
+            line = f"{UltrastarTxtNoteTypeTag.NORMAL.value} " \
                    f"{str(start_beat)} " \
                    f"{str(duration)} " \
                    f"{str(convert_midi_note_to_ultrastar_note(midi_segment))} " \
@@ -140,11 +141,11 @@ def create_ultrastar_txt(
                         second_to_beat(midi_segment.end - gap, real_bpm)
                         * multiplication
                 )
-                linebreak = f"{UltrastarTxtTag.LINEBREAK} " \
+                linebreak = f"{UltrastarTxtTag.LINEBREAK.value} " \
                             f"{str(round(show_next))}\n"
                 file.write(linebreak)
             separated_word_silence = []
-        file.write(f"{UltrastarTxtTag.FILE_END}")
+        file.write(f"{UltrastarTxtTag.FILE_END.value}")
 
 
 def deviation(silence_parts):
@@ -191,7 +192,7 @@ def create_repitched_txt_from_ultrastar_data(
     # todo: just add '_repitched' to input_file
     with open(output_repitched_ultrastar, "w", encoding=FILE_ENCODING) as file:
         for line in txt:
-            if line.startswith(f"{UltrastarTxtNoteTypeTag.NORMAL} "):
+            if line.startswith(f"{UltrastarTxtNoteTypeTag.NORMAL.value} "):
                 parts = re.findall(r"\S+|\s+", line)
                 # between are whitespaces
                 # [0] :
@@ -214,21 +215,21 @@ def add_score_to_ultrastar_txt(ultrastar_file_output: str, score: Score) -> None
     text = text.split("\n")
 
     for i, line in enumerate(text):
-        if line.startswith(f"#{UltrastarTxtTag.COMMENT}:"):
+        if line.startswith(f"#{UltrastarTxtTag.COMMENT.value}:"):
             text[
                 i
             ] = f"{line} | Score: total: {score.score}, notes: {score.notes} line: {score.line_bonus}, golden: {score.golden}"
             break
 
         if line.startswith((
-                f"{UltrastarTxtNoteTypeTag.FREESTYLE} ",
-                f"{UltrastarTxtNoteTypeTag.NORMAL} ",
-                f"{UltrastarTxtNoteTypeTag.GOLDEN} ",
-                f"{UltrastarTxtNoteTypeTag.RAP} ",
-                f"{UltrastarTxtNoteTypeTag.RAP_GOLDEN} ")):
+                f"{UltrastarTxtNoteTypeTag.FREESTYLE.value} ",
+                f"{UltrastarTxtNoteTypeTag.NORMAL.value} ",
+                f"{UltrastarTxtNoteTypeTag.GOLDEN.value} ",
+                f"{UltrastarTxtNoteTypeTag.RAP.value} ",
+                f"{UltrastarTxtNoteTypeTag.RAP_GOLDEN.value} ")):
             text.insert(
                 i,
-                f"#{UltrastarTxtTag.COMMENT}: UltraSinger [GitHub] | Score: total: {score.score}, notes: {score.notes} line: {score.line_bonus}, golden: {score.golden}",
+                f"#{UltrastarTxtTag.COMMENT.value}: UltraSinger [GitHub] | Score: total: {score.score}, notes: {score.notes} line: {score.line_bonus}, golden: {score.golden}",
             )
             break
 

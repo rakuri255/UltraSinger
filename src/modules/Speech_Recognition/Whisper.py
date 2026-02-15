@@ -1,7 +1,26 @@
 """Whisper Speech Recognition Module"""
+import os
 import inspect
 import textwrap
+
+# Set environment variable to handle cuDNN loading issues
+# CUDA_MODULE_LOADING=LAZY allows PyTorch to continue even if some cuDNN modules are not found
+#os.environ['CUDA_MODULE_LOADING'] = 'LAZY'
+
 import torch
+
+# Fix for PyTorch 2.6+ compatibility with omegaconf and old models
+# MUST be done before importing whisperx or any other modules that use torch.load
+# Monkey-patch torch.load to use weights_only=False for compatibility with older models
+# This is necessary because PyTorch 2.6+ changed the default to weights_only=True
+# but WhisperX/Pyannote models were saved with pickle and require weights_only=False
+_original_torch_load = torch.load
+def _patched_torch_load(*args, **kwargs):
+    # Force weights_only=False regardless of what was passed
+    kwargs['weights_only'] = False
+    return _original_torch_load(*args, **kwargs)
+torch.load = _patched_torch_load
+
 import whisperx
 from enum import Enum
 from torch.cuda import OutOfMemoryError
@@ -80,68 +99,15 @@ def transcribe_with_whisper(
     keep_numbers: bool = False,
 ) -> TranscriptionResult:
     """Transcribe with whisper"""
-    # Info: Monkey Patch FasterWhisperPipeline.detect_language to include error handling for low confidence
-    src = textwrap.dedent(inspect.getsource(whisperx.asr.FasterWhisperPipeline.detect_language))
-    # Replace the relevant part of the method
-    start_token = "if audio.shape[0] < N_SAMPLES:"
-    end_token = "return language"
-    replacement = """\
-    #Added imports
-    from modules.console_colors import ULTRASINGER_HEAD, blue_highlighted, red_highlighted
-    from Settings import Settings
-    from inputimeout import inputimeout, TimeoutOccurred
-    #End Import addition
-    if audio.shape[0] < N_SAMPLES:
-        print("Warning: audio is shorter than 30s, language detection may be inaccurate.")
-    model_n_mels = self.model.feat_kwargs.get("feature_size")
-    segment = log_mel_spectrogram(audio[: N_SAMPLES],
-                                    n_mels=model_n_mels if model_n_mels is not None else 80,
-                                    padding=0 if audio.shape[0] >= N_SAMPLES else N_SAMPLES - audio.shape[0])
-    encoder_output = self.model.encode(segment)
-    results = self.model.model.detect_language(encoder_output)
-    language_token, language_probability = results[0][0]
-    language = language_token[2:-2]
-    print(f"Detected language: {language} ({language_probability:.2f}) in first 30s of audio...")
-    #Added handling for low detection probability
-    if language_probability < Settings.CONFIDENCE_THRESHOLD:
-        print(f"{ULTRASINGER_HEAD} {red_highlighted('Warning:')} Language detection probability for detected language {language} is below {Settings.CONFIDENCE_THRESHOLD}, results may be inaccurate.")
-        print(f"{ULTRASINGER_HEAD} Override the language below or re-run with parameter {blue_highlighted('--language xx')} to specify the song language...")    
-        try:  
-            response = inputimeout(  
-                prompt=f"{ULTRASINGER_HEAD} Do you want to continue with {language} (default) or override with another language (y)? (y/n): ",  
-                timeout=Settings.CONFIDENCE_PROMPT_TIMEOUT  
-            ).strip().lower()  
-        except TimeoutOccurred:
-            import locale
-            print(f"{ULTRASINGER_HEAD} No user input received in {Settings.CONFIDENCE_PROMPT_TIMEOUT} seconds. Attempting automatic override with system locale.")
-            print(f"{ULTRASINGER_HEAD} Trying to get language from default locale...")  
-            current_locale = locale.getlocale()
-            if current_locale[0]:  
-                language_code = current_locale[0][:2].strip().lower()
-                print(f"{ULTRASINGER_HEAD} Found language code: {language_code} in locale. Setting language to {blue_highlighted(language_code)}...")
-                language = language_code   
-            else:  
-                print(f"{ULTRASINGER_HEAD} No locale is set.")  
-            response = 'n'
-        language_response = response == 'y'  
-        if language_response:
-            language = input(f"{ULTRASINGER_HEAD} Please enter the language code for the language you want to use (e.g. 'en', 'de', 'es', etc.): ").strip().lower()
-    #End addition
-    """
-    new_src = replace_code_lines(src, start_token, end_token, replacement)
-    # Compile it and execute it in the target module's namespace
-    exec(compile(new_src, "<string>", "exec"), whisperx.asr.__dict__)
-    whisperx.asr.FasterWhisperPipeline.detect_language = whisperx.asr.detect_language
-    #End Monkey Patch
-
     # Info: Regardless of the audio sampling rate used in the original audio file, whisper resample the audio signal to 16kHz (via ffmpeg). So the standard input from (44.1 or 48 kHz) should work.
-
     print(
         f"{ULTRASINGER_HEAD} Loading {blue_highlighted('whisper')} with model {blue_highlighted(model.value)} and {red_highlighted(device)} as worker"
     )
     if alignment_model is not None:
         print(f"{ULTRASINGER_HEAD} using alignment model {blue_highlighted(alignment_model)}")
 
+    # Fixme: Why it is not none for cpu?
+    #compute_type = "int8"
     if compute_type is None:
         compute_type = "float16" if device == "cuda" else "int8"
 
@@ -196,6 +162,9 @@ def transcribe_with_whisper(
 
         return TranscriptionResult(transcribed_data, detected_language)
     except ValueError as value_error:
+        # Restore original torch.load in case of error
+        torch.load = _original_torch_load
+
         if (
             "Requested float16 compute type, but the target device or backend do not support efficient float16 computation."
             in str(value_error.args[0])
@@ -207,14 +176,24 @@ def transcribe_with_whisper(
 
         raise value_error
     except OutOfMemoryError as oom_exception:
+        # Restore original torch.load in case of error
+        torch.load = _original_torch_load
+
         print(oom_exception)
         print(MEMORY_ERROR_MESSAGE)
         raise oom_exception
     except Exception as exception:
+        # Restore original torch.load in case of error
+        torch.load = _original_torch_load
+
         if "CUDA failed with error out of memory" in str(exception.args[0]):
             print(exception)
             print(MEMORY_ERROR_MESSAGE)
         raise exception
+    finally:
+        # Restore original torch.load after models are loaded
+        # This ensures other modules (like pitch detection) are not affected by the monkey-patch
+        torch.load = _original_torch_load
 
 
 def convert_to_transcribed_data(result_aligned):

@@ -1,21 +1,58 @@
 [build-system]
-requires = ["setuptools", "setuptools-scm"]
-build-backend = "setuptools.build_meta"
+requires = ["hatchling", "setuptools", "wheel", "setuptools_scm"]
+build-backend = "hatchling.build"
 
 [project]
 name = "UltraSinger"
-dynamic = ["dependencies", "optional-dependencies"]
-requires-python = "==3.10"
-
-[tool.setuptools.dynamic]
-dependencies = { file = ["requirements.in"] }
-optional-dependencies.test = { file = ["requirements-test.txt"] }
+version = "0.0.13.dev14"
+description = "A tool to create UltraStar karaoke files from audio files"
+requires-python = ">=3.12"
+dependencies = [
+    "setuptools",
+    "scipy",
+    "whisperx",
+    "num2words",
+    "inputimeout",
+    "langcodes",
+    "language_data",
+    "packaging",
+    "librosa>=0.10.2",
+    "numba>=0.59.0",
+    "swift-f0",
+    "pydub",
+    "demucs",
+    "ffmpeg-python",
+    "matplotlib",
+    "musicbrainzngs",
+    "python-Levenshtein",
+    "pretty-midi",
+    "unidecode",
+    "pyhyphen",
+    "tqdm",
+    "yt-dlp",
+    "music21",
+    "dataclasses",
+    "dataclasses-json",
+    "torch==2.8.0",
+    "torchaudio==2.8.0",
+    "torchvision==0.23.0",
+]
 
 [project.optional-dependencies]
-dev = ["pytest"]
+windows = []
+linux = []
+macos = []
+dev = ["pytest", "isort", "black", "pylint"]
+
+[dependency-groups]
+dev = ["pytest", "isort", "black", "pylint"]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src"]
 
 [tool.isort]
 profile = "black"
+
 [tool.pytest.ini_options]
 pythonpath = [
   "src",

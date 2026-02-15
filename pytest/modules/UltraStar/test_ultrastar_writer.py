@@ -104,26 +104,26 @@ class TestCreateUltrastarTxt(unittest.TestCase):
     def default_values(default_ultrastar_class, ver):
         expected_calls = []
         if version.parse(ver) >= version.parse("1.0.0"):
-            expected_calls.append(f"#{UltrastarTxtTag.VERSION}:{default_ultrastar_class.version}\n")
+            expected_calls.append(f"#{UltrastarTxtTag.VERSION.value}:{default_ultrastar_class.version}\n")
         expected_calls += [
-            f"#{UltrastarTxtTag.ARTIST}:{default_ultrastar_class.artist}\n",
-            f"#{UltrastarTxtTag.TITLE}:{default_ultrastar_class.title}\n",
-            f"#{UltrastarTxtTag.MP3}:{default_ultrastar_class.mp3}\n"
+            f"#{UltrastarTxtTag.ARTIST.value}:{default_ultrastar_class.artist}\n",
+            f"#{UltrastarTxtTag.TITLE.value}:{default_ultrastar_class.title}\n",
+            f"#{UltrastarTxtTag.MP3.value}:{default_ultrastar_class.mp3}\n"
         ]
         if version.parse(ver) >= version.parse("1.1.0"):
-            expected_calls += [f"#{UltrastarTxtTag.AUDIO}:{default_ultrastar_class.audio}\n"]
+            expected_calls += [f"#{UltrastarTxtTag.AUDIO.value}:{default_ultrastar_class.audio}\n"]
         if default_ultrastar_class.video is not None:
             expected_calls += [
-                f"#{UltrastarTxtTag.VIDEO}:{default_ultrastar_class.video}\n"
+                f"#{UltrastarTxtTag.VIDEO.value}:{default_ultrastar_class.video}\n"
             ]
         if version.parse(ver) >= version.parse("1.2.0"):
             if default_ultrastar_class.videoUrl is not None:
-                expected_calls += [f"#{UltrastarTxtTag.VIDEOURL}:{default_ultrastar_class.videoUrl}\n"]
+                expected_calls += [f"#{UltrastarTxtTag.VIDEOURL.value}:{default_ultrastar_class.videoUrl}\n"]
         expected_calls += [
-            f"#{UltrastarTxtTag.BPM}:390.0\n",
-            f"#{UltrastarTxtTag.GAP}:500\n",
-            f"#{UltrastarTxtTag.CREATOR}:{default_ultrastar_class.creator}\n",
-            f"#{UltrastarTxtTag.COMMENT}:{default_ultrastar_class.comment}\n",
+            f"#{UltrastarTxtTag.BPM.value}:390.0\n",
+            f"#{UltrastarTxtTag.GAP.value}:500\n",
+            f"#{UltrastarTxtTag.CREATOR.value}:{default_ultrastar_class.creator}\n",
+            f"#{UltrastarTxtTag.COMMENT.value}:{default_ultrastar_class.comment}\n",
             ": 0 52 1 UltraSinger \n",
             ": 65 39 2 is \n",
             ": 130 52 3 cool! \n",
@@ -136,26 +136,27 @@ class TestCreateUltrastarTxt(unittest.TestCase):
     def full_values(default_ultrastar_class, ver):
         expected_calls = []
         if version.parse(ver) >= version.parse("1.0.0"):
-            expected_calls.append(f"#{UltrastarTxtTag.VERSION}:{default_ultrastar_class.version}\n")
-        expected_calls.append(f"#{UltrastarTxtTag.ARTIST}:{default_ultrastar_class.artist}\n")
-        expected_calls.append(f"#{UltrastarTxtTag.TITLE}:{default_ultrastar_class.title}\n")
-        expected_calls.append(f"#{UltrastarTxtTag.YEAR}:{default_ultrastar_class.year}\n")
-        expected_calls.append(f"#{UltrastarTxtTag.LANGUAGE}:German\n")
-        expected_calls.append(f"#{UltrastarTxtTag.GENRE}:{default_ultrastar_class.genre}\n")
-        expected_calls.append(f"#{UltrastarTxtTag.COVER}:{default_ultrastar_class.cover}\n")
-        expected_calls.append(f"#{UltrastarTxtTag.MP3}:{default_ultrastar_class.mp3}\n")
+            expected_calls.append(f"#{UltrastarTxtTag.VERSION.value}:{default_ultrastar_class.version}\n")
+        expected_calls.append(f"#{UltrastarTxtTag.ARTIST.value}:{default_ultrastar_class.artist}\n")
+        expected_calls.append(f"#{UltrastarTxtTag.TITLE.value}:{default_ultrastar_class.title}\n")
+        expected_calls.append(f"#{UltrastarTxtTag.YEAR.value}:{default_ultrastar_class.year}\n")
+        expected_calls.append(f"#{UltrastarTxtTag.LANGUAGE.value}:German\n")
+        expected_calls.append(f"#{UltrastarTxtTag.GENRE.value}:{default_ultrastar_class.genre}\n")
+        expected_calls.append(f"#{UltrastarTxtTag.COVER.value}:{default_ultrastar_class.cover}\n")
+        expected_calls.append(f"#{UltrastarTxtTag.MP3.value}:{default_ultrastar_class.mp3}\n")
         if version.parse(ver) >= version.parse("1.1.0"):
-            expected_calls.append(f"#{UltrastarTxtTag.AUDIO}:{default_ultrastar_class.audio}\n")
-            expected_calls.append(f"#{UltrastarTxtTag.VOCALS}:{default_ultrastar_class.vocals}\n")
-            expected_calls.append(f"#{UltrastarTxtTag.INSTRUMENTAL}:{default_ultrastar_class.instrumental}\n")
-            expected_calls.append(f"#{UltrastarTxtTag.TAGS}:{default_ultrastar_class.tags}\n")
-        expected_calls.append(f"#{UltrastarTxtTag.VIDEO}:{default_ultrastar_class.video}\n")
+            expected_calls.append(f"#{UltrastarTxtTag.AUDIO.value}:{default_ultrastar_class.audio}\n")
+            expected_calls.append(f"#{UltrastarTxtTag.VOCALS.value}:{default_ultrastar_class.vocals}\n")
+            expected_calls.append(f"#{UltrastarTxtTag.INSTRUMENTAL.value}:{default_ultrastar_class.instrumental}\n")
+        expected_calls.append(f"#{UltrastarTxtTag.VIDEO.value}:{default_ultrastar_class.video}\n")
         if version.parse(ver) >= version.parse("1.2.0"):
-            expected_calls.append(f"#{UltrastarTxtTag.VIDEOURL}:{default_ultrastar_class.videoUrl}\n")
-        expected_calls.append(f"#{UltrastarTxtTag.BPM}:390.0\n")
-        expected_calls.append(f"#{UltrastarTxtTag.GAP}:500\n")
-        expected_calls.append(f"#{UltrastarTxtTag.CREATOR}:{default_ultrastar_class.creator}\n")
-        expected_calls.append(f"#{UltrastarTxtTag.COMMENT}:{default_ultrastar_class.comment}\n")
+            expected_calls.append(f"#{UltrastarTxtTag.VIDEOURL.value}:{default_ultrastar_class.videoUrl}\n")
+        expected_calls.append(f"#{UltrastarTxtTag.BPM.value}:390.0\n")
+        expected_calls.append(f"#{UltrastarTxtTag.GAP.value}:500\n")
+        if version.parse(ver) >= version.parse("1.1.0"):
+            expected_calls.append(f"#{UltrastarTxtTag.TAGS.value}:{default_ultrastar_class.tags}\n")
+        expected_calls.append(f"#{UltrastarTxtTag.CREATOR.value}:{default_ultrastar_class.creator}\n")
+        expected_calls.append(f"#{UltrastarTxtTag.COMMENT.value}:{default_ultrastar_class.comment}\n")
         expected_calls.append(": 0 52 1 UltraSinger \n")
         expected_calls.append(": 65 39 2 is \n")
         expected_calls.append(": 130 52 3 cool! \n")
