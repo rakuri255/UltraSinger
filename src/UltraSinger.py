@@ -171,6 +171,9 @@ def run() -> tuple[str, Score, Score]:
     # Create process audio
     process_data.process_data_paths.processing_audio_path = CreateProcessAudio(process_data)
 
+    # Get BPM from wav file
+    process_data.media_info.bpm = get_bpm_from_file(process_data.process_data_paths.processing_audio_path)
+
     # Detect key
     detected_key, detected_mode = detect_key_from_audio(process_data.process_data_paths.processing_audio_path)
     if process_data.media_info.music_key is None:
@@ -619,7 +622,7 @@ def transcribe_audio(cache_folder_path: str, processing_audio_path: str) -> Tran
             transcription_result = transcribe_with_whisper(
                 processing_audio_path,
                 settings.whisper_model,
-                settings.pytorch_device,
+                "cpu" if settings.force_whisper_cpu else settings.pytorch_device,
                 settings.whisper_align_model,
                 settings.whisper_batch_size,
                 settings.whisper_compute_type,
@@ -684,7 +687,6 @@ def infos_from_audio_video_input_file() -> tuple[str, str, str, MediaInfo]:
     if song_info.cover_image_data is not None:
         save_image(song_info.cover_image_data, basename_without_ext, song_folder_output_path)
 
-    real_bpm = get_bpm_from_file(ultrastar_audio_input_path)
     return (
         basename_without_ext,
         song_folder_output_path,
@@ -694,7 +696,6 @@ def infos_from_audio_video_input_file() -> tuple[str, str, str, MediaInfo]:
             title=song_info.title,
             year=song_info.year,
             genre=song_info.genres,
-            bpm=real_bpm,
             cover_url=song_info.cover_url,
             audio_extension=audio_ext,
             video_extension=video_ext

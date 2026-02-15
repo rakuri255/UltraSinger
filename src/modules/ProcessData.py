@@ -19,7 +19,7 @@ class MediaInfo:
     """Media Info"""
     title: str
     artist: str
-    bpm: float
+    bpm: Optional[float] = None
     year: Optional[str] = None
     genre: Optional[str] = None
     language: Optional[str] = None
