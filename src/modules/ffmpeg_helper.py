@@ -135,7 +135,7 @@ def get_audio_codec_and_extension(video_file_path: str) -> str:
         return "wav"
 
 
-def separate_audio_video(video_with_audio_path: str, basename_without_ext: str, output_folder: str) -> tuple[str, str]:
+def separate_audio_video(video_with_audio_path: str, basename_without_ext: str, output_folder: str) -> tuple[str, str, str, str]:
     """
     Separate audio and video from a video file.
     Automatically detects the audio codec and uses the appropriate file extension.
@@ -163,5 +163,5 @@ def separate_audio_video(video_with_audio_path: str, basename_without_ext: str, 
     final_video_path = os.path.join(output_folder, f"{basename_without_ext}{video_ext}")
     os.rename(video_only_path, final_video_path)
 
-    return audio_file_path, final_video_path
+    return audio_file_path, final_video_path, audio_ext, video_ext
 

@@ -94,7 +94,6 @@ def quantize_note_to_key(note: str, allowed_notes: set[str]) -> str:
     Returns:
         Quantized note name
     """
-    print(f"{ULTRASINGER_HEAD} Quantizing note {blue_highlighted(note)} to key with allowed notes")
     # Parse note and octave
     if len(note) == 0:
         return note

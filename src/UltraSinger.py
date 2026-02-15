@@ -517,14 +517,14 @@ def CreateUltraStarTxt(process_data: ProcessData):
     # Move instrumental and vocals
     if settings.create_karaoke and version.parse(settings.format_version.value) < version.parse(
             FormatVersion.V1_1_0.value):
-        karaoke_output_path = os.path.join(settings.output_folder_path, process_data.basename + " [Karaoke].m4a")
+        karaoke_output_path = os.path.join(settings.output_folder_path, process_data.basename + " [Karaoke]." + process_data.media_info.audio_extension)
         convert_wav_to_mp3(process_data.process_data_paths.instrumental_audio_file_path, karaoke_output_path)
 
     if version.parse(settings.format_version.value) >= version.parse(FormatVersion.V1_1_0.value):
         instrumental_output_path = os.path.join(settings.output_folder_path,
-                                                process_data.basename + " [Instrumental].m4a")
+                                                process_data.basename + " [Instrumental]." + process_data.media_info.audio_extension)
         convert_wav_to_mp3(process_data.process_data_paths.instrumental_audio_file_path, instrumental_output_path)
-        vocals_output_path = os.path.join(settings.output_folder_path, process_data.basename + " [Vocals].m4a")
+        vocals_output_path = os.path.join(settings.output_folder_path, process_data.basename + " [Vocals]." + process_data.media_info.audio_extension)
         convert_wav_to_mp3(process_data.process_data_paths.vocals_audio_file_path, vocals_output_path)
 
     # Create Ultrastar txt
@@ -663,12 +663,14 @@ def infos_from_audio_video_input_file() -> tuple[str, str, str, MediaInfo]:
         os_helper.copy(settings.input_file_path, video_with_audio_path)
 
         # Separate audio and video
-        ultrastar_audio_input_path, final_video_path = separate_audio_video(
+        ultrastar_audio_input_path, final_video_path, audio_ext, video_ext = separate_audio_video(
             video_with_audio_path, basename_without_ext, song_folder_output_path
         )
     else:
         # Audio file
         basename_with_ext = f"{basename_without_ext}{extension}"
+        audio_ext = extension
+        video_ext = None
         os_helper.copy(settings.input_file_path, song_folder_output_path)
         os_helper.rename(
             os.path.join(song_folder_output_path, os.path.basename(settings.input_file_path)),
@@ -692,6 +694,8 @@ def infos_from_audio_video_input_file() -> tuple[str, str, str, MediaInfo]:
             genre=song_info.genres,
             bpm=real_bpm,
             cover_url=song_info.cover_url,
+            audio_extension=audio_ext,
+            video_extension=video_ext
         ),
     )
 
