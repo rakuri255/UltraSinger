@@ -172,7 +172,8 @@ def run() -> tuple[str, Score, Score]:
     process_data.process_data_paths.processing_audio_path = CreateProcessAudio(process_data)
 
     # Get BPM from wav file
-    process_data.media_info.bpm = get_bpm_from_file(process_data.process_data_paths.processing_audio_path)
+    if not settings.input_file_is_ultrastar_txt:
+        process_data.media_info.bpm = get_bpm_from_file(process_data.process_data_paths.processing_audio_path)
 
     # Detect key
     detected_key, detected_mode = detect_key_from_audio(process_data.process_data_paths.processing_audio_path)

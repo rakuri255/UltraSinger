@@ -17,7 +17,6 @@ dependencies = [
     "language_data",
     "packaging",
     "librosa",
-    "numba>=0.59.0",
     "swift-f0",
     "pydub",
     "demucs",
