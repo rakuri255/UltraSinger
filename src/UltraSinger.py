@@ -669,7 +669,7 @@ def infos_from_audio_video_input_file() -> tuple[str, str, str, MediaInfo]:
     else:
         # Audio file
         basename_with_ext = f"{basename_without_ext}{extension}"
-        audio_ext = extension
+        audio_ext = extension.lstrip('.')
         video_ext = None
         os_helper.copy(settings.input_file_path, song_folder_output_path)
         os_helper.rename(

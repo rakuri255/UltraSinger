@@ -70,7 +70,8 @@ def create_ultrastar_txt_from_automation(
     ultrastar_txt.audio = basename + "." + media_info.audio_extension
     ultrastar_txt.vocals = basename + " [Vocals]." + media_info.audio_extension
     ultrastar_txt.instrumental = basename + " [Instrumental]." + media_info.audio_extension
-    ultrastar_txt.video = basename + "." + media_info.video_extension
+    if media_info.video_extension is not None:
+        ultrastar_txt.video = basename + "." + media_info.video_extension
     ultrastar_txt.language = media_info.language
     cover = basename + " [CO].jpg"
     ultrastar_txt.cover = (

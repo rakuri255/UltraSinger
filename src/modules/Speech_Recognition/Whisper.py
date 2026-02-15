@@ -160,10 +160,6 @@ def transcribe_with_whisper(
 
         transcribed_data = convert_to_transcribed_data(result_aligned)
 
-        # Restore original torch.load after models are loaded
-        # This ensures other modules (like pitch detection) are not affected by the monkey-patch
-        torch.load = _original_torch_load
-
         return TranscriptionResult(transcribed_data, detected_language)
     except ValueError as value_error:
         # Restore original torch.load in case of error
@@ -194,6 +190,10 @@ def transcribe_with_whisper(
             print(exception)
             print(MEMORY_ERROR_MESSAGE)
         raise exception
+    finally:
+        # Restore original torch.load after models are loaded
+        # This ensures other modules (like pitch detection) are not affected by the monkey-patch
+        torch.load = _original_torch_load
 
 
 def convert_to_transcribed_data(result_aligned):
