@@ -460,10 +460,12 @@ def InitProcessData():
             settings.output_folder_path,
             audio_file_path,
             ultrastar_class,
+            audio_extension,
         ) = parse_ultrastar_txt(settings.input_file_path, settings.output_folder_path)
         process_data = from_ultrastar_txt(ultrastar_class)
         process_data.basename = basename
         process_data.process_data_paths.audio_output_file_path = audio_file_path
+        process_data.media_info.audio_extension = audio_extension
         # todo: ignore transcribe
         settings.ignore_audio = True
 

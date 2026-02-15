@@ -84,7 +84,7 @@ def parse(input_file: str) -> UltrastarTxtValue:
     return ultrastar_class
 
 
-def parse_ultrastar_txt(input_file_path: str, output_folder_path: str) -> tuple[str, str, str, UltrastarTxtValue]:
+def parse_ultrastar_txt(input_file_path: str, output_folder_path: str) -> tuple[str, str, str, UltrastarTxtValue, str]:
     """Parse Ultrastar txt"""
     ultrastar_class = parse(input_file_path)
 
@@ -98,6 +98,8 @@ def parse_ultrastar_txt(input_file_path: str, output_folder_path: str) -> tuple[
             f"an audio file."
         )
         exit(1)
+    _, audio_ext_with_dot = os.path.splitext(ultrastar_mp3_name)
+    audio_ext = audio_ext_with_dot.lstrip('.')
 
     song_output = os.path.join(
         output_folder_path,
@@ -116,4 +118,5 @@ def parse_ultrastar_txt(input_file_path: str, output_folder_path: str) -> tuple[
         song_output,
         str(audio_file_path),
         ultrastar_class,
+        audio_ext
     )
