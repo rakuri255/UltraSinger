@@ -47,8 +47,6 @@ def parse(input_file: str) -> UltrastarTxtValue:
                 ultrastar_class.gap = line.split(":")[1].replace("\n", "")
             elif line.startswith(f"#{UltrastarTxtTag.BPM.value}"):
                 ultrastar_class.bpm = line.split(":")[1].replace("\n", "")
-            elif line.startswith(f"#{UltrastarTxtTag.VIDEO.value}"):
-                ultrastar_class.video = line.split(":")[1].replace("\n", "")
             elif line.startswith(f"#{UltrastarTxtTag.VIDEOGAP.value}"):
                 ultrastar_class.videoGap = line.split(":")[1].replace("\n", "")
             elif line.startswith(f"#{UltrastarTxtTag.COVER.value}"):

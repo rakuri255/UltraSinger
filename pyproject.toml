@@ -30,10 +30,6 @@ dependencies = [
     "pyhyphen",
     "tqdm",
     "yt-dlp",
-    "isort",
-    "black",
-    "pylint",
-    "pytest",
     "music21",
     "dataclasses",
     "dataclasses-json",
@@ -46,10 +42,10 @@ dependencies = [
 windows = []
 linux = []
 macos = []
-dev = ["pytest"]
+dev = ["pytest", "isort", "black", "pylint"]
 
 [dependency-groups]
-dev = ["pytest"]
+dev = ["pytest", "isort", "black", "pylint"]
 
 [tool.hatch.build.targets.wheel]
 packages = ["src"]

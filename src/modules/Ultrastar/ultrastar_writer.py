@@ -76,8 +76,6 @@ def create_ultrastar_txt(
                 file.write(f"#{UltrastarTxtTag.VOCALS.value}:{ultrastar_class.vocals}\n")
             if ultrastar_class.instrumental is not None:
                 file.write(f"#{UltrastarTxtTag.INSTRUMENTAL.value}:{ultrastar_class.instrumental}\n")
-            if ultrastar_class.tags is not None:
-                file.write(f"#{UltrastarTxtTag.TAGS.value}:{ultrastar_class.tags}\n")
         if ultrastar_class.video is not None:
             file.write(f"#{UltrastarTxtTag.VIDEO.value}:{ultrastar_class.video}\n")
         if ultrastar_class.videoGap is not None:
@@ -87,6 +85,9 @@ def create_ultrastar_txt(
                 file.write(f"#{UltrastarTxtTag.VIDEOURL.value}:{ultrastar_class.videoUrl}\n")
         file.write(f"#{UltrastarTxtTag.BPM.value}:{round(ultrastar_bpm, 2)}\n")  # not the real BPM!
         file.write(f"#{UltrastarTxtTag.GAP.value}:{int(gap * 1000)}\n")
+        if version.parse(ultrastar_class.version) >= version.parse("1.1.0"):
+            if ultrastar_class.tags is not None:
+                file.write(f"#{UltrastarTxtTag.TAGS.value}:{ultrastar_class.tags}\n")
         file.write(f"#{UltrastarTxtTag.CREATOR.value}:{ultrastar_class.creator}\n")
         file.write(f"#{UltrastarTxtTag.COMMENT.value}:{ultrastar_class.comment}\n")
 

@@ -127,7 +127,7 @@ def get_audio_codec_and_extension(video_file_path: str) -> str:
             "eac3": "eac3",
         }
 
-        extension = codec_to_extension.get(codec_name, ".wav")
+        extension = codec_to_extension.get(codec_name, "wav")
         return extension
 
     except Exception:
@@ -142,8 +142,9 @@ def separate_audio_video(video_with_audio_path: str, basename_without_ext: str, 
     """
     from modules.console_colors import ULTRASINGER_HEAD
 
-    # Get original video file extension
-    _, video_ext = os.path.splitext(video_with_audio_path)
+    # Get original video file extension without the dot
+    _, video_ext_with_dot = os.path.splitext(video_with_audio_path)
+    video_ext = video_ext_with_dot.lstrip('.')
 
     # Detect audio codec and get appropriate extension
     audio_ext = get_audio_codec_and_extension(video_with_audio_path)
@@ -153,14 +154,14 @@ def separate_audio_video(video_with_audio_path: str, basename_without_ext: str, 
     extract_audio(video_with_audio_path, audio_file_path)
 
     print(f"{ULTRASINGER_HEAD} Creating video without audio")
-    video_only_path = os.path.join(output_folder, f"{basename_without_ext}_video{video_ext}")
+    video_only_path = os.path.join(output_folder, f"{basename_without_ext}_video.{video_ext}")
     remove_audio_from_video(video_with_audio_path, video_only_path)
 
     # Remove original video with audio
     os.remove(video_with_audio_path)
 
     # Rename video without audio to final name
-    final_video_path = os.path.join(output_folder, f"{basename_without_ext}{video_ext}")
+    final_video_path = os.path.join(output_folder, f"{basename_without_ext}.{video_ext}")
     os.rename(video_only_path, final_video_path)
 
     return audio_file_path, final_video_path, audio_ext, video_ext

@@ -91,7 +91,8 @@ def create_ultrastar_txt_from_automation(
     if media_info.cover_url is not None:
         ultrastar_txt.coverUrl = media_info.cover_url
     if media_info.music_key is not None:
-        ultrastar_txt.tags = media_info.music_key
+        # todo: as list add here?
+        ultrastar_txt.tags = f"key: {media_info.music_key}"
 
     ultrastar_file_output_path = os.path.join(song_folder_output_path, basename + ".txt")
     create_ultrastar_txt(

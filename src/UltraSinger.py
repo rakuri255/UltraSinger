@@ -20,7 +20,7 @@ from modules.Audio.vocal_chunks import (
 from modules.Audio.key_detector import detect_key_from_audio, get_allowed_notes_for_key
 from modules.Audio.silence_processing import remove_silence_from_transcription_data, mute_no_singing_parts
 from modules.Audio.separation import DemucsModel
-from modules.Audio.convert_audio import convert_audio_to_mono_wav, convert_wav_to_mp3
+from modules.Audio.convert_audio import convert_audio_to_mono_wav, convert_audio_format
 from modules.Audio.youtube import (
     download_from_youtube,
 )
@@ -518,14 +518,14 @@ def CreateUltraStarTxt(process_data: ProcessData):
     if settings.create_karaoke and version.parse(settings.format_version.value) < version.parse(
             FormatVersion.V1_1_0.value):
         karaoke_output_path = os.path.join(settings.output_folder_path, process_data.basename + " [Karaoke]." + process_data.media_info.audio_extension)
-        convert_wav_to_mp3(process_data.process_data_paths.instrumental_audio_file_path, karaoke_output_path)
+        convert_audio_format(process_data.process_data_paths.instrumental_audio_file_path, karaoke_output_path)
 
     if version.parse(settings.format_version.value) >= version.parse(FormatVersion.V1_1_0.value):
         instrumental_output_path = os.path.join(settings.output_folder_path,
                                                 process_data.basename + " [Instrumental]." + process_data.media_info.audio_extension)
-        convert_wav_to_mp3(process_data.process_data_paths.instrumental_audio_file_path, instrumental_output_path)
+        convert_audio_format(process_data.process_data_paths.instrumental_audio_file_path, instrumental_output_path)
         vocals_output_path = os.path.join(settings.output_folder_path, process_data.basename + " [Vocals]." + process_data.media_info.audio_extension)
-        convert_wav_to_mp3(process_data.process_data_paths.vocals_audio_file_path, vocals_output_path)
+        convert_audio_format(process_data.process_data_paths.vocals_audio_file_path, vocals_output_path)
 
     # Create Ultrastar txt
     if not settings.ignore_audio:

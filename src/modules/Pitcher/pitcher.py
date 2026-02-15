@@ -14,9 +14,8 @@ def _get_detector():
     global _swift_f0_detector
     if _swift_f0_detector is None:
         # Initialize for general music/speech (wide frequency range) fmin=46.875, fmax=2093.75
-        # fixme: is this correct?
         # For speech only: fmin=65, fmax=400
-        _swift_f0_detector = SwiftF0(fmin=65, fmax=400, confidence_threshold=0.9)
+        _swift_f0_detector = SwiftF0(fmin=46.875, fmax=2093.75, confidence_threshold=0.9)
     return _swift_f0_detector
 
 
@@ -34,9 +33,21 @@ def get_pitch_with_file(
     if len(audio.shape) > 1:
         audio = np.mean(audio, axis=1)
 
-    # Normalize audio to float if needed
-    if audio.dtype != np.float32 and audio.dtype != np.float64:
-        audio = audio.astype(np.float32) / (2**15)
+    # Normalize audio to float32 based on dtype
+    if audio.dtype == np.uint8:
+        # uint8: range [0, 255] -> subtract 128 and divide by 128
+        audio = (audio.astype(np.float32) - 128.0) / 128.0
+    elif audio.dtype in [np.int16, np.int32, np.int64]:
+        # Signed integers: use iinfo to get max value and normalize
+        dtype_info = np.iinfo(audio.dtype)
+        max_val = max(abs(dtype_info.min), abs(dtype_info.max))
+        audio = audio.astype(np.float32) / float(max_val)
+    elif audio.dtype == np.float64:
+        # float64: cast to float32
+        audio = audio.astype(np.float32)
+    elif audio.dtype != np.float32:
+        # Fallback for other types: assume int16 range
+        audio = audio.astype(np.float32) / 32768.0
 
     return get_pitch_with_swift_f0(audio, sample_rate)
 
