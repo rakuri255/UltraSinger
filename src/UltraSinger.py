@@ -615,15 +615,17 @@ def transcribe_audio(cache_folder_path: str, processing_audio_path: str) -> Tran
     transcription_result = None
     whisper_align_model_string = None
     if settings.transcriber == "whisper":
-        if not settings.whisper_align_model is None: whisper_align_model_string = settings.whisper_align_model.replace("/", "_")
-        transcription_config = f"{settings.transcriber}_{settings.whisper_model.value}_{settings.pytorch_device}_{whisper_align_model_string}_{settings.whisper_batch_size}_{settings.whisper_compute_type}_{settings.language}"
+        if not settings.whisper_align_model is None:
+            whisper_align_model_string = settings.whisper_align_model.replace("/", "_")
+        whisper_device = "cpu" if settings.force_whisper_cpu else settings.pytorch_device
+        transcription_config = f"{settings.transcriber}_{settings.whisper_model.value}_{whisper_device}_{whisper_align_model_string}_{settings.whisper_batch_size}_{settings.whisper_compute_type}_{settings.language}"
         transcription_path = os.path.join(cache_folder_path, f"{transcription_config}.json")
         cached_transcription_available = check_file_exists(transcription_path)
         if settings.skip_cache_transcription or not cached_transcription_available:
             transcription_result = transcribe_with_whisper(
                 processing_audio_path,
                 settings.whisper_model,
-                "cpu" if settings.force_whisper_cpu else settings.pytorch_device,
+                whisper_device,
                 settings.whisper_align_model,
                 settings.whisper_batch_size,
                 settings.whisper_compute_type,
