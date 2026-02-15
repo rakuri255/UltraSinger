@@ -710,7 +710,7 @@ def pitch_audio(
     pitched_data_path = os.path.join(process_data_paths.cache_folder_path, f"{pitching_config}.json")
     cache_available = check_file_exists(pitched_data_path)
 
-    if settings.skip_cache_transcription or not cache_available:
+    if settings.skip_cache_pitch_detection or not cache_available:
         pitched_data = get_pitch_with_file(
             process_data_paths.processing_audio_path
         )

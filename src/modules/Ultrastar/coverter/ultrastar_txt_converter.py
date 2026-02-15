@@ -66,6 +66,8 @@ def create_ultrastar_txt_from_automation(
 
     ultrastar_txt = UltrastarTxtValue()
     ultrastar_txt.version = format_version.value
+    if media_info.audio_extension is None:
+        raise Exception("Missing Audio extension. It is required to create Ultrastar txt")
     ultrastar_txt.mp3 = basename + "." + media_info.audio_extension
     ultrastar_txt.audio = basename + "." + media_info.audio_extension
     ultrastar_txt.vocals = basename + " [Vocals]." + media_info.audio_extension

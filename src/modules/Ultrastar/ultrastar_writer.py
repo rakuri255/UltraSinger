@@ -53,7 +53,7 @@ def create_ultrastar_txt(
         gap = midi_segments[0].start
 
         if version.parse(ultrastar_class.version) >= version.parse("1.0.0"):
-            file.write(f"#{UltrastarTxtTag.VERSION.value}:{ultrastar_class.version}\n"),
+            file.write(f"#{UltrastarTxtTag.VERSION.value}:{ultrastar_class.version}\n")
         file.write(f"#{UltrastarTxtTag.ARTIST.value}:{ultrastar_class.artist}\n")
         file.write(f"#{UltrastarTxtTag.TITLE.value}:{ultrastar_class.title}\n")
         if ultrastar_class.year is not None:
