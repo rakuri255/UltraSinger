@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "UltraSinger"
-version = "0.0.13.dev14"
+version = "0.0.13.dev15"
 description = "A tool to create UltraStar karaoke files from audio files"
 requires-python = ">=3.12"
 dependencies = [
@@ -16,8 +16,7 @@ dependencies = [
     "langcodes",
     "language_data",
     "packaging",
-    "librosa>=0.10.2",
-    "numba>=0.59.0",
+    "librosa",
     "swift-f0",
     "pydub",
     "demucs",

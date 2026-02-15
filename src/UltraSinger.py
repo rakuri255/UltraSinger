@@ -171,6 +171,10 @@ def run() -> tuple[str, Score, Score]:
     # Create process audio
     process_data.process_data_paths.processing_audio_path = CreateProcessAudio(process_data)
 
+    # Get BPM from wav file
+    if not settings.input_file_is_ultrastar_txt:
+        process_data.media_info.bpm = get_bpm_from_file(process_data.process_data_paths.processing_audio_path)
+
     # Detect key
     detected_key, detected_mode = detect_key_from_audio(process_data.process_data_paths.processing_audio_path)
     if process_data.media_info.music_key is None:
@@ -611,15 +615,17 @@ def transcribe_audio(cache_folder_path: str, processing_audio_path: str) -> Tran
     transcription_result = None
     whisper_align_model_string = None
     if settings.transcriber == "whisper":
-        if not settings.whisper_align_model is None: whisper_align_model_string = settings.whisper_align_model.replace("/", "_")
-        transcription_config = f"{settings.transcriber}_{settings.whisper_model.value}_{settings.pytorch_device}_{whisper_align_model_string}_{settings.whisper_batch_size}_{settings.whisper_compute_type}_{settings.language}"
+        if not settings.whisper_align_model is None:
+            whisper_align_model_string = settings.whisper_align_model.replace("/", "_")
+        whisper_device = "cpu" if settings.force_whisper_cpu else settings.pytorch_device
+        transcription_config = f"{settings.transcriber}_{settings.whisper_model.value}_{whisper_device}_{whisper_align_model_string}_{settings.whisper_batch_size}_{settings.whisper_compute_type}_{settings.language}"
         transcription_path = os.path.join(cache_folder_path, f"{transcription_config}.json")
         cached_transcription_available = check_file_exists(transcription_path)
         if settings.skip_cache_transcription or not cached_transcription_available:
             transcription_result = transcribe_with_whisper(
                 processing_audio_path,
                 settings.whisper_model,
-                settings.pytorch_device,
+                whisper_device,
                 settings.whisper_align_model,
                 settings.whisper_batch_size,
                 settings.whisper_compute_type,
@@ -684,7 +690,6 @@ def infos_from_audio_video_input_file() -> tuple[str, str, str, MediaInfo]:
     if song_info.cover_image_data is not None:
         save_image(song_info.cover_image_data, basename_without_ext, song_folder_output_path)
 
-    real_bpm = get_bpm_from_file(ultrastar_audio_input_path)
     return (
         basename_without_ext,
         song_folder_output_path,
@@ -694,7 +699,6 @@ def infos_from_audio_video_input_file() -> tuple[str, str, str, MediaInfo]:
             title=song_info.title,
             year=song_info.year,
             genre=song_info.genres,
-            bpm=real_bpm,
             cover_url=song_info.cover_url,
             audio_extension=audio_ext,
             video_extension=video_ext

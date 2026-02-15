@@ -116,7 +116,6 @@ def download_from_youtube(input_url: str, output_folder_path: str, cookiefile: s
             input_url, basename_without_ext, song_output, cookiefile
         )
 
-    real_bpm = get_bpm_from_file(audio_file_path)
     return (
         basename_without_ext,
         song_output,
@@ -126,7 +125,6 @@ def download_from_youtube(input_url: str, output_folder_path: str, cookiefile: s
             title=song_info.title,
             year=song_info.year,
             genre=song_info.genres,
-            bpm=real_bpm,
             cover_url=cover_url,
             video_url=input_url,
             audio_extension=audio_ext,
