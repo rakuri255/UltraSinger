@@ -28,7 +28,7 @@ dependencies = [
     "unidecode",
     "pyhyphen",
     "tqdm",
-    "yt-dlp",
+    "yt-dlp[default]",
     "music21",
     "dataclasses",
     "dataclasses-json",
