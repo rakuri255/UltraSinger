@@ -29,6 +29,7 @@ dependencies = [
     "pyhyphen",
     "tqdm",
     "yt-dlp[default]",
+    "deno",
     "music21",
     "dataclasses",
     "dataclasses-json",
