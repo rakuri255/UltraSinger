@@ -51,7 +51,7 @@ if "!PYTHON_EXE!"=="" (
 )
 
 echo Using Python: !PYTHON_EXE!
-!PYTHON_EXE! --version
+"!PYTHON_EXE!" --version
 
 :: Install uv if not already installed
 where uv >nul 2>&1
@@ -75,7 +75,7 @@ echo uv is ready
 uv --version
 
 echo Syncing dependencies with uv...
-uv sync --extra windows --python !PYTHON_EXE!
+uv sync --extra windows --python "!PYTHON_EXE!"
 if !errorlevel! neq 0 (
     echo Error during uv sync
     pause
