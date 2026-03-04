@@ -6,7 +6,7 @@ build-backend = "hatchling.build"
 name = "UltraSinger"
 version = "0.0.13.dev15"
 description = "A tool to create UltraStar karaoke files from audio files"
-requires-python = ">=3.12"
+requires-python = ">=3.12,<3.14"
 dependencies = [
     "setuptools",
     "scipy",
