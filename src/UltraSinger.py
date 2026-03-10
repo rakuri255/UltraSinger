@@ -590,10 +590,16 @@ def CreateProcessAudio(process_data) -> str:
         input_path = process_data.process_data_paths.audio_output_file_path
 
     # Denoise vocal audio
+    # Include denoise parameters in cache filename so changed settings invalidate the cache
+    denoise_config = f"nr{float(settings.denoise_noise_reduction):.1f}_nf{float(settings.denoise_noise_floor):.1f}_tn{int(settings.denoise_track_noise)}"
     denoised_output_path = os.path.join(
-        process_data.process_data_paths.cache_folder_path, process_data.basename + "_denoised.wav"
+        process_data.process_data_paths.cache_folder_path, process_data.basename + f"_denoised_{denoise_config}.wav"
     )
-    denoise_vocal_audio(input_path, denoised_output_path, settings.skip_cache_denoise_vocal_audio)
+    denoise_vocal_audio(input_path, denoised_output_path,
+                        skip_cache=settings.skip_cache_denoise_vocal_audio,
+                        noise_reduction=settings.denoise_noise_reduction,
+                        noise_floor=settings.denoise_noise_floor,
+                        track_noise=settings.denoise_track_noise)
 
     # Convert to mono audio
     mono_output_path = os.path.join(
@@ -861,6 +867,20 @@ def init_settings(argv: list[str]) -> Settings:
             settings.quantize_to_key = arg
         elif opt in ("--ffmpeg"):
             settings.user_ffmpeg_path = arg
+        elif opt in ("--denoise_nr"):
+            val = float(arg)
+            if not (0.01 <= val <= 97):
+                print(f"Error: --denoise_nr must be between 0.01 and 97, got {val}")
+                sys.exit(1)
+            settings.denoise_noise_reduction = val
+        elif opt in ("--denoise_nf"):
+            val = float(arg)
+            if not (-80 <= val <= -20):
+                print(f"Error: --denoise_nf must be between -80 and -20, got {val}")
+                sys.exit(1)
+            settings.denoise_noise_floor = val
+        elif opt in ("--disable_denoise_track_noise"):
+            settings.denoise_track_noise = False
     if settings.output_folder_path == "":
         if settings.input_file_path.startswith("https:"):
             dirname = os.getcwd()
@@ -902,7 +922,10 @@ def arg_options():
         "quantize_to_key",
         "interactive",
         "cookiefile=",
-        "ffmpeg="
+        "ffmpeg=",
+        "denoise_nr=",
+        "denoise_nf=",
+        "disable_denoise_track_noise",
     ]
     return long, short
 

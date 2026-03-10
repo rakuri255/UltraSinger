@@ -58,6 +58,11 @@ class Settings:
     # yt-dlp
     cookiefile = None
 
+    # Denoise
+    denoise_noise_reduction = 20  # Noise reduction in dB (0.01-97, default: 20). Previous default was 70 which destroyed vocal nuances needed by Whisper.
+    denoise_noise_floor = -80  # Noise floor in dB (-80 to -20, default: -80)
+    denoise_track_noise = True  # Enable adaptive noise floor tracking
+
     # UltraSinger Evaluation Configuration
     test_songs_input_folder = None
     cache_override_path = None #"C:\\UltraSinger\\test_output"
