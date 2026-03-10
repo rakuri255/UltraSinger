@@ -142,6 +142,7 @@ def convert_to_ultrastar_format(audio_file_path: str, basename_without_ext: str,
     Returns the (possibly updated) audio file path and extension.
     """
     ULTRASTAR_COMPATIBLE_FORMATS = {"mp3", "ogg", "wav"}
+    audio_ext = audio_ext.lstrip(".").lower()
 
     if audio_ext in ULTRASTAR_COMPATIBLE_FORMATS:
         return audio_file_path, audio_ext
