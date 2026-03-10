@@ -135,10 +135,50 @@ def get_audio_codec_and_extension(video_file_path: str) -> str:
         return "wav"
 
 
+def convert_to_ultrastar_format(audio_file_path: str, basename_without_ext: str, output_folder: str, audio_ext: str) -> tuple[str, str]:
+    """
+    Convert audio to an UltraStar-compatible format (ogg) if needed.
+    UltraStar Play only supports mp3, ogg, and wav.
+    Returns the (possibly updated) audio file path and extension.
+    """
+    ULTRASTAR_COMPATIBLE_FORMATS = {"mp3", "ogg", "wav"}
+
+    if audio_ext in ULTRASTAR_COMPATIBLE_FORMATS:
+        return audio_file_path, audio_ext
+
+    from modules.console_colors import ULTRASINGER_HEAD
+
+    target_ext = "ogg"
+    target_path = os.path.join(output_folder, f"{basename_without_ext}.{target_ext}")
+    ffmpeg_path, _ = get_ffmpeg_and_ffprobe_paths()
+
+    print(f"{ULTRASINGER_HEAD} Converting {audio_ext} to {target_ext} (UltraStar compatibility)")
+
+    cmd = [
+        ffmpeg_path,
+        "-i", audio_file_path,
+        "-y",
+        "-loglevel", "error",
+        "-codec:a", "libvorbis",
+        "-q:a", "6",  # High quality VBR (~192 kbps)
+        target_path,
+    ]
+
+    result = subprocess.run(cmd, capture_output=True, text=True)
+    if result.returncode != 0:
+        raise Exception(f"FFmpeg audio conversion to {target_ext} failed: {result.stderr}")
+
+    # Remove the original incompatible audio file
+    os.remove(audio_file_path)
+
+    return target_path, target_ext
+
+
 def separate_audio_video(video_with_audio_path: str, basename_without_ext: str, output_folder: str) -> tuple[str, str, str, str]:
     """
     Separate audio and video from a video file.
     Automatically detects the audio codec and uses the appropriate file extension.
+    Converts to ogg if the audio format is not supported by UltraStar Play.
     """
     from modules.console_colors import ULTRASINGER_HEAD
 
@@ -152,6 +192,11 @@ def separate_audio_video(video_with_audio_path: str, basename_without_ext: str, 
     print(f"{ULTRASINGER_HEAD} Extracting audio from video")
     audio_file_path = os.path.join(output_folder, f"{basename_without_ext}.{audio_ext}")
     extract_audio(video_with_audio_path, audio_file_path)
+
+    # Convert to UltraStar-compatible format if needed
+    audio_file_path, audio_ext = convert_to_ultrastar_format(
+        audio_file_path, basename_without_ext, output_folder, audio_ext
+    )
 
     print(f"{ULTRASINGER_HEAD} Creating video without audio")
     video_only_path = os.path.join(output_folder, f"{basename_without_ext}_video.{video_ext}")
