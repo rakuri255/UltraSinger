@@ -60,6 +60,11 @@ def print_help() -> None:
     --keep_numbers          Transcribe numbers as digits and not words
     --ffmpeg                Path to ffmpeg and ffprobe executable
 
+    [denoise]
+    --denoise_nr            Noise reduction in dB (0.01-97). Lower preserves more vocal detail. >> ((default) is 20)
+    --denoise_nf            Noise floor in dB (-80 to -20) >> ((default) is -80)
+    --disable_denoise_track_noise  Disable adaptive noise floor tracking >> ((default) tracking is enabled)
+
     [yt-dlp]
     --cookiefile            File name where cookies should be read from and dumped to.
     
