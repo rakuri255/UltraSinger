@@ -590,7 +590,7 @@ def CreateProcessAudio(process_data) -> str:
 
     # Denoise vocal audio
     # Include denoise parameters in cache filename so changed settings invalidate the cache
-    denoise_config = f"nr{settings.denoise_noise_reduction}_nf{settings.denoise_noise_floor}_tn{int(settings.denoise_track_noise)}"
+    denoise_config = f"nr{float(settings.denoise_noise_reduction):.1f}_nf{float(settings.denoise_noise_floor):.1f}_tn{int(settings.denoise_track_noise)}"
     denoised_output_path = os.path.join(
         process_data.process_data_paths.cache_folder_path, process_data.basename + f"_denoised_{denoise_config}.wav"
     )
@@ -862,9 +862,17 @@ def init_settings(argv: list[str]) -> Settings:
         elif opt in ("--ffmpeg"):
             settings.user_ffmpeg_path = arg
         elif opt in ("--denoise_nr"):
-            settings.denoise_noise_reduction = float(arg)
+            val = float(arg)
+            if not (0.01 <= val <= 97):
+                print(f"Error: --denoise_nr must be between 0.01 and 97, got {val}")
+                sys.exit(1)
+            settings.denoise_noise_reduction = val
         elif opt in ("--denoise_nf"):
-            settings.denoise_noise_floor = float(arg)
+            val = float(arg)
+            if not (-80 <= val <= -20):
+                print(f"Error: --denoise_nf must be between -80 and -20, got {val}")
+                sys.exit(1)
+            settings.denoise_noise_floor = val
         elif opt in ("--disable_denoise_track_noise"):
             settings.denoise_track_noise = False
     if settings.output_folder_path == "":
