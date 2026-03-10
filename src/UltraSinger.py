@@ -582,10 +582,6 @@ def CreateProcessAudio(process_data) -> tuple[str, str]:
     Muting zeroes silent sections which helps pitch detection focus on singing,
     but destroys onset information that WhisperX's forced alignment needs.
     """
-    # Set processing audio to cache file
-    process_data.process_data_paths.processing_audio_path = os.path.join(
-        process_data.process_data_paths.cache_folder_path, process_data.basename + ".wav"
-    )
     os_helper.create_folder(process_data.process_data_paths.cache_folder_path)
 
     # Separate vocal from audio
@@ -636,7 +632,7 @@ def CreateProcessAudio(process_data) -> tuple[str, str]:
     return whisper_audio_path, pitch_audio_path
 
 
-def transcribe_audio(cache_folder_path: str, processing_audio_path: str) -> TranscriptionResult:
+def transcribe_audio(cache_folder_path: str, audio_path: str) -> TranscriptionResult:
     """Transcribe audio with AI"""
     transcription_result = None
     whisper_align_model_string = None
@@ -644,12 +640,12 @@ def transcribe_audio(cache_folder_path: str, processing_audio_path: str) -> Tran
         if not settings.whisper_align_model is None:
             whisper_align_model_string = settings.whisper_align_model.replace("/", "_")
         whisper_device = "cpu" if settings.force_whisper_cpu else settings.pytorch_device
-        transcription_config = f"{settings.transcriber}_{settings.whisper_model.value}_{whisper_device}_{whisper_align_model_string}_{settings.whisper_batch_size}_{settings.whisper_compute_type}_{settings.language}"
+        transcription_config = f"{settings.transcriber}_{settings.whisper_model.value}_{whisper_device}_{whisper_align_model_string}_{settings.whisper_batch_size}_{settings.whisper_compute_type}_{settings.language}_unmuted"
         transcription_path = os.path.join(cache_folder_path, f"{transcription_config}.json")
         cached_transcription_available = check_file_exists(transcription_path)
         if settings.skip_cache_transcription or not cached_transcription_available:
             transcription_result = transcribe_with_whisper(
-                processing_audio_path,
+                audio_path,
                 settings.whisper_model,
                 whisper_device,
                 settings.whisper_align_model,
