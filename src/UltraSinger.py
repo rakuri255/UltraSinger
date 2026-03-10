@@ -169,15 +169,19 @@ def run() -> tuple[str, Score, Score]:
         else settings.cache_override_path
     )
 
-    # Create process audio
-    process_data.process_data_paths.processing_audio_path = CreateProcessAudio(process_data)
+    # Create process audio — two separate paths:
+    # whisper_audio_path: un-muted mono for Whisper, BPM, key detection
+    # processing_audio_path: muted for pitch detection (SwiftF0)
+    whisper_audio_path, pitch_audio_path = CreateProcessAudio(process_data)
+    process_data.process_data_paths.whisper_audio_path = whisper_audio_path
+    process_data.process_data_paths.processing_audio_path = pitch_audio_path
 
-    # Get BPM from wav file
+    # Get BPM from wav file (use un-muted audio — muting can distort librosa.tempo)
     if not settings.input_file_is_ultrastar_txt:
-        process_data.media_info.bpm = get_bpm_from_file(process_data.process_data_paths.processing_audio_path)
+        process_data.media_info.bpm = get_bpm_from_file(process_data.process_data_paths.whisper_audio_path)
 
-    # Detect key
-    detected_key, detected_mode = detect_key_from_audio(process_data.process_data_paths.processing_audio_path)
+    # Detect key (use un-muted audio)
+    detected_key, detected_mode = detect_key_from_audio(process_data.process_data_paths.whisper_audio_path)
     if process_data.media_info.music_key is None:
         process_data.media_info.music_key = f"{detected_key} {detected_mode}"
 
@@ -498,8 +502,10 @@ def InitProcessData():
 
 
 def TranscribeAudio(process_data):
+    # Use un-muted audio for Whisper — muted audio causes WhisperX's wav2vec2
+    # forced alignment to lose sync at zero→audio transitions
     transcription_result = transcribe_audio(process_data.process_data_paths.cache_folder_path,
-                                            process_data.process_data_paths.processing_audio_path)
+                                            process_data.process_data_paths.whisper_audio_path)
 
     if process_data.media_info.language is None:
         process_data.media_info.language = transcription_result.detected_language
@@ -515,8 +521,10 @@ def TranscribeAudio(process_data):
         if hyphen_words is not None:
             process_data.transcribed_data = add_hyphen_to_data(process_data.transcribed_data, hyphen_words)
 
+    # Use un-muted audio for silence detection — running on muted audio
+    # detects more silence than actually exists in the original
     process_data.transcribed_data = remove_silence_from_transcription_data(
-        process_data.process_data_paths.processing_audio_path, process_data.transcribed_data
+        process_data.process_data_paths.whisper_audio_path, process_data.transcribed_data
     )
 
 
@@ -563,11 +571,17 @@ def CreateUltraStarTxt(process_data: ProcessData):
     return accurate_score, simple_score, ultrastar_file_output
 
 
-def CreateProcessAudio(process_data) -> str:
-    # Set processing audio to cache file
-    process_data.process_data_paths.processing_audio_path = os.path.join(
-        process_data.process_data_paths.cache_folder_path, process_data.basename + ".wav"
-    )
+def CreateProcessAudio(process_data) -> tuple[str, str]:
+    """Create processed audio files.
+
+    Returns two paths:
+    - whisper_audio_path: denoised mono audio (no muting) for Whisper transcription,
+      BPM detection, key detection, and silence-based transcription cleanup.
+    - pitch_audio_path: muted audio for pitch detection (SwiftF0).
+
+    Muting zeroes silent sections which helps pitch detection focus on singing,
+    but destroys onset information that WhisperX's forced alignment needs.
+    """
     os_helper.create_folder(process_data.process_data_paths.cache_folder_path)
 
     # Separate vocal from audio
@@ -601,36 +615,37 @@ def CreateProcessAudio(process_data) -> str:
                         noise_floor=settings.denoise_noise_floor,
                         track_noise=settings.denoise_track_noise)
 
-    # Convert to mono audio
+    # Convert to mono audio — this is the Whisper path (no muting)
     mono_output_path = os.path.join(
         process_data.process_data_paths.cache_folder_path, process_data.basename + "_mono.wav"
     )
     convert_audio_to_mono_wav(denoised_output_path, mono_output_path)
+    whisper_audio_path = mono_output_path
 
-    # Mute silence sections
+    # Mute silence sections — this is the pitch detection path
     mute_output_path = os.path.join(
         process_data.process_data_paths.cache_folder_path, process_data.basename + "_mute.wav"
     )
     mute_no_singing_parts(mono_output_path, mute_output_path)
+    pitch_audio_path = mute_output_path
 
-    # Define the audio file to process
-    return mute_output_path
+    return whisper_audio_path, pitch_audio_path
 
 
-def transcribe_audio(cache_folder_path: str, processing_audio_path: str) -> TranscriptionResult:
+def transcribe_audio(cache_folder_path: str, audio_path: str) -> TranscriptionResult:
     """Transcribe audio with AI"""
     transcription_result = None
     whisper_align_model_string = None
     if settings.transcriber == "whisper":
-        if not settings.whisper_align_model is None:
+        if settings.whisper_align_model is not None:
             whisper_align_model_string = settings.whisper_align_model.replace("/", "_")
         whisper_device = "cpu" if settings.force_whisper_cpu else settings.pytorch_device
-        transcription_config = f"{settings.transcriber}_{settings.whisper_model.value}_{whisper_device}_{whisper_align_model_string}_{settings.whisper_batch_size}_{settings.whisper_compute_type}_{settings.language}"
+        transcription_config = f"{settings.transcriber}_{settings.whisper_model.value}_{whisper_device}_{whisper_align_model_string}_{settings.whisper_batch_size}_{settings.whisper_compute_type}_{settings.language}_unmuted"
         transcription_path = os.path.join(cache_folder_path, f"{transcription_config}.json")
         cached_transcription_available = check_file_exists(transcription_path)
         if settings.skip_cache_transcription or not cached_transcription_available:
             transcription_result = transcribe_with_whisper(
-                processing_audio_path,
+                audio_path,
                 settings.whisper_model,
                 whisper_device,
                 settings.whisper_align_model,

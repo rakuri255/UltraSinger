@@ -8,7 +8,8 @@ from typing import Optional, List
 @dataclass
 class ProcessDataPaths:
     # Process data Paths
-    processing_audio_path: Optional[str] = ""
+    processing_audio_path: Optional[str] = ""  # Muted audio for pitch detection
+    whisper_audio_path: Optional[str] = ""  # Un-muted audio for Whisper transcription
     cache_folder_path: Optional[str] = ""
     audio_output_file_path: Optional[str] = "" # Output audio file path
     vocals_audio_file_path: Optional[str] = "" # Separated vocals audio file path
