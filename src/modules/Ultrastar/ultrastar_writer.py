@@ -1,5 +1,6 @@
 """Ultrastar writer module"""
 
+import math
 import re
 import langcodes
 from packaging import version
@@ -16,17 +17,20 @@ from modules.Midi.MidiSegment import MidiSegment
 
 
 def get_multiplier(real_bpm: float) -> int:
-    """Calculates the multiplier for the BPM"""
+    """Calculates the multiplier so that real_bpm * multiplier >= 400.
 
-    if real_bpm == 0:
-        raise Exception("BPM is 0")
+    A higher multiplier gives finer beat resolution, reducing rounding errors
+    when converting seconds to integer beats. The threshold of 400 ensures
+    at least ~6.67 beats per second at the lowest BPM.
+    """
+
+    if real_bpm <= 0:
+        raise Exception("BPM must be positive")
 
     multiplier = 1
-    result = 0
-    while result < 400:
-        result = real_bpm * multiplier
+    while real_bpm * multiplier < 400:
         multiplier += 1
-    return multiplier - 2
+    return multiplier
 
 
 def get_language_name(language: str) -> str:
@@ -46,7 +50,7 @@ def create_ultrastar_txt(
 
     ultrastar_bpm = real_bpm_to_ultrastar_bpm(real_bpm)
     multiplication = get_multiplier(ultrastar_bpm)
-    ultrastar_bpm = ultrastar_bpm * get_multiplier(ultrastar_bpm)
+    ultrastar_bpm = ultrastar_bpm * multiplication
     silence_split_duration = calculate_silent_beat_length(midi_segments)
 
     with open(ultrastar_file_output, "w", encoding=FILE_ENCODING) as file:
@@ -97,14 +101,18 @@ def create_ultrastar_txt(
 
         for i, midi_segment in enumerate(midi_segments):
             start_time = (midi_segment.start - gap) * multiplication
-            end_time = (
-                               midi_segment.end - midi_segment.start
-                       ) * multiplication
-            start_beat = round(second_to_beat(start_time, real_bpm))
-            duration = round(second_to_beat(end_time, real_bpm))
+            end_time = (midi_segment.end - midi_segment.start) * multiplication
 
-            # Fix the round issue, so the beats don’t overlap
-            start_beat = max(start_beat, previous_end_beat)
+            # Use floor for start (prefer slightly early over late) and
+            # max(1, ...) for duration (every note must be at least 1 beat).
+            # round() caused ±0.5 beat errors that accumulated over the song
+            # because max() below only shifts notes later, never earlier.
+            start_beat = math.floor(second_to_beat(start_time, real_bpm))
+            duration = max(1, math.ceil(second_to_beat(end_time, real_bpm)))
+
+            # Prevent overlap: shift start to after previous note if needed
+            if start_beat < previous_end_beat:
+                start_beat = previous_end_beat
             previous_end_beat = start_beat + duration
 
             # Calculate the silence between the words
@@ -142,7 +150,7 @@ def create_ultrastar_txt(
                         * multiplication
                 )
                 linebreak = f"{UltrastarTxtTag.LINEBREAK.value} " \
-                            f"{str(round(show_next))}\n"
+                            f"{str(math.floor(show_next))}\n"
                 file.write(linebreak)
             separated_word_silence = []
         file.write(f"{UltrastarTxtTag.FILE_END.value}")

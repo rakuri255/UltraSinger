@@ -120,13 +120,13 @@ class TestCreateUltrastarTxt(unittest.TestCase):
             if default_ultrastar_class.videoUrl is not None:
                 expected_calls += [f"#{UltrastarTxtTag.VIDEOURL.value}:{default_ultrastar_class.videoUrl}\n"]
         expected_calls += [
-            f"#{UltrastarTxtTag.BPM.value}:390.0\n",
+            f"#{UltrastarTxtTag.BPM.value}:420.0\n",
             f"#{UltrastarTxtTag.GAP.value}:500\n",
             f"#{UltrastarTxtTag.CREATOR.value}:{default_ultrastar_class.creator}\n",
             f"#{UltrastarTxtTag.COMMENT.value}:{default_ultrastar_class.comment}\n",
-            ": 0 52 1 UltraSinger \n",
-            ": 65 39 2 is \n",
-            ": 130 52 3 cool! \n",
+            ": 0 56 1 UltraSinger \n",
+            ": 70 42 2 is \n",
+            ": 140 56 3 cool! \n",
             "E"
         ]
 
@@ -151,15 +151,15 @@ class TestCreateUltrastarTxt(unittest.TestCase):
         expected_calls.append(f"#{UltrastarTxtTag.VIDEO.value}:{default_ultrastar_class.video}\n")
         if version.parse(ver) >= version.parse("1.2.0"):
             expected_calls.append(f"#{UltrastarTxtTag.VIDEOURL.value}:{default_ultrastar_class.videoUrl}\n")
-        expected_calls.append(f"#{UltrastarTxtTag.BPM.value}:390.0\n")
+        expected_calls.append(f"#{UltrastarTxtTag.BPM.value}:420.0\n")
         expected_calls.append(f"#{UltrastarTxtTag.GAP.value}:500\n")
         if version.parse(ver) >= version.parse("1.1.0"):
             expected_calls.append(f"#{UltrastarTxtTag.TAGS.value}:{default_ultrastar_class.tags}\n")
         expected_calls.append(f"#{UltrastarTxtTag.CREATOR.value}:{default_ultrastar_class.creator}\n")
         expected_calls.append(f"#{UltrastarTxtTag.COMMENT.value}:{default_ultrastar_class.comment}\n")
-        expected_calls.append(": 0 52 1 UltraSinger \n")
-        expected_calls.append(": 65 39 2 is \n")
-        expected_calls.append(": 130 52 3 cool! \n")
+        expected_calls.append(": 0 56 1 UltraSinger \n")
+        expected_calls.append(": 70 42 2 is \n")
+        expected_calls.append(": 140 56 3 cool! \n")
         expected_calls.append("E")
 
         return expected_calls
