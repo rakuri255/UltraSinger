@@ -637,7 +637,7 @@ def transcribe_audio(cache_folder_path: str, audio_path: str) -> TranscriptionRe
     transcription_result = None
     whisper_align_model_string = None
     if settings.transcriber == "whisper":
-        if not settings.whisper_align_model is None:
+        if settings.whisper_align_model is not None:
             whisper_align_model_string = settings.whisper_align_model.replace("/", "_")
         whisper_device = "cpu" if settings.force_whisper_cpu else settings.pytorch_device
         transcription_config = f"{settings.transcriber}_{settings.whisper_model.value}_{whisper_device}_{whisper_align_model_string}_{settings.whisper_batch_size}_{settings.whisper_compute_type}_{settings.language}_unmuted"
