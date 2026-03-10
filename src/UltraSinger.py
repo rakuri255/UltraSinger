@@ -487,7 +487,7 @@ def InitProcessData():
             settings.output_folder_path,
             process_data.process_data_paths.audio_output_file_path,
             process_data.media_info
-        ) = download_from_youtube(settings.input_file_path, settings.output_folder_path, settings.cookiefile)
+        ) = download_from_youtube(settings.input_file_path, settings.output_folder_path, settings.cookiefile, settings.cookies_from_browser)
     else:
         # Audio/Video File
         print(f"{ULTRASINGER_HEAD} {gold_highlighted('Full Automatic Mode')}")
@@ -876,6 +876,8 @@ def init_settings(argv: list[str]) -> Settings:
                 sys.exit()
         elif opt in ("--cookiefile"):
             settings.cookiefile = arg
+        elif opt in ("--cookies_from_browser"):
+            settings.cookies_from_browser = arg
         elif opt in ("--interactive"):
             settings.interactive_mode = True
         elif opt in ("--quantize_to_key"):
@@ -937,6 +939,7 @@ def arg_options():
         "quantize_to_key",
         "interactive",
         "cookiefile=",
+        "cookies_from_browser=",
         "ffmpeg=",
         "denoise_nr=",
         "denoise_nf=",

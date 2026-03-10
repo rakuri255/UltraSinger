@@ -13,11 +13,26 @@ from modules.musicbrainz_client import search_musicbrainz
 from modules.ffmpeg_helper import separate_audio_video
 
 
-def get_youtube_title(url: str, cookiefile: str = None) -> tuple[str, str]:
+def _cookie_opts(cookiefile: str = None, cookies_from_browser: str = None) -> dict:
+    """Build yt-dlp cookie options.
+
+    ``cookies_from_browser`` takes precedence over ``cookiefile`` because
+    it reads fresh session cookies directly from the browser, avoiding
+    the common issue of exported cookie files going stale.
+    """
+    opts = {}
+    if cookies_from_browser:
+        opts["cookiesfrombrowser"] = (cookies_from_browser,)
+    elif cookiefile:
+        opts["cookiefile"] = cookiefile
+    return opts
+
+
+def get_youtube_title(url: str, cookiefile: str = None, cookies_from_browser: str = None) -> tuple[str, str]:
     """Get the title of the YouTube video"""
 
     ydl_opts = {
-        "cookiefile": cookiefile,
+        **_cookie_opts(cookiefile, cookies_from_browser),
     }
     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
         result = ydl.extract_info(
@@ -31,7 +46,7 @@ def get_youtube_title(url: str, cookiefile: str = None) -> tuple[str, str]:
     return result["channel"].strip(), result["title"].strip()
 
 
-def __download_youtube_video_with_audio(url: str, clear_filename: str, output_path: str, cookiefile: str = None) -> str:
+def __download_youtube_video_with_audio(url: str, clear_filename: str, output_path: str, cookiefile: str = None, cookies_from_browser: str = None) -> str:
     """Download video with audio from YouTube and return the file extension"""
 
     print(f"{ULTRASINGER_HEAD} Downloading Video with Audio")
@@ -39,20 +54,20 @@ def __download_youtube_video_with_audio(url: str, clear_filename: str, output_pa
         "format": "bestvideo[ext=mp4]+bestaudio/best",
         "outtmpl": output_path + "/" + clear_filename + ".%(ext)s",
         "merge_output_format": "mp4",
-        "cookiefile": cookiefile,
+        **_cookie_opts(cookiefile, cookies_from_browser),
     }
     __start_download(ydl_opts, url)
     return "mp4"
 
 
-def __download_youtube_thumbnail(url: str, clear_filename: str, output_path: str, cookiefile: str = None) -> str:
+def __download_youtube_thumbnail(url: str, clear_filename: str, output_path: str, cookiefile: str = None, cookies_from_browser: str = None) -> str:
     """Download thumbnail from YouTube"""
 
     print(f"{ULTRASINGER_HEAD} Downloading thumbnail")
     ydl_opts = {
         "skip_download": True,
         "writethumbnail": True,
-        "cookiefile": cookiefile,
+        **_cookie_opts(cookiefile, cookies_from_browser),
     }
 
     thumbnail_url = download_and_convert_thumbnail(ydl_opts, url, clear_filename, output_path)
@@ -85,9 +100,9 @@ def __start_download(ydl_opts, url: str) -> None:
             raise Exception("Download failed with error: " + str(errors))
 
 
-def download_from_youtube(input_url: str, output_folder_path: str, cookiefile: str = None) -> tuple[str, str, str, MediaInfo]:
+def download_from_youtube(input_url: str, output_folder_path: str, cookiefile: str = None, cookies_from_browser: str = None) -> tuple[str, str, str, MediaInfo]:
     """Download from YouTube"""
-    (artist, title) = get_youtube_title(input_url, cookiefile)
+    (artist, title) = get_youtube_title(input_url, cookiefile, cookies_from_browser)
 
     # Get additional data for song
     song_info = search_musicbrainz(title, artist)
@@ -99,7 +114,7 @@ def download_from_youtube(input_url: str, output_folder_path: str, cookiefile: s
 
     print(f"{ULTRASINGER_HEAD} Downloading from YouTube")
     video_ext = __download_youtube_video_with_audio(
-        input_url, basename_without_ext, song_output, cookiefile
+        input_url, basename_without_ext, song_output, cookiefile, cookies_from_browser
     )
     video_with_audio_path = os.path.join(song_output, f"{basename_without_ext}.{video_ext}")
 
@@ -113,7 +128,7 @@ def download_from_youtube(input_url: str, output_folder_path: str, cookiefile: s
         save_image(song_info.cover_image_data, basename_without_ext, song_output)
     else:
         cover_url = __download_youtube_thumbnail(
-            input_url, basename_without_ext, song_output, cookiefile
+            input_url, basename_without_ext, song_output, cookiefile, cookies_from_browser
         )
 
     return (

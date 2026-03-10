@@ -133,7 +133,8 @@ _Not all options working now!_
     --ffmpeg                Path to ffmpeg and ffprobe executable
 
     [yt-dlp]
-    --cookiefile            File name where cookies should be read from
+    --cookiefile            Path to a Netscape-format cookies.txt file for YouTube authentication
+    --cookies_from_browser  Browser to read cookies from (e.g. chrome, firefox, edge, opera, brave)
 
     [device]
     --force_cpu             Force all steps to be processed on CPU.
@@ -164,10 +165,31 @@ default (Full Automatic Mode) - Creates all, depending on command line options
 -i https://www.youtube.com/watch?v=YwNs1Z0qRY0
 ```
 
-Note that if you run into a yt-dlp error such as `Sign in to confirm you’re not a bot. This helps protect our community` ([yt-dlp issue](https://github.com/yt-dlp/yt-dlp/issues/10128)) you can follow these steps:
+Note that if you run into a yt-dlp error such as `Sign in to confirm you’re not a bot. This helps protect our community` ([yt-dlp issue](https://github.com/yt-dlp/yt-dlp/issues/10128)) you can authenticate using one of two methods:
 
-* generate a cookies.txt file with [yt-dlp](https://github.com/yt-dlp/yt-dlp/wiki/Installation) `yt-dlp --cookies cookies.txt --cookies-from-browser firefox`
-* then pass the cookies.txt to UltraSinger `--cookiefile cookies.txt`
+**Option 1: Browser cookies (recommended)**
+
+Let UltraSinger read cookies directly from your browser. This is the most reliable method because it always uses fresh session cookies and you don’t have to manually export a file:
+
+```commandline
+-i https://www.youtube.com/watch?v=YwNs1Z0qRY0 --cookies_from_browser firefox
+```
+
+Supported browsers: `chrome`, `firefox`, `edge`, `opera`, `brave`, `chromium`, `vivaldi`, `safari`.
+
+> **Note:** The browser must be closed before UltraSinger can read its cookies (some browsers lock their cookie database while running).
+
+**Option 2: Cookie file**
+
+Export a `cookies.txt` file using yt-dlp or a browser extension, then pass it to UltraSinger:
+
+```commandline
+-i https://www.youtube.com/watch?v=YwNs1Z0qRY0 --cookiefile cookies.txt
+```
+
+> **Note:** Cookie files can go stale quickly. If downloads start failing again, re-export the file or switch to `--cookies_from_browser`.
+
+If both `--cookies_from_browser` and `--cookiefile` are provided, the browser cookies take precedence.
 
 #### UltraStar (re-pitch)
 
