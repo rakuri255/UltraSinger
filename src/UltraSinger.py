@@ -74,6 +74,7 @@ from modules.ffmpeg_helper import (
     get_ffmpeg_and_ffprobe_paths,
     is_video_file,
     separate_audio_video,
+    convert_to_ultrastar_format,
 )
 
 from Settings import Settings
@@ -685,6 +686,11 @@ def infos_from_audio_video_input_file() -> tuple[str, str, str, MediaInfo]:
             os.path.join(song_folder_output_path, basename_with_ext),
         )
         ultrastar_audio_input_path = os.path.join(song_folder_output_path, basename_with_ext)
+
+        # Convert to UltraStar-compatible format if needed
+        ultrastar_audio_input_path, audio_ext = convert_to_ultrastar_format(
+            ultrastar_audio_input_path, basename_without_ext, song_folder_output_path, audio_ext
+        )
 
     # Todo: Read ID3 tags
     if song_info.cover_image_data is not None:
