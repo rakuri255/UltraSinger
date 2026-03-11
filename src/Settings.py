@@ -57,7 +57,6 @@ class Settings:
 
     # yt-dlp
     cookiefile = None
-    cookies_from_browser = None  # Browser name for yt-dlp to read cookies from (e.g. "chrome", "firefox", "edge")
 
     # Denoise
     denoise_noise_reduction = 20  # Noise reduction in dB (0.01-97, default: 20). Previous default was 70 which destroyed vocal nuances needed by Whisper.

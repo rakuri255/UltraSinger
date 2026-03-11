@@ -66,10 +66,7 @@ def print_help() -> None:
     --disable_denoise_track_noise  Disable adaptive noise floor tracking >> ((default) tracking is enabled)
 
     [yt-dlp]
-    --cookiefile            Path to a Netscape-format cookies.txt file for YouTube authentication.
-    --cookies_from_browser  Browser to read cookies from (e.g. chrome, firefox, edge, opera, brave).
-                            Reads fresh session cookies directly, avoiding stale cookie files.
-                            Takes precedence over --cookiefile if both are provided.
+    --cookiefile            File name where cookies should be read from and dumped to.
     
     [device]
     --force_cpu             Force all steps to be processed on CPU.

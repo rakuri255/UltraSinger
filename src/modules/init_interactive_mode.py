@@ -153,16 +153,12 @@ def configure_additional_options(console, settings, header):
         if musescore_path:  
             settings.musescore_path = musescore_path  
   
-        # Cookie options for YouTube Downloads
-        cookie_method = console.input(
-            f"\n{header} YouTube cookie method: [green]browser[/green] name (e.g. chrome, firefox, edge) "
-            f"or path to [green]cookies.txt[/green] file (leave empty to skip): "
-        ).strip()
-        if cookie_method:
-            if os.path.exists(cookie_method):
-                settings.cookiefile = cookie_method
-            else:
-                settings.cookies_from_browser = cookie_method
+        # Cookie File for YouTube Downloads  
+        cookie_file = console.input(  
+            f"\n{header} Enter the path to [green]cookies.txt[/green] file (if required for YouTube downloads, leave empty otherwise): "  
+        ).strip()  
+        if cookie_file:  
+            settings.cookiefile = cookie_file
 
         # FFmpeg executable path
         ffmpeg_path = console.input(
