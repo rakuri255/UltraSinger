@@ -230,6 +230,68 @@ def create_repitched_midi_segments_from_ultrastar_txt(pitched_data: PitchedData,
     return midi_segments
 
 
+def correct_octave_outliers(
+    midi_segments: list[MidiSegment], window: int = 5
+) -> list[MidiSegment]:
+    """Correct octave outliers by comparing each note to its neighbours.
+
+    Pitch detectors occasionally jump a note into the wrong octave
+    (e.g. C2 instead of C4).  This post-processing step shifts any note
+    that is more than 11 semitones away from the local median back to the
+    closest octave.
+
+    Args:
+        midi_segments: List of MIDI segments with ``.note`` attributes.
+        window: Number of neighbours on each side to consider.
+
+    Returns:
+        The same list, with outlier notes corrected in-place.
+    """
+    if len(midi_segments) < 3:
+        return midi_segments
+
+    print(f"{ULTRASINGER_HEAD} Correcting octave outliers")
+
+    midi_values = []
+    for seg in midi_segments:
+        try:
+            midi_values.append(librosa.note_to_midi(seg.note))
+        except Exception:
+            midi_values.append(None)
+
+    for i, seg in enumerate(midi_segments):
+        if midi_values[i] is None:
+            continue
+
+        # Collect valid neighbour MIDI values
+        lo = max(0, i - window)
+        hi = min(len(midi_segments), i + window + 1)
+        neighbours = [
+            midi_values[j]
+            for j in range(lo, hi)
+            if j != i and midi_values[j] is not None
+        ]
+
+        if not neighbours:
+            continue
+
+        median_neighbour = float(np.median(neighbours))
+        current = midi_values[i]
+
+        # Shift by octaves until within 11 semitones of the median
+        while abs(current - median_neighbour) > 11:
+            if current > median_neighbour:
+                current -= 12
+            else:
+                current += 12
+
+        if current != midi_values[i]:
+            seg.note = librosa.midi_to_note(current)
+            midi_values[i] = current
+
+    return midi_segments
+
+
 def create_midi_file(
         real_bpm: float,
         song_output: str,
