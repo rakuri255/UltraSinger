@@ -2,7 +2,6 @@
 
 import math
 import os
-from collections import Counter
 
 import librosa
 import numpy as np
@@ -58,17 +57,57 @@ class MidiCreator:
     """Docstring"""
 
 
-def convert_frequencies_to_notes(frequency: [str]) -> list[list[str]]:
-    """Converts frequencies to notes"""
-    notes = []
-    for freq in frequency:
-        notes.append(librosa.hz_to_note(float(freq)))
-    return notes
+def confidence_weighted_median_note(
+    frequencies: list[float], weights: list[float]
+) -> str:
+    """Select a note using the confidence-weighted median of frequencies.
 
+    Instead of converting frequencies to note names first and picking the
+    mode (most common), this operates on raw Hz values so that the median
+    is computed in a continuous space.  This avoids the problem where
+    pitch jitter across note boundaries causes the mode to pick a rare
+    outlier note.
 
-def most_frequent(array: [str]) -> list[tuple[str, int]]:
-    """Get most frequent item in array"""
-    return Counter(array).most_common(1)
+    Args:
+        frequencies: Detected frequencies in Hz (already confidence-filtered).
+        weights: Confidence values corresponding to each frequency.
+
+    Returns:
+        Note name string (e.g. ``"C4"``).
+
+    Raises:
+        ValueError: If *frequencies* or *weights* are empty, have
+            mismatched lengths, or all weights are zero.
+    """
+    if not frequencies or not weights:
+        raise ValueError("frequencies and weights must be non-empty")
+    if len(frequencies) != len(weights):
+        raise ValueError(
+            f"frequencies ({len(frequencies)}) and weights ({len(weights)}) "
+            "must have the same length"
+        )
+
+    freqs = np.asarray(frequencies, dtype=float)
+    wts = np.asarray(weights, dtype=float)
+
+    total_weight = wts.sum()
+    if total_weight == 0:
+        raise ValueError("total weight must be > 0")
+
+    # Sort by frequency
+    order = np.argsort(freqs)
+    sorted_freqs = freqs[order]
+    sorted_wts = wts[order]
+
+    # Weighted median: first cumulative weight index >= half total weight
+    cumulative = np.cumsum(sorted_wts)
+    half = total_weight / 2.0
+    median_idx = int(np.searchsorted(cumulative, half))
+    # Clamp to valid index range
+    median_idx = min(median_idx, len(sorted_freqs) - 1)
+    median_freq = sorted_freqs[median_idx]
+
+    return librosa.hz_to_note(float(median_freq))
 
 
 def find_nearest_index(array: list[float], value: float) -> int:
@@ -138,11 +177,13 @@ def create_midi_note_from_pitched_data(start_time: float, end_time: float, pitch
         freqs = pitched_data.frequencies[start:end]
         confs = pitched_data.confidence[start:end]
 
-    conf_f = get_frequencies_with_high_confidence(freqs, confs)
+    conf_f, conf_weights = get_frequencies_with_high_confidence(freqs, confs)
 
-    notes = convert_frequencies_to_notes(conf_f)
-
-    note = most_frequent(notes)[0][0]
+    if not conf_f:
+        # No valid frequencies found; fall back to a neutral middle note
+        note = "C4"
+    else:
+        note = confidence_weighted_median_note(conf_f, conf_weights)
 
     if allowed_notes is not None:
         note = quantize_note_to_key(note, allowed_notes)
