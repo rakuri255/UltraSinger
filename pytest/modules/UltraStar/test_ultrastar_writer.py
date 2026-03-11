@@ -4,7 +4,10 @@ import unittest
 
 from packaging import version
 from unittest.mock import patch, mock_open
-from src.modules.Ultrastar.ultrastar_writer import create_ultrastar_txt, deviation, format_separated_string
+from src.modules.Ultrastar.ultrastar_writer import (
+    create_ultrastar_txt, silence_threshold, calculate_silent_beat_length,
+    format_separated_string,
+)
 from src.modules.Midi.MidiSegment import MidiSegment
 from src.modules.Ultrastar.ultrastar_txt import UltrastarTxtValue, UltrastarTxtTag
 
@@ -242,11 +245,10 @@ class TestCreateUltrastarTxt(unittest.TestCase):
                0.040000000000020464, 0.040000000000020464]
 
         # Act
-        result = deviation(val)
+        result = silence_threshold(val)
 
-        # Assert
-        self.assertLessEqual(result, 0.45)
-        self.assertGreaterEqual(result, 0.37)
+        # Assert — 75th percentile ≈ 0.12
+        self.assertAlmostEqual(result, 0.12, places=2)
 
     def test_most_common_silent_part_AnenRegnen(self):
         # Arrange
@@ -298,11 +300,10 @@ class TestCreateUltrastarTxt(unittest.TestCase):
                0.03999999999999204, 0.040000000000020464, 0.14500000000001023]
 
         # Act
-        result = deviation(val)
+        result = silence_threshold(val)
 
-        # Assert
-        self.assertGreaterEqual(result, 0.15)
-        self.assertLessEqual(result, 0.35)
+        # Assert — 75th percentile ≈ 0.08
+        self.assertAlmostEqual(result, 0.08, places=2)
 
     def test_most_common_silent_part_discw(self):
         # Arrange
@@ -353,11 +354,10 @@ class TestCreateUltrastarTxt(unittest.TestCase):
                0.14099999999999113]
 
         # Act
-        result = deviation(val)
+        result = silence_threshold(val)
 
-        # Assert
-        self.assertGreaterEqual(result, 0.24)
-        self.assertLessEqual(result, 0.43)
+        # Assert — 75th percentile ≈ 0.18
+        self.assertAlmostEqual(result, 0.18, places=1)
 
     def test_most_common_silent_part_kumr(self):
         # Arrange
@@ -433,11 +433,10 @@ class TestCreateUltrastarTxt(unittest.TestCase):
                0.060000000000002274, 0.01999999999998181]
 
         # Act
-        result = deviation(val)
+        result = silence_threshold(val)
 
-        # Assert
-        self.assertGreaterEqual(result, 0.11)
-        self.assertLessEqual(result, 0.168)
+        # Assert — 75th percentile ≈ 0.04
+        self.assertAlmostEqual(result, 0.04, places=2)
 
     def test_format_separated_string(self):
         self.assertEqual(format_separated_string('rock,pop,rock-pop,'), 'Rock, Pop, Rock-Pop')
@@ -445,6 +444,40 @@ class TestCreateUltrastarTxt(unittest.TestCase):
         self.assertEqual(format_separated_string('rock/pop/rock-pop,'), 'Rock, Pop, Rock-Pop')
         self.assertEqual(format_separated_string('rock,pop/rock-pop;80s,'), 'Rock, Pop, Rock-Pop, 80s')
         self.assertEqual(format_separated_string('rock, pop, rock-pop, '), 'Rock, Pop, Rock-Pop')
+
+    def test_silence_threshold_short_input_returns_none(self):
+        """Fewer than 5 gaps should return None (not enough data)."""
+        self.assertIsNone(silence_threshold([]))
+        self.assertIsNone(silence_threshold([0.1]))
+        self.assertIsNone(silence_threshold([0.1, 0.2, 0.3, 0.4]))
+
+    def test_calculate_silent_beat_length_few_segments(self):
+        """With < 6 segments (producing < 5 gaps), should return None."""
+        segments = [
+            MidiSegment(note="C4", start=0.0, end=0.5, word="a "),
+            MidiSegment(note="D4", start=1.0, end=1.5, word="b "),
+            MidiSegment(note="E4", start=2.0, end=2.5, word="c "),
+        ]
+        result = calculate_silent_beat_length(segments)
+        self.assertIsNone(result)
+
+    def test_calculate_silent_beat_length_clamps_negative_gaps(self):
+        """Overlapping segments should produce 0-clamped gaps, not negatives."""
+        # 8 segments → 7 gaps, some overlapping (negative raw gap)
+        segments = [
+            MidiSegment(note="C4", start=0.0, end=1.0, word="a "),
+            MidiSegment(note="D4", start=0.8, end=1.5, word="b "),   # overlaps: -0.2 → 0
+            MidiSegment(note="E4", start=2.0, end=2.5, word="c "),
+            MidiSegment(note="F4", start=3.0, end=3.5, word="d "),
+            MidiSegment(note="G4", start=4.0, end=4.5, word="e "),
+            MidiSegment(note="A4", start=5.0, end=5.5, word="f "),
+            MidiSegment(note="B4", start=6.0, end=6.5, word="g "),
+            MidiSegment(note="C5", start=7.0, end=7.5, word="h "),
+        ]
+        result = calculate_silent_beat_length(segments)
+        # All gaps are 0.5 except the overlap (0.0), so percentile must be >= 0
+        self.assertIsNotNone(result)
+        self.assertGreaterEqual(result, 0)
 
 
 if __name__ == "__main__":

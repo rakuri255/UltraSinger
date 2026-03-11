@@ -3,6 +3,7 @@
 import math
 import re
 import langcodes
+import numpy as np
 from packaging import version
 
 from modules.console_colors import ULTRASINGER_HEAD
@@ -140,8 +141,9 @@ def create_ultrastar_txt(
                 separated_word_silence.append(silence)
                 continue
 
-            if i != len(midi_segments) - 1 and silence_split_duration != 0 and silence > silence_split_duration or any(
-                    s > silence_split_duration for s in separated_word_silence):
+            if silence_split_duration is not None and (
+                    i != len(midi_segments) - 1 and silence > silence_split_duration
+                    or any(s > silence_split_duration for s in separated_word_silence)):
                 # - 10
                 # '-' end of current sing part
                 # 'n1' show next at time in real beat
@@ -156,33 +158,59 @@ def create_ultrastar_txt(
         file.write(f"{UltrastarTxtTag.FILE_END.value}")
 
 
-def deviation(silence_parts):
-    """Calculates the deviation of the silence parts"""
+def silence_threshold(
+    silence_parts: list[float], percentile: float = 75
+) -> float | None:
+    """Calculate the silence duration threshold for linebreaks.
 
+    Uses a percentile-based approach: only silences above the given
+    percentile of all inter-note gaps trigger a linebreak.  This is
+    more robust than a mean-based approach, which either creates too
+    many linebreaks (when pauses are evenly distributed) or too few
+    (when a single long pause skews the average).
+
+    Args:
+        silence_parts: List of silence durations in seconds between
+            consecutive notes.
+        percentile: The percentile of silence durations to use as the
+            threshold (default 75 — only the longest 25 % of gaps
+            become linebreaks).
+
+    Returns:
+        The silence duration threshold in seconds, or ``None`` when
+        there are fewer than 5 gaps (too few to compute a meaningful
+        threshold).  Callers must check for ``None`` before comparing.
+    """
     if len(silence_parts) < 5:
-        return 0
+        return None
 
-    # Remove the longest part so the deviation is not that high
-    sorted_parts = sorted(silence_parts)
-    filtered_parts = [part for part in sorted_parts if part < sorted_parts[-1]]
-
-    sum_parts = sum(filtered_parts)
-    if sum_parts == 0:
-        return 0
-
-    mean = sum_parts / len(filtered_parts)
-    return mean
+    return float(np.percentile(silence_parts, percentile))
 
 
-def calculate_silent_beat_length(midi_segments: list[MidiSegment]):
+def calculate_silent_beat_length(
+    midi_segments: list[MidiSegment], percentile: float = 75
+) -> float | None:
+    """Extract inter-note silence durations and compute a threshold.
+
+    This is a convenience wrapper around :func:`silence_threshold`
+    that collects the gaps between consecutive MIDI segments.
+
+    Args:
+        midi_segments: List of MIDI segments with start/end times.
+        percentile: Passed to :func:`silence_threshold`.
+
+    Returns:
+        The silence duration threshold (see :func:`silence_threshold`).
+    """
     print(f"{ULTRASINGER_HEAD} Calculating silence parts for linebreaks.")
 
     silent_parts = []
     for i, data in enumerate(midi_segments):
         if i < len(midi_segments) - 1:
-            silent_parts.append(midi_segments[i + 1].start - data.end)
+            silence = max(0, midi_segments[i + 1].start - data.end)
+            silent_parts.append(silence)
 
-    return deviation(silent_parts)
+    return silence_threshold(silent_parts, percentile)
 
 
 def create_repitched_txt_from_ultrastar_data(
