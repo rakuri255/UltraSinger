@@ -27,6 +27,7 @@ class Settings:
     interactive_mode = False
     user_ffmpeg_path = ""
     quantize_to_key = True  # Quantize notes to the detected key of the song
+    bpm_override = None  # Manual BPM override (float), skips auto-detection when set
 
     # Process data Paths
     input_file_path = ""

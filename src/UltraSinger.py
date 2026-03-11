@@ -160,6 +160,8 @@ def run() -> tuple[str, Score, Score]:
         print(f"{ULTRASINGER_HEAD} {bright_green_highlighted('Option:')} {cyan_highlighted('Hyphenation will not be applied')}")
     if settings.quantize_to_key:
         print(f"{ULTRASINGER_HEAD} {bright_green_highlighted('Option:')} {cyan_highlighted('Notes will be quantized to the detected musical key')}")
+    if settings.bpm_override is not None:
+        print(f"{ULTRASINGER_HEAD} {bright_green_highlighted('Option:')} {cyan_highlighted(f'BPM override: {settings.bpm_override}')}")
 
     process_data = InitProcessData()
 
@@ -176,8 +178,12 @@ def run() -> tuple[str, Score, Score]:
     process_data.process_data_paths.whisper_audio_path = whisper_audio_path
     process_data.process_data_paths.processing_audio_path = pitch_audio_path
 
-    # Get BPM from wav file (use un-muted audio — muting can distort librosa.tempo)
-    if not settings.input_file_is_ultrastar_txt:
+    # Get BPM — manual override takes precedence over auto-detection and .txt BPM
+    if settings.bpm_override is not None:
+        process_data.media_info.bpm = settings.bpm_override
+        print(f"{ULTRASINGER_HEAD} Using manual BPM: {blue_highlighted(str(settings.bpm_override))}")
+    elif not settings.input_file_is_ultrastar_txt:
+        # Auto-detect from wav file (use un-muted audio — muting can distort librosa.tempo)
         process_data.media_info.bpm = get_bpm_from_file(process_data.process_data_paths.whisper_audio_path)
 
     # Detect key (use un-muted audio)
@@ -805,6 +811,16 @@ def init_settings(argv: list[str]) -> Settings:
             settings.input_file_path = arg
         elif opt in ("-o", "--ofile"):
             settings.output_folder_path = arg
+        elif opt == "--bpm":
+            try:
+                val = float(arg)
+            except ValueError:
+                print(f"{ULTRASINGER_HEAD} {red_highlighted('Error:')} --bpm must be a positive number, got {arg}")
+                sys.exit(1)
+            if val <= 0:
+                print(f"{ULTRASINGER_HEAD} {red_highlighted('Error:')} --bpm must be a positive number, got {val}")
+                sys.exit(1)
+            settings.bpm_override = val
         elif opt in ("--whisper"):
             settings.transcriber = "whisper"
 
@@ -912,6 +928,7 @@ def arg_options():
     long = [
         "ifile=",
         "ofile=",
+        "bpm=",
         "crepe=",
         "crepe_step_size=",
         "demucs=",

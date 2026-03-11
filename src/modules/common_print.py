@@ -48,6 +48,7 @@ def print_help() -> None:
     --crepe_step_size  unit is miliseconds >> ((default) is 10)
     
     [extra]
+    --bpm                   Override auto-detected BPM with a manual value (e.g., --bpm 340)
     --disable_hyphenation   Disable word hyphenation. Hyphenation is enabled by default.
     --disable_separation    Disable track separation. Track separation is enabled by default.
     --disable_karaoke       Disable creation of karaoke style txt file. Karaoke is enabled by default.

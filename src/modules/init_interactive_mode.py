@@ -140,10 +140,27 @@ def configure_additional_options(console, settings, header):
         if language:  
             settings.language = language  
   
-        # Transcribe Numbers as Numerics  
-        keep_numbers_input = console.input(  
-            f"\n{header} Do you want to transcribe [green]numbers as numerics[/green]? ([bright_green]y[/bright_green]/[bright_red]n[/bright_red], default '[bright_red]n[/bright_red]'): "  
-        ).strip().lower()  
+        # BPM Override
+        if settings.bpm_override is None:
+            bpm_input = console.input(
+                f"\n{header} Enter a manual [green]BPM[/green] value to override auto-detection (leave empty for auto-detect): "
+            ).strip()
+            if bpm_input:
+                try:
+                    bpm_val = float(bpm_input)
+                    if bpm_val > 0:
+                        settings.bpm_override = bpm_val
+                    else:
+                        console.print(f"{header} [bold red]Error:[/bold red] BPM must be positive. Using auto-detection.")
+                except ValueError:
+                    console.print(f"{header} [bold red]Error:[/bold red] Invalid BPM value. Using auto-detection.")
+        else:
+            console.print(f"{header} Using CLI BPM override: [cyan]{settings.bpm_override}[/cyan]")
+
+        # Transcribe Numbers as Numerics
+        keep_numbers_input = console.input(
+            f"\n{header} Do you want to transcribe [green]numbers as numerics[/green]? ([bright_green]y[/bright_green]/[bright_red]n[/bright_red], default '[bright_red]n[/bright_red]'): "
+        ).strip().lower()
         settings.keep_numbers = keep_numbers_input == 'y'  
   
         # MuseScore Path  
