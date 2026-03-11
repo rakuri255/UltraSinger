@@ -109,7 +109,7 @@ def create_audio_chunks_from_transcribed_data(
 
     csv_filename = os.path.join(audio_chunks_path, "_chunks.csv")
     __export_chunks_from_transcribed_data(
-        process_data_paths.processing_audio_path, transcribed_data, audio_chunks_path
+        process_data_paths.whisper_audio_path, transcribed_data, audio_chunks_path
     )
     export_transcribed_data_to_csv(transcribed_data, csv_filename)
 
