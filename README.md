@@ -57,6 +57,7 @@ This will help me a lot to keep this project alive and improve it.
       - [✍️ Hyphenation](#️-hyphenation)
     - [👂 Pitcher](#-pitcher)
     - [👄 Separation](#-separation)
+    - [🥁 BPM Override](#-bpm-override)
     - [Sheet Music](#sheet-music)
     - [Format Version](#format-version)
     - [🏆 Ultrastar Score Calculation](#-ultrastar-score-calculation)
@@ -120,6 +121,7 @@ _Not all options working now!_
     --keep_numbers          Numbers will be transcribed as numerics instead of as words
 
     [extra]
+    --bpm                   Override auto-detected BPM with a manual value (e.g., --bpm 120)
     --disable_hyphenation   Disable word hyphenation. Hyphenation is enabled by default.
     --disable_separation    Disable track separation. Track separation is enabled by default.
     --disable_karaoke       Disable creation of karaoke style txt file. Karaoke is enabled by default.
@@ -234,6 +236,16 @@ By default, UltraSinger quantizes all detected notes to the detected musical key
 
 If you want to keep the raw pitch detection without quantization, set `quantize_to_key = False`.
 For most songs  quantization should produces better results.
+
+### 🥁 BPM Override
+
+UltraSinger automatically detects the BPM of the song. If the auto-detection gives an incorrect result, you can manually override it with the `--bpm` option. The value must be a positive number.
+
+```commandline
+-i XYZ --bpm 120
+```
+
+This skips the automatic BPM detection and uses the provided value instead. Decimal values are also supported. You can find the correct BPM for most songs on sites like [songbpm.com](https://songbpm.com/) or in the song's metadata.
 
 ### Sheet Music
 
