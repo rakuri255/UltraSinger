@@ -4,6 +4,9 @@
 venv
 .venv
 
+# local uv config (CPU/CUDA PyTorch index override)
+uv.toml
+
 # python
 **__pycache__
 

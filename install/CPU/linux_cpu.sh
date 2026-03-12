@@ -25,7 +25,20 @@ fi
 echo "uv version:"
 uv --version
 
-echo "Syncing dependencies with uv..."
+# Remove old virtual environment to ensure clean state (e.g., switching between CPU/CUDA)
+if [ -d ".venv" ]; then
+    echo "Removing old virtual environment..."
+    rm -rf .venv
+fi
+
+# Ensure PyTorch index is set to CPU in pyproject.toml
+# (restores default if previously changed by CUDA install script)
+sed 's|whl/cu[0-9]*|whl/cpu|' pyproject.toml > pyproject.toml.tmp && mv pyproject.toml.tmp pyproject.toml
+
+# Regenerate lockfile with CPU PyTorch index and sync
+echo "Resolving dependencies..."
+uv lock
+echo "Syncing dependencies..."
 uv sync --extra linux
 
 echo "Installation completed successfully!"

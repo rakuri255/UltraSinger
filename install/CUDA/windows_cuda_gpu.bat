@@ -12,11 +12,11 @@ echo Current directory: %cd%
 :: Update PATH to include uv installation directory
 set "PATH=%USERPROFILE%\.local\bin;!PATH!"
 
-:: Remove old virtual environment if it exists to force recreation with correct Python version
-::if exist .venv (
-::    echo Removing old virtual environment...
-::    rmdir /s /q .venv
-::)
+:: Remove old virtual environment to ensure clean state (e.g., switching between CPU/CUDA)
+if exist .venv (
+    echo Removing old virtual environment...
+    rmdir /s /q .venv
+)
 
 :: First, find Python using to get full path
 set "PYTHON_EXE="
@@ -74,22 +74,24 @@ if !errorlevel! neq 0 (
 echo uv is ready
 uv --version
 
-echo Syncing dependencies with uv...
-uv sync --extra windows --python "!PYTHON_EXE!"
+:: Set PyTorch index to CUDA in pyproject.toml
+:: (uv.toml cannot override named indexes used by [tool.uv.sources])
+echo Configuring PyTorch index for CUDA...
+powershell -NoProfile -Command "(Get-Content pyproject.toml) -replace 'whl/cpu', 'whl/cu128' | Set-Content pyproject.toml -Encoding UTF8"
+
+:: Regenerate lockfile with CUDA PyTorch index
+echo Resolving dependencies...
+uv lock
 if !errorlevel! neq 0 (
-    echo Error during uv sync
+    echo Error during uv lock
     pause
     exit /b 1
 )
 
-echo Installing PyTorch with CUDA support (as recommended by WhisperX)...
-:: First remove any existing torch installation to avoid RECORD file issues
-uv pip uninstall torch torchvision torchaudio -y 2>nul
-:: Install PyTorch 2.8.0 with CUDA for WhisperX compatibility
-:: This version includes cuDNN 9.x which is compatible with the latest PyTorch
-uv pip install torch==2.8.0 torchvision==0.23.0 torchaudio==2.8.0 --index-url https://download.pytorch.org/whl/cu128 --force-reinstall
+echo Syncing dependencies...
+uv sync --extra windows --python "!PYTHON_EXE!"
 if !errorlevel! neq 0 (
-    echo Error during PyTorch installation
+    echo Error during uv sync
     pause
     exit /b 1
 )

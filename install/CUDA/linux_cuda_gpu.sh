@@ -25,13 +25,22 @@ fi
 echo "uv version:"
 uv --version
 
-# Sync dependencies from pyproject.toml
-echo "Syncing dependencies from pyproject.toml..."
-uv sync --extra linux
+# Remove old virtual environment to ensure clean state (e.g., switching between CPU/CUDA)
+if [ -d ".venv" ]; then
+    echo "Removing old virtual environment..."
+    rm -rf .venv
+fi
 
-# Install PyTorch with CUDA support
-echo "Installing PyTorch with CUDA support..."
-uv pip install torch==2.8.0 torchvision==0.23.0 torchaudio==2.8.0 --index-url https://download.pytorch.org/whl/cu128 --force-reinstall
+# Set PyTorch index to CUDA in pyproject.toml
+# (uv.toml cannot override named indexes used by [tool.uv.sources])
+echo "Configuring PyTorch index for CUDA..."
+sed 's|whl/cpu|whl/cu128|' pyproject.toml > pyproject.toml.tmp && mv pyproject.toml.tmp pyproject.toml
+
+# Regenerate lockfile with CUDA PyTorch index and sync
+echo "Resolving dependencies..."
+uv lock
+echo "Syncing dependencies..."
+uv sync --extra linux
 
 echo "Installation completed successfully!"
 echo "To run UltraSinger:"
