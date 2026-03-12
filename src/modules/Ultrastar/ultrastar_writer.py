@@ -159,7 +159,7 @@ def create_ultrastar_txt(
 
 
 def silence_threshold(
-    silence_parts: list[float], percentile: float = 75
+    silence_parts: list[float], percentile: float = 85
 ) -> float | None:
     """Calculate the silence duration threshold for linebreaks.
 
@@ -173,8 +173,10 @@ def silence_threshold(
         silence_parts: List of silence durations in seconds between
             consecutive notes.
         percentile: The percentile of silence durations to use as the
-            threshold (default 75 — only the longest 25 % of gaps
-            become linebreaks).
+            threshold (default 85 — only the longest 15 % of gaps
+            become linebreaks).  A higher percentile produces fewer
+            linebreaks; 85 was chosen empirically to match the density
+            of manually-authored UltraStar files.
 
     Returns:
         The silence duration threshold in seconds, or ``None`` when
@@ -188,7 +190,7 @@ def silence_threshold(
 
 
 def calculate_silent_beat_length(
-    midi_segments: list[MidiSegment], percentile: float = 75
+    midi_segments: list[MidiSegment], percentile: float = 85
 ) -> float | None:
     """Extract inter-note silence durations and compute a threshold.
 

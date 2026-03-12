@@ -244,8 +244,8 @@ class TestCreateUltrastarTxt(unittest.TestCase):
                0.03999999999999204, 0.14000000000001478, 0.040000000000020464, 0.04099999999999682,
                0.040000000000020464, 0.040000000000020464]
 
-        # Act
-        result = silence_threshold(val)
+        # Act — use explicit percentile=75 for this regression dataset
+        result = silence_threshold(val, percentile=75)
 
         # Assert — 75th percentile ≈ 0.12
         self.assertAlmostEqual(result, 0.12, places=2)
@@ -299,8 +299,8 @@ class TestCreateUltrastarTxt(unittest.TestCase):
                0.020000000000010232, 0.15500000000000114, 0.9489999999999839, 0.040000000000020464, 0.0,
                0.03999999999999204, 0.040000000000020464, 0.14500000000001023]
 
-        # Act
-        result = silence_threshold(val)
+        # Act — use explicit percentile=75 for this regression dataset
+        result = silence_threshold(val, percentile=75)
 
         # Assert — 75th percentile ≈ 0.08
         self.assertAlmostEqual(result, 0.08, places=2)
@@ -353,8 +353,8 @@ class TestCreateUltrastarTxt(unittest.TestCase):
                0.12000000000000455, 0.6200000000000045, 0.09999999999999432, 6.356999999999999, 0.03999999999999204,
                0.14099999999999113]
 
-        # Act
-        result = silence_threshold(val)
+        # Act — use explicit percentile=75 for this regression dataset
+        result = silence_threshold(val, percentile=75)
 
         # Assert — 75th percentile ≈ 0.18
         self.assertAlmostEqual(result, 0.18, places=1)
@@ -432,8 +432,8 @@ class TestCreateUltrastarTxt(unittest.TestCase):
                0.060000000000002274, 0.0, 0.05999999999997385, 0.040000000000020464, 0.060000000000002274, 0.0,
                0.060000000000002274, 0.01999999999998181]
 
-        # Act
-        result = silence_threshold(val)
+        # Act — use explicit percentile=75 for this regression dataset
+        result = silence_threshold(val, percentile=75)
 
         # Assert — 75th percentile ≈ 0.04
         self.assertAlmostEqual(result, 0.04, places=2)
@@ -444,6 +444,26 @@ class TestCreateUltrastarTxt(unittest.TestCase):
         self.assertEqual(format_separated_string('rock/pop/rock-pop,'), 'Rock, Pop, Rock-Pop')
         self.assertEqual(format_separated_string('rock,pop/rock-pop;80s,'), 'Rock, Pop, Rock-Pop, 80s')
         self.assertEqual(format_separated_string('rock, pop, rock-pop, '), 'Rock, Pop, Rock-Pop')
+
+    def test_silence_threshold_default_is_85th_percentile(self):
+        """The default percentile (85) should produce a higher threshold
+        than the 75th percentile, resulting in fewer linebreaks."""
+        gaps = [0.01, 0.02, 0.03, 0.04, 0.05,
+                0.10, 0.20, 0.50, 1.00, 2.00]
+        result_default = silence_threshold(gaps)           # percentile=85
+        result_75 = silence_threshold(gaps, percentile=75)
+        self.assertIsNotNone(result_default)
+        self.assertIsNotNone(result_75)
+        self.assertGreater(result_default, result_75)
+
+    def test_silence_threshold_explicit_percentile(self):
+        """Passing an explicit percentile overrides the default."""
+        gaps = [0.0, 0.1, 0.2, 0.3, 0.5, 1.0, 2.0, 5.0, 10.0, 20.0]
+        result_50 = silence_threshold(gaps, percentile=50)
+        result_90 = silence_threshold(gaps, percentile=90)
+        self.assertIsNotNone(result_50)
+        self.assertIsNotNone(result_90)
+        self.assertGreater(result_90, result_50)
 
     def test_silence_threshold_short_input_returns_none(self):
         """Fewer than 5 gaps should return None (not enough data)."""
