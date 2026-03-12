@@ -230,6 +230,74 @@ def create_repitched_midi_segments_from_ultrastar_txt(pitched_data: PitchedData,
     return midi_segments
 
 
+def correct_global_octave(
+    midi_segments: list[MidiSegment],
+    low: int = 48,
+    high: int = 84,
+) -> list[MidiSegment]:
+    """Shift all notes by whole octaves so the median lies in the vocal range.
+
+    Pitch detectors sometimes lock onto a sub-harmonic (e.g. half the
+    fundamental frequency), pushing *every* note into an implausibly low
+    register.  :func:`correct_octave_outliers` only fixes *local*
+    outliers relative to their neighbours and cannot detect such a
+    *global* shift.
+
+    This function computes the median MIDI value of the entire song.
+    If that median falls outside the expected vocal range
+    (default ``48``-``84``, i.e. C3-C6), it shifts **all** notes by
+    the smallest multiple of 12 semitones needed to bring the median
+    inside the range.
+
+    Args:
+        midi_segments: List of MIDI segments with ``.note`` attributes.
+        low: Lower bound of the expected vocal MIDI range (inclusive).
+        high: Upper bound of the expected vocal MIDI range (inclusive).
+
+    Returns:
+        The same list, with notes corrected in-place.
+    """
+    if not midi_segments:
+        return midi_segments
+
+    midi_values = []
+    for seg in midi_segments:
+        try:
+            midi_values.append(librosa.note_to_midi(seg.note))
+        except (ValueError, TypeError):
+            pass
+
+    if not midi_values:
+        return midi_segments
+
+    median_midi = float(np.median(midi_values))
+
+    # Already in range — nothing to do
+    if low <= median_midi <= high:
+        return midi_segments
+
+    # Find the smallest octave shift that brings the median into range
+    if median_midi < low:
+        shift = int(np.ceil((low - median_midi) / 12)) * 12
+    else:
+        shift = -int(np.ceil((median_midi - high) / 12)) * 12
+
+    print(
+        f"{ULTRASINGER_HEAD} Global octave correction: "
+        f"shifting all notes by {blue_highlighted(f'{shift:+d}')} semitones "
+        f"(median was MIDI {median_midi:.0f}, target range {low}-{high})"
+    )
+
+    for seg in midi_segments:
+        try:
+            current = librosa.note_to_midi(seg.note)
+            seg.note = librosa.midi_to_note(current + shift)
+        except (ValueError, TypeError):
+            pass
+
+    return midi_segments
+
+
 def correct_octave_outliers(
     midi_segments: list[MidiSegment], window: int = 5
 ) -> list[MidiSegment]:

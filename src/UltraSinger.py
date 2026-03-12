@@ -38,6 +38,7 @@ from modules.console_colors import (
 from modules.Midi.midi_creator import (
     create_midi_segments_from_transcribed_data,
     create_repitched_midi_segments_from_ultrastar_txt,
+    correct_global_octave,
     correct_octave_outliers,
     create_midi_file,
 )
@@ -225,7 +226,10 @@ def run() -> tuple[str, Score, Score]:
         process_data.midi_segments = create_repitched_midi_segments_from_ultrastar_txt(process_data.pitched_data,
                                                                                        process_data.parsed_file)
 
-    # Correct octave outliers
+    # Correct global octave shift (e.g. sub-harmonic detection)
+    process_data.midi_segments = correct_global_octave(process_data.midi_segments)
+
+    # Correct local octave outliers
     process_data.midi_segments = correct_octave_outliers(process_data.midi_segments)
 
     # Merge syllable segments
