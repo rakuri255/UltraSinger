@@ -7,49 +7,94 @@ import soundfile as sf
 from modules.console_colors import ULTRASINGER_HEAD, blue_highlighted
 
 
-def _pick_best_tempo(primary_bpm: float) -> float:
-    """Apply half/double-tempo correction to a detected BPM value.
+# Candidate ratios ordered by musical simplicity.
+# Simpler ratios (identity, half, double) are listed first so that
+# they win ties when two candidates are equally close to the target.
+_TEMPO_RATIOS: list[float] = [
+    1.0,    # identity
+    0.5,    # half-tempo
+    2.0,    # double-tempo
+    1 / 3,  # third-tempo  (e.g. 3/4 waltz detected as compound)
+    3.0,    # triple-tempo
+    0.25,   # quarter-tempo
+    4.0,    # quadruple-tempo
+    2 / 3,  # two-thirds  (e.g. compound metre confusion)
+    1.5,    # dotted-half  (shuffle / swing feel)
+    0.75,   # three-quarters
+]
 
-    Tempo detectors sometimes report double or half the actual tempo.
-    This function generates half and double variants and picks the one
-    in the typical song range (60-200 BPM) that is closest to 120 BPM
-    (a common pop/rock tempo).
+
+def _pick_best_tempo(
+    primary_bpm: float,
+    low: float = 60.0,
+    high: float = 200.0,
+    target: float = 120.0,
+) -> float:
+    """Apply tempo-ratio correction to a detected BPM value.
+
+    Tempo detectors sometimes report a multiple or fraction of the
+    actual tempo.  This function generates candidates by multiplying
+    the detected value with a set of common musical ratios (half,
+    double, third, quarter, etc.) and picks the candidate in the
+    expected range that is closest to *target* BPM.
+
+    If the detected tempo already lies inside ``[low, high]`` it is
+    returned unchanged -- ratio correction only applies to values
+    outside the expected range.  This prevents legitimate fast or slow
+    tempos (e.g. 180 BPM punk rock) from being rescaled.
+
+    When two candidates are equally close to *target*, the one derived
+    from the simpler ratio wins (identity > half/double > third, ...).
 
     Args:
         primary_bpm: The primary tempo estimate from librosa.
+        low: Lower bound of the acceptable BPM range (inclusive).
+        high: Upper bound of the acceptable BPM range (inclusive).
+        target: Preferred tempo centre -- candidates closest to this
+            value are selected.  120 BPM is a common pop/rock tempo.
 
     Returns:
         The corrected tempo in BPM.
     """
     if primary_bpm <= 0:
-        return 120.0  # Fallback
+        return target  # Fallback
 
-    # Generate half/double candidates
-    candidates = [primary_bpm, primary_bpm / 2, primary_bpm * 2]
+    # Already in range -- trust the detector and return as-is.
+    # Ratio correction should only kick in for out-of-range values;
+    # otherwise legitimate fast/slow songs get their tempo rescaled
+    # which breaks all downstream beat-length calculations.
+    if low <= primary_bpm <= high:
+        return primary_bpm
 
-    # Prefer candidates in the typical song range (60-200 BPM)
-    in_range = [c for c in candidates if 60 <= c <= 200]
+    # Generate candidates from all ratios, preserving ratio order
+    candidates = [primary_bpm * r for r in _TEMPO_RATIOS]
+
+    # Prefer candidates in the typical song range
+    in_range = [c for c in candidates if low <= c <= high]
 
     if in_range:
-        # Pick the one closest to 120 BPM (common pop/rock tempo)
-        return min(in_range, key=lambda x: abs(x - 120))
+        # Pick the one closest to target BPM.
+        # Because _TEMPO_RATIOS is ordered by simplicity and min()
+        # is stable (returns the first minimum), simpler ratios win
+        # ties automatically.
+        return min(in_range, key=lambda x: abs(x - target))
 
-    # Nothing in range — use the primary as-is
+    # Nothing in range -- use the primary as-is
     return primary_bpm
 
 
 def get_bpm_from_data(data, sampling_rate):
     """Get real BPM from audio data.
 
-    Uses librosa's default tempo estimation and applies half/double-tempo
+    Uses librosa's default tempo estimation and applies tempo-ratio
     correction to avoid common detection errors where the tempo is
-    reported as 2x or 0.5x the actual value.
+    reported as a multiple or fraction of the actual value.
     """
     onset_env = librosa.onset.onset_strength(y=data, sr=sampling_rate)
     wav_tempo = librosa.feature.tempo(onset_envelope=onset_env, sr=sampling_rate)
     primary_bpm = float(wav_tempo[0])
 
-    # Apply half/double-tempo correction
+    # Apply tempo-ratio correction
     best_bpm = _pick_best_tempo(primary_bpm)
 
     print(
