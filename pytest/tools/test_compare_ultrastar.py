@@ -164,6 +164,22 @@ class TestVersionGe:
         """Malformed version string returns False gracefully."""
         assert _version_ge("abc", "1.2.0") is False
 
+    def test_shorthand_version_padded(self):
+        """Shorthand '1.2' is treated as '1.2.0' (padded with trailing zeros)."""
+        assert _version_ge("1.2", "1.2.0") is True
+        assert _version_ge("1.2.0", "1.2") is True
+
+    def test_suffixed_version_parsed(self):
+        """Suffixed versions like '1.2.0-beta' extract numeric part correctly."""
+        assert _version_ge("1.2.0-beta", "1.2.0") is True
+        assert _version_ge("1.3.0-rc1", "1.2.0") is True
+        assert _version_ge("1.1.0-alpha", "1.2.0") is False
+
+    def test_single_component_version(self):
+        """Single-component version like '2' is treated as '2.0.0'."""
+        assert _version_ge("2", "1.2.0") is True
+        assert _version_ge("1", "1.2.0") is False
+
 
 # ── Beat-to-ms conversion ───────────────────────────────────────────────────
 
@@ -212,7 +228,7 @@ class TestTildeGrouping:
         )
 
     def test_tilde_groups_with_parent(self):
-        """Tilde notes are appended to the preceding word group."""
+        """Tilde notes merge continuation text into the parent word."""
         notes = [
             self._make_note("Hel", start_ms=0, end_ms=100),
             self._make_note("~lo", start_ms=100, end_ms=200),
@@ -220,14 +236,14 @@ class TestTildeGrouping:
         ]
         groups = _group_words(notes)
         assert len(groups) == 2
-        assert groups[0].word == "Hel"
+        assert groups[0].word == "Hello"  # merged: "Hel" + "lo"
         assert len(groups[0].notes) == 2
         assert groups[0].end_ms == 200  # extended by tilde note
         assert groups[1].word == "World"
         assert len(groups[1].notes) == 1
 
     def test_multiple_tildes(self):
-        """Multiple consecutive tildes all attach to the same parent."""
+        """Multiple consecutive tildes all merge into the same parent."""
         notes = [
             self._make_note("Beau", start_ms=0, end_ms=50),
             self._make_note("~ti", start_ms=50, end_ms=100),
@@ -235,6 +251,7 @@ class TestTildeGrouping:
         ]
         groups = _group_words(notes)
         assert len(groups) == 1
+        assert groups[0].word == "Beautiful"  # merged: "Beau" + "ti" + "ful"
         assert len(groups[0].notes) == 3
         assert groups[0].end_ms == 150
 
@@ -674,6 +691,55 @@ class TestEdgeCases:
         """Normal percentage calculation works correctly."""
         assert _pct(1, 4) == 25.0
         assert _pct(3, 3) == 100.0
+
+    def test_lyrics_denominator_excludes_empty_words(self, tmp_path):
+        """Lyrics precision/recall denominators exclude empty normalized words.
+
+        align_words() filters out empty words, so denominators must use
+        the same filter to avoid underreporting metrics.
+        """
+        gen_txt = _write_ultrastar(tmp_path, """\
+            #TITLE:Test
+            #ARTIST:Test
+            #BPM:300
+            #GAP:0
+            : 0 5 60 Hello
+            : 10 5 60 -
+            : 20 5 62 World
+            E
+        """, name="gen.txt")
+
+        ref_txt = _write_ultrastar(tmp_path, """\
+            #TITLE:Test
+            #ARTIST:Test
+            #BPM:300
+            #GAP:0
+            : 0 5 60 Hello
+            : 20 5 62 World
+            E
+        """, name="ref.txt")
+
+        result = compare(gen_txt, ref_txt)
+        # "-" normalizes to "" → excluded from denominators
+        # gen has 2 valid words (Hello, World), ref has 2
+        assert result.gen_word_count == 2
+        assert result.ref_word_count == 2
+        assert result.matched_pairs == 2
+        assert result.lyrics_precision == 100.0
+        assert result.lyrics_recall == 100.0
+
+    def test_tilde_bare_continuation_no_suffix(self):
+        """Bare tilde '~' (no suffix text) does not alter parent word."""
+        notes = [
+            Note(note_type=":", start_beat=0, duration=5, pitch=60,
+                 midi=60, word="Hold", start_ms=0, end_ms=100),
+            Note(note_type=":", start_beat=5, duration=5, pitch=60,
+                 midi=60, word="~", start_ms=100, end_ms=200),
+        ]
+        groups = _group_words(notes)
+        assert len(groups) == 1
+        assert groups[0].word == "Hold"  # unchanged — "~" has no suffix
+        assert len(groups[0].notes) == 2
 
     def test_empty_file(self, tmp_path):
         """An empty file should parse without crashing."""

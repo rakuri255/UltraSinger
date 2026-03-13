@@ -188,21 +188,21 @@ class ComparisonResult:
         lines.append(f"  Within 200ms:   {self.timing_within_200:.1f}%")
         lines.append(f"  Within 500ms:   {self.timing_within_500:.1f}%")
 
-        lines.append(f"\n--- Lyrics ---")
+        lines.append("\n--- Lyrics ---")
         lines.append(f"  Matched pairs:  {self.matched_pairs}")
         lines.append(f"  Generated:      {self.gen_word_count} words")
         lines.append(f"  Reference:      {self.ref_word_count} words")
         lines.append(f"  Precision:      {self.lyrics_precision:.1f}%")
         lines.append(f"  Recall:         {self.lyrics_recall:.1f}%")
 
-        lines.append(f"\n--- Structure ---")
+        lines.append("\n--- Structure ---")
         lines.append(f"  Notes:          {self.gen_note_count} gen"
                      f" / {self.ref_note_count} ref")
         lines.append(f"  Linebreaks:     {self.gen_linebreaks} gen"
                      f" / {self.ref_linebreaks} ref")
 
         if detailed and self.word_pairs:
-            lines.append(f"\n--- Word-level detail (first 50) ---")
+            lines.append("\n--- Word-level detail (first 50) ---")
             lines.append(f"{'Gen Word':<15} {'Ref Word':<15}"
                          f" {'PitchD':>6} {'TimeD':>8} {'GenMIDI':>7}"
                          f" {'RefMIDI':>7}")
@@ -263,11 +263,26 @@ def _pitch_to_midi(pitch: int, version: str | None) -> int:
 
 
 def _version_ge(version: str, threshold: str) -> bool:
-    """Check if *version* >= *threshold* using simple numeric comparison."""
+    """Check if *version* >= *threshold* using simple numeric comparison.
+
+    Handles shorthand versions ("1.2" treated as "1.2.0") and suffixed
+    versions ("1.2.0-beta" extracts 1.2.0).  Pads the shorter tuple with
+    trailing zeros so the comparison is always well-defined.
+    """
     def _to_tuple(v: str) -> tuple[int, ...]:
-        return tuple(int(x) for x in v.split("."))
+        parts = [int(m) for m in re.findall(r"\d+", v.split("-")[0])]
+        if not parts:
+            raise ValueError(f"no numeric components in {v!r}")
+        return tuple(parts)
+
     try:
-        return _to_tuple(version) >= _to_tuple(threshold)
+        v_parts = _to_tuple(version)
+        t_parts = _to_tuple(threshold)
+        # Pad shorter tuple with zeros
+        max_len = max(len(v_parts), len(t_parts))
+        v_padded = v_parts + (0,) * (max_len - len(v_parts))
+        t_padded = t_parts + (0,) * (max_len - len(t_parts))
+        return v_padded >= t_padded
     except (ValueError, AttributeError):
         return False
 
@@ -363,13 +378,20 @@ def parse_ultrastar(path: str | Path) -> ParsedFile:
 
 
 def _group_words(notes: list[Note]) -> list[WordGroup]:
-    """Group continuation notes (~) with their parent word."""
+    """Group continuation notes (~) with their parent word.
+
+    Merges continuation text into the parent word so that split words
+    like ``Hel`` + ``~lo`` produce the group word ``Hello``.
+    """
     groups: list[WordGroup] = []
     for note in notes:
         clean_word = note.word.strip()
         if clean_word.startswith("~") and groups:
-            # Continuation of previous word
+            # Continuation of previous word — merge suffix text
+            suffix = clean_word.lstrip("~")
             groups[-1].notes.append(note)
+            if suffix:
+                groups[-1].word += suffix
             groups[-1].end_ms = note.end_ms
         else:
             wg = WordGroup(
@@ -462,12 +484,14 @@ def compare(gen_path: str | Path, ref_path: str | Path) -> ComparisonResult:
     result.gen_linebreaks = gen.linebreak_count
     result.ref_linebreaks = ref.linebreak_count
 
-    # Lyrics
-    result.gen_word_count = len(gen.word_groups)
-    result.ref_word_count = len(ref.word_groups)
+    # Lyrics — use same non-empty word filter as align_words()
+    gen_valid_words = [g for g in gen.word_groups if _normalise_word(g.word)]
+    ref_valid_words = [g for g in ref.word_groups if _normalise_word(g.word)]
+    result.gen_word_count = len(gen_valid_words)
+    result.ref_word_count = len(ref_valid_words)
     result.matched_pairs = len(pairs)
-    result.lyrics_precision = _pct(len(pairs), len(gen.word_groups))
-    result.lyrics_recall = _pct(len(pairs), len(ref.word_groups))
+    result.lyrics_precision = _pct(len(pairs), len(gen_valid_words))
+    result.lyrics_recall = _pct(len(pairs), len(ref_valid_words))
 
     if not pairs:
         return result
