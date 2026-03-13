@@ -74,9 +74,19 @@ if !errorlevel! neq 0 (
 echo uv is ready
 uv --version
 
+:: Clear skip-worktree flags if previously set by CUDA install script
+:: (allows git to manage these files normally again since CPU is the default)
+where git >nul 2>&1
+if !errorlevel! equ 0 (
+    git update-index --no-skip-worktree pyproject.toml 2>nul
+    git update-index --no-skip-worktree uv.lock 2>nul
+)
+
 :: Ensure PyTorch index is set to CPU in pyproject.toml
 :: (restores default if previously changed by CUDA install script)
-powershell -NoProfile -Command "(Get-Content pyproject.toml) -replace 'whl/cu\d+', 'whl/cpu' | Set-Content pyproject.toml -Encoding UTF8"
+:: Use .NET WriteAllText to avoid UTF-8 BOM that breaks TOML parsing
+:: (PowerShell 5.x Set-Content -Encoding UTF8 adds a BOM)
+powershell -NoProfile -Command "$c = [IO.File]::ReadAllText('pyproject.toml'); $c = $c -replace 'whl/cu\d+','whl/cpu'; [IO.File]::WriteAllText('pyproject.toml', $c)"
 
 :: Regenerate lockfile with CPU PyTorch index
 echo Resolving dependencies...

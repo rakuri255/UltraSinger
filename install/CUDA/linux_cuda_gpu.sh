@@ -34,13 +34,21 @@ fi
 # Set PyTorch index to CUDA in pyproject.toml
 # (uv.toml cannot override named indexes used by [tool.uv.sources])
 echo "Configuring PyTorch index for CUDA..."
-sed 's|whl/cpu|whl/cu128|' pyproject.toml > pyproject.toml.tmp && mv pyproject.toml.tmp pyproject.toml
+sed -i 's|whl/cpu|whl/cu128|' pyproject.toml
 
 # Regenerate lockfile with CUDA PyTorch index and sync
 echo "Resolving dependencies..."
 uv lock
 echo "Syncing dependencies..."
 uv sync --extra linux
+
+# Protect local CUDA config from being reverted by git operations
+# (branch switches, pulls, etc. would otherwise reset to CPU default)
+if command -v git &> /dev/null && git rev-parse --is-inside-work-tree &> /dev/null; then
+    echo "Protecting CUDA configuration from git resets..."
+    git update-index --skip-worktree pyproject.toml
+    git update-index --skip-worktree uv.lock
+fi
 
 echo "Installation completed successfully!"
 echo "To run UltraSinger:"

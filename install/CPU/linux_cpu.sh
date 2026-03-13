@@ -31,9 +31,16 @@ if [ -d ".venv" ]; then
     rm -rf .venv
 fi
 
+# Clear skip-worktree flags if previously set by CUDA install script
+# (allows git to manage these files normally again since CPU is the default)
+if command -v git &> /dev/null && git rev-parse --is-inside-work-tree &> /dev/null; then
+    git update-index --no-skip-worktree pyproject.toml 2>/dev/null || true
+    git update-index --no-skip-worktree uv.lock 2>/dev/null || true
+fi
+
 # Ensure PyTorch index is set to CPU in pyproject.toml
 # (restores default if previously changed by CUDA install script)
-sed 's|whl/cu[0-9]*|whl/cpu|' pyproject.toml > pyproject.toml.tmp && mv pyproject.toml.tmp pyproject.toml
+sed -i 's|whl/cu[0-9]*|whl/cpu|' pyproject.toml
 
 # Regenerate lockfile with CPU PyTorch index and sync
 echo "Resolving dependencies..."
@@ -45,4 +52,4 @@ echo "Installation completed successfully!"
 echo "To run UltraSinger:"
 echo "  source .venv/bin/activate"
 echo "  cd src"
-echo "  py UltraSinger.py"
+echo "  python UltraSinger.py"

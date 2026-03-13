@@ -77,7 +77,9 @@ uv --version
 :: Set PyTorch index to CUDA in pyproject.toml
 :: (uv.toml cannot override named indexes used by [tool.uv.sources])
 echo Configuring PyTorch index for CUDA...
-powershell -NoProfile -Command "(Get-Content pyproject.toml) -replace 'whl/cpu', 'whl/cu128' | Set-Content pyproject.toml -Encoding UTF8"
+:: Use .NET WriteAllText to avoid UTF-8 BOM that breaks TOML parsing
+:: (PowerShell 5.x Set-Content -Encoding UTF8 adds a BOM)
+powershell -NoProfile -Command "$c = [IO.File]::ReadAllText('pyproject.toml'); $c = $c -replace 'whl/cpu','whl/cu128'; [IO.File]::WriteAllText('pyproject.toml', $c)"
 
 :: Regenerate lockfile with CUDA PyTorch index
 echo Resolving dependencies...
@@ -94,6 +96,15 @@ if !errorlevel! neq 0 (
     echo Error during uv sync
     pause
     exit /b 1
+)
+
+:: Protect local CUDA config from being reverted by git operations
+:: (branch switches, pulls, etc. would otherwise reset to CPU default)
+where git >nul 2>&1
+if !errorlevel! equ 0 (
+    echo Protecting CUDA configuration from git resets...
+    git update-index --skip-worktree pyproject.toml
+    git update-index --skip-worktree uv.lock
 )
 
 echo Installation completed successfully!
