@@ -1,20 +1,23 @@
-"""Convert incompatible audio formats and normalize text encoding in UltraStar songs.
+"""Fix UltraStar song compatibility: audio format conversion and encoding normalization.
 
-UltraStar Play only supports mp3, ogg, and wav audio formats. This tool scans
-a directory tree for UltraStar TXT files, identifies songs with incompatible
-audio formats (e.g. aac, flac, opus, m4a, wma), converts them to OGG Vorbis
-using FFmpeg, and updates the TXT file references accordingly.
+Scans a directory tree for UltraStar TXT files and fixes two categories of
+compatibility issues:
 
-With --normalize-encoding, TXT files in legacy encodings (CP1252, Latin-1, etc.)
-are converted to UTF-8 for universal compatibility across all UltraStar derivatives.
-The deprecated #ENCODING: tag is removed during normalization.
+1. Audio Format Conversion:
+   UltraStar Play only supports mp3, ogg, and wav. Songs with incompatible
+   audio formats (aac, flac, opus, m4a, wma, etc.) are converted to OGG Vorbis
+   using FFmpeg, and the TXT file references are updated accordingly.
+   Original audio files are preserved (never deleted).
 
-Original audio files are preserved (never deleted).
+2. Encoding Normalization (--normalize-encoding):
+   TXT files in legacy encodings (CP1252, Latin-1, etc.) are converted to UTF-8
+   for universal compatibility across all UltraStar derivatives (USDX, UltraStar
+   Play, Performous, Vocaluxe). The deprecated #ENCODING: tag is removed.
 
 Usage:
-    uv run python tools/convert_audio_format.py "D:\\UltraStar\\Songs"
-    uv run python tools/convert_audio_format.py "D:\\UltraStar\\Songs" --normalize-encoding
-    uv run python tools/convert_audio_format.py "D:\\UltraStar\\Songs" --normalize-encoding --dry-run
+    uv run python tools/fix_ultrastar_compatibility.py "D:\\UltraStar\\Songs"
+    uv run python tools/fix_ultrastar_compatibility.py "D:\\UltraStar\\Songs" --normalize-encoding
+    uv run python tools/fix_ultrastar_compatibility.py "D:\\UltraStar\\Songs" --normalize-encoding --dry-run
 """
 
 from __future__ import annotations
@@ -580,8 +583,9 @@ def print_song_list(
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(
+        prog="fix_ultrastar_compatibility",
         description=(
-            "Convert incompatible audio formats in UltraStar song directories "
+            "Fix UltraStar song compatibility: convert incompatible audio formats "
             "to OGG Vorbis and optionally normalize TXT file encoding to UTF-8."
         ),
         epilog=(
