@@ -8,6 +8,7 @@ import numpy as np
 from src.modules.Midi.MidiSegment import MidiSegment
 from src.modules.Midi.midi_creator import (
     correct_global_octave,
+    correct_octave_outliers,
     confidence_weighted_median_note,
 )
 
@@ -143,6 +144,233 @@ class TestCorrectGlobalOctave(unittest.TestCase):
         ]
 
         self.assertEqual(original_intervals, shifted_intervals)
+
+
+class TestCorrectOctaveOutliers(unittest.TestCase):
+    """Tests for correct_octave_outliers() — single and multi-pass."""
+
+    # -- helpers --------------------------------------------------------------
+
+    @staticmethod
+    def _make_segs(notes: list[str]) -> list[MidiSegment]:
+        """Create MidiSegments from a list of note names."""
+        return [
+            MidiSegment(note=n, start=float(i), end=float(i + 1), word=f"w{i} ")
+            for i, n in enumerate(notes)
+        ]
+
+    @staticmethod
+    def _get_notes(segs: list[MidiSegment]) -> list[str]:
+        return [s.note for s in segs]
+
+    @staticmethod
+    def _get_midis(segs: list[MidiSegment]) -> list[int]:
+        return [librosa.note_to_midi(s.note) for s in segs]
+
+    # -- edge cases -----------------------------------------------------------
+
+    def test_empty_list_returns_empty(self):
+        result = correct_octave_outliers([])
+        self.assertEqual(result, [])
+
+    def test_two_notes_unchanged(self):
+        """Less than 3 notes should be returned unchanged."""
+        segs = self._make_segs(["C4", "E4"])
+        result = correct_octave_outliers(segs)
+        self.assertEqual(self._get_notes(result), ["C4", "E4"])
+
+    # -- single outlier (works with one pass) ---------------------------------
+
+    def test_single_outlier_corrected(self):
+        """One note an octave too low among correct neighbours."""
+        # C4=60, C4, C2=36(!), C4, C4
+        notes = ["C4", "C4", "C2", "C4", "C4"]
+        segs = self._make_segs(notes)
+        result = correct_octave_outliers(segs, passes=1)
+        midis = self._get_midis(result)
+        # C2 (36) should be corrected to C4 (60)
+        self.assertEqual(midis[2], 60)
+
+    def test_single_outlier_above_corrected(self):
+        """One note an octave too high among correct neighbours."""
+        # C4=60, C4, C6=84(!), C4, C4
+        notes = ["C4", "C4", "C6", "C4", "C4"]
+        segs = self._make_segs(notes)
+        result = correct_octave_outliers(segs, passes=1)
+        midis = self._get_midis(result)
+        # C6 (84) should be corrected to C4 (60)
+        self.assertEqual(midis[2], 60)
+
+    # -- cluster of wrong-octave notes (needs multiple passes) ----------------
+
+    def test_cluster_of_wrong_octave_notes_corrected(self):
+        """A cluster of 8 sub-harmonic notes surrounded by correct notes.
+
+        Single pass cannot fix the cluster because the local median
+        within the cluster is also wrong.  Two passes should correct
+        all notes.
+        """
+        # 6x C4, then 8x C3 (one octave too low), then 6x C4
+        correct = ["C4"] * 6
+        cluster = ["C3"] * 8
+        notes = correct + cluster + correct
+        segs = self._make_segs(notes)
+
+        result = correct_octave_outliers(segs, passes=2)
+        midis = self._get_midis(result)
+
+        # All notes should now be C4 (MIDI 60)
+        for i, midi_val in enumerate(midis):
+            self.assertEqual(
+                midi_val, 60,
+                f"Note {i} is MIDI {midi_val}, expected 60 (C4)"
+            )
+
+    def test_two_passes_fixes_more_than_one(self):
+        """Verify that a second pass corrects notes left behind by pass 1.
+
+        With window=3, a cluster of 5 wrong notes surrounded by 4 correct
+        on each side cannot be fully fixed in one pass.
+        """
+        correct = ["E4"] * 4  # MIDI 64
+        cluster = ["E3"] * 5  # MIDI 52, one octave low
+        notes = correct + cluster + correct
+        segs = self._make_segs(notes)
+
+        # One pass with small window - may not fix the inner cluster notes
+        result_1pass = correct_octave_outliers(
+            self._make_segs(notes), passes=1, window=3
+        )
+        midis_1pass = self._get_midis(result_1pass)
+        unfixed_1pass = sum(1 for v in midis_1pass if v == 52)
+
+        # Two passes should fix more (or all)
+        result_2pass = correct_octave_outliers(segs, passes=2, window=3)
+        midis_2pass = self._get_midis(result_2pass)
+        unfixed_2pass = sum(1 for v in midis_2pass if v == 52)
+
+        self.assertLessEqual(
+            unfixed_2pass, unfixed_1pass,
+            "Two passes should fix at least as many outliers as one pass"
+        )
+
+    # -- passes=1 backward compatibility --------------------------------------
+
+    def test_passes_1_backward_compatible(self):
+        """passes=1 should behave identically to the old single-pass code."""
+        notes = ["C4", "C4", "C2", "C4", "C4"]
+        segs = self._make_segs(notes)
+        result = correct_octave_outliers(segs, passes=1)
+        midis = self._get_midis(result)
+        self.assertEqual(midis[2], 60)  # C2 -> C4
+
+    # -- global median tie-breaker --------------------------------------------
+
+    def test_global_median_tiebreaker(self):
+        """When multiple octave shifts are valid, prefer the one closest
+        to the global median.
+
+        All notes are around C4 (60) except one outlier at C2 (36).
+        Both C4 (60) and C6 (84) could bring C2 within 11 ST of the
+        local median.  C4 is closer to the global median (~60), so
+        C4 should be chosen.
+        """
+        notes = ["C4", "D4", "E4", "C2", "D4", "E4", "C4"]
+        segs = self._make_segs(notes)
+        result = correct_octave_outliers(segs, passes=1)
+        midis = self._get_midis(result)
+        # C2 (36) should become C4 (60), not C6 (84)
+        self.assertEqual(midis[3], 60)
+
+    # -- early termination when no corrections --------------------------------
+
+    def test_early_termination_no_changes(self):
+        """If all notes are already correct, no corrections should happen
+        and the function should terminate early.
+        """
+        notes = ["C4", "D4", "E4", "F4", "G4"]
+        segs = self._make_segs(notes)
+        result = correct_octave_outliers(segs, passes=5)
+        self.assertEqual(self._get_notes(result), notes)
+
+    # -- preserves non-outlier notes ------------------------------------------
+
+    def test_correct_notes_unchanged(self):
+        """Notes that are not outliers should remain exactly unchanged."""
+        notes = ["C4", "E4", "G4", "C2", "E4", "G4", "C4"]
+        segs = self._make_segs(notes)
+        original_correct = [60, 64, 67, None, 64, 67, 60]
+
+        result = correct_octave_outliers(segs)
+        midis = self._get_midis(result)
+
+        for i, expected in enumerate(original_correct):
+            if expected is not None:
+                self.assertEqual(
+                    midis[i], expected,
+                    f"Note {i} changed from {expected} to {midis[i]}"
+                )
+
+    # -- valid minority melody note preserved ---------------------------------
+
+    def test_valid_melody_note_preserved_by_consensus(self):
+        """G4 (MIDI 67) is 7 ST from global median C4 (60).
+
+        Phase 2 must NOT shift it — it is a valid melody interval,
+        not an octave error.  Only notes ≥ 12 ST away should be touched.
+        """
+        # 6x C4, 1x G4, 6x C4  → global median ≈ 60
+        notes = ["C4"] * 6 + ["G4"] + ["C4"] * 6
+        segs = self._make_segs(notes)
+        result = correct_octave_outliers(segs, passes=2)
+        midis = self._get_midis(result)
+        # G4 (67) must remain unchanged
+        self.assertEqual(midis[6], 67, "G4 was incorrectly shifted by consensus")
+
+    def test_phase1_and_phase2_cooperate(self):
+        """Phase 1 (local) and Phase 2 (global consensus) each fix
+        a different kind of outlier.
+
+        Setup: 6x C4, 8x C3 (cluster — too large for local fix),
+               1x C2 (isolated — fixed by Phase 1), 6x C4.
+        Phase 1 corrects C2 → C4 (24 ST from local median, clear outlier).
+        Phase 2 corrects the C3 cluster → C4 (12 ST from global median=60,
+        local windows are contaminated so Phase 1 can't help).
+        """
+        notes = ["C4"] * 6 + ["C3"] * 8 + ["C2"] + ["C4"] * 6
+        segs = self._make_segs(notes)
+        result = correct_octave_outliers(segs, passes=2)
+        midis = self._get_midis(result)
+        # C2 (index 14) should be fixed by Phase 1
+        self.assertEqual(midis[14], 60, "Isolated C2 not fixed by Phase 1")
+        # C3 cluster (indices 6-13) should be fixed by Phase 2
+        for i in range(6, 14):
+            self.assertEqual(
+                midis[i], 60,
+                f"Cluster note {i} is MIDI {midis[i]}, expected 60 (C4)"
+            )
+        # Boundary C4s must remain unchanged
+        for i in list(range(0, 6)) + list(range(15, 21)):
+            self.assertEqual(
+                midis[i], 60,
+                f"Boundary note {i} is MIDI {midis[i]}, expected 60 (C4)"
+            )
+
+    # -- shift is always a multiple of 12 ------------------------------------
+
+    def test_shifts_are_octave_multiples(self):
+        """Any correction must be an exact octave shift (multiple of 12)."""
+        notes = ["C4", "C4", "C2", "C4", "C4", "C6", "C4", "C4"]
+        original = [60, 60, 36, 60, 60, 84, 60, 60]
+        segs = self._make_segs(notes)
+        result = correct_octave_outliers(segs)
+        midis = self._get_midis(result)
+
+        for i, (orig, new) in enumerate(zip(original, midis)):
+            self.assertEqual(
+                (new - orig) % 12, 0,
+                f"Note {i}: shift {new - orig} is not a multiple of 12"
+            )
 
 
 class TestConfidenceWeightedMedianNote(unittest.TestCase):
