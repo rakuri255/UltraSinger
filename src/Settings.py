@@ -28,6 +28,7 @@ class Settings:
     user_ffmpeg_path = ""
     quantize_to_key = True  # Quantize notes to the detected key of the song
     bpm_override = None  # Manual BPM override (float), skips auto-detection when set
+    octave_shift = None  # Manual octave shift (int), shifts all notes by N octaves after detection
 
     # Process data Paths
     input_file_path = ""

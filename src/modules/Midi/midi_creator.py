@@ -230,6 +230,46 @@ def create_repitched_midi_segments_from_ultrastar_txt(pitched_data: PitchedData,
     return midi_segments
 
 
+def apply_octave_shift(
+    midi_segments: list[MidiSegment],
+    octaves: int,
+) -> list[MidiSegment]:
+    """Shift all notes by a fixed number of octaves.
+
+    This is a manual override for cases where automatic octave correction
+    fails (e.g. when the pitch detector consistently detects the wrong
+    octave but the median still falls in the expected vocal range).
+
+    Args:
+        midi_segments: List of MIDI segments with ``.note`` attributes.
+        octaves: Number of octaves to shift (positive = up, negative = down).
+
+    Returns:
+        The same list, with notes shifted in-place.
+    """
+    if not midi_segments or octaves == 0:
+        return midi_segments
+
+    shift = octaves * 12
+
+    print(
+        f"{ULTRASINGER_HEAD} Manual octave shift: "
+        f"shifting all notes by {blue_highlighted(f'{octaves:+d}')} octave(s) "
+        f"({shift:+d} semitones)"
+    )
+
+    for seg in midi_segments:
+        try:
+            current = librosa.note_to_midi(seg.note)
+            new_midi = current + shift
+            if 0 <= new_midi <= 127:
+                seg.note = librosa.midi_to_note(new_midi)
+        except (ValueError, TypeError):
+            pass
+
+    return midi_segments
+
+
 def correct_global_octave(
     midi_segments: list[MidiSegment],
     low: int = 48,

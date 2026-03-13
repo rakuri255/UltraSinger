@@ -122,6 +122,7 @@ _Not all options working now!_
 
     [extra]
     --bpm                   Override auto-detected BPM with a manual value (e.g., --bpm 120)
+    --octave                Shift all notes by N octaves after pitch detection (e.g., --octave 1 for one octave up)
     --disable_hyphenation   Disable word hyphenation. Hyphenation is enabled by default.
     --disable_separation    Disable track separation. Track separation is enabled by default.
     --disable_karaoke       Disable creation of karaoke style txt file. Karaoke is enabled by default.
@@ -246,6 +247,16 @@ UltraSinger automatically detects the BPM of the song. If the auto-detection giv
 ```
 
 This skips the automatic BPM detection and uses the provided value instead. Decimal values are also supported. You can find the correct BPM for most songs on sites like [songbpm.com](https://songbpm.com/) or in the song's metadata.
+
+### 🎵 Octave Shift
+
+UltraSinger includes automatic octave correction, but in rare cases the pitch detector may consistently detect the wrong octave for an entire song. If all notes sound correct in relative pitch but are shifted by one or more octaves, use the `--octave` option to manually correct them.
+
+```commandline
+-i XYZ --octave 1
+```
+
+The value is an integer: positive values shift up, negative values shift down. For example, `--octave 1` shifts all notes up by one octave, `--octave -1` shifts down. The shift is applied after automatic octave correction, so it acts as a final override.
 
 ### Sheet Music
 

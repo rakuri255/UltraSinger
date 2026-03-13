@@ -38,6 +38,7 @@ from modules.console_colors import (
 from modules.Midi.midi_creator import (
     create_midi_segments_from_transcribed_data,
     create_repitched_midi_segments_from_ultrastar_txt,
+    apply_octave_shift,
     correct_global_octave,
     correct_octave_outliers,
     create_midi_file,
@@ -164,6 +165,8 @@ def run() -> tuple[str, Score, Score]:
         print(f"{ULTRASINGER_HEAD} {bright_green_highlighted('Option:')} {cyan_highlighted('Notes will be quantized to the detected musical key')}")
     if settings.bpm_override is not None:
         print(f"{ULTRASINGER_HEAD} {bright_green_highlighted('Option:')} {cyan_highlighted(f'BPM override: {settings.bpm_override}')}")
+    if settings.octave_shift is not None:
+        print(f"{ULTRASINGER_HEAD} {bright_green_highlighted('Option:')} {cyan_highlighted(f'Octave shift: {settings.octave_shift:+d}')}")
 
     process_data = InitProcessData()
 
@@ -231,6 +234,10 @@ def run() -> tuple[str, Score, Score]:
 
     # Correct local octave outliers
     process_data.midi_segments = correct_octave_outliers(process_data.midi_segments)
+
+    # Apply manual octave shift (after automatic correction, so user gets final say)
+    if settings.octave_shift is not None:
+        process_data.midi_segments = apply_octave_shift(process_data.midi_segments, settings.octave_shift)
 
     # Merge syllable segments
     if not settings.ignore_audio:
@@ -829,6 +836,13 @@ def init_settings(argv: list[str]) -> Settings:
                 print(f"{ULTRASINGER_HEAD} {red_highlighted('Error:')} --bpm must be a positive number, got {val}")
                 sys.exit(1)
             settings.bpm_override = val
+        elif opt == "--octave":
+            try:
+                val = int(arg)
+            except ValueError:
+                print(f"{ULTRASINGER_HEAD} {red_highlighted('Error:')} --octave must be an integer, got {arg}")
+                sys.exit(1)
+            settings.octave_shift = val
         elif opt in ("--whisper"):
             settings.transcriber = "whisper"
 
@@ -937,6 +951,7 @@ def arg_options():
         "ifile=",
         "ofile=",
         "bpm=",
+        "octave=",
         "crepe=",
         "crepe_step_size=",
         "demucs=",
