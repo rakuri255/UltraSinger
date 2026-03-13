@@ -26,9 +26,9 @@ _TEMPO_RATIOS: list[float] = [
 
 def _pick_best_tempo(
     primary_bpm: float,
-    low: float = 60.0,
-    high: float = 200.0,
-    target: float = 120.0,
+    low: float = 50.0,
+    high: float = 500.0,
+    target: float | None = None,
 ) -> float:
     """Apply tempo-ratio correction to a detected BPM value.
 
@@ -36,28 +36,47 @@ def _pick_best_tempo(
     actual tempo.  This function generates candidates by multiplying
     the detected value with a set of common musical ratios (half,
     double, third, quarter, etc.) and picks the candidate in the
-    expected range that is closest to *target* BPM.
+    expected range that is closest to a reference value.
+
+    The default range ``[50, 500]`` is intentionally wide because
+    UltraStar uses BPM as a **timing-resolution parameter**, not as
+    musical tempo.  Higher BPM means a finer beat grid and more
+    precise note placement.  The ``get_multiplier()`` function in
+    ``ultrastar_writer.py`` already compensates for low BPM values,
+    so aggressive downscaling toward a "typical" tempo is harmful.
 
     If the detected tempo already lies inside ``[low, high]`` it is
     returned unchanged -- ratio correction only applies to values
-    outside the expected range.  This prevents legitimate fast or slow
-    tempos (e.g. 180 BPM punk rock) from being rescaled.
+    outside the expected range.  This prevents legitimate tempos
+    from being rescaled.
 
-    When two candidates are equally close to *target*, the one derived
-    from the simpler ratio wins (identity > half/double > third, ...).
+    When *target* is ``None`` (default), the detected *primary_bpm*
+    itself is used as reference.  This means: when correction IS
+    needed, the candidate closest to the original value is picked,
+    avoiding any bias toward a particular tempo.
+
+    When two candidates are equally close to the reference, the one
+    derived from the simpler ratio wins (identity > half/double >
+    third, ...).
 
     Args:
         primary_bpm: The primary tempo estimate from librosa.
         low: Lower bound of the acceptable BPM range (inclusive).
         high: Upper bound of the acceptable BPM range (inclusive).
-        target: Preferred tempo centre -- candidates closest to this
-            value are selected.  120 BPM is a common pop/rock tempo.
+        target: Reference tempo for candidate selection.  When
+            ``None`` (default), the *primary_bpm* itself is used,
+            so correction picks the value closest to the detected
+            tempo.  Pass an explicit value (e.g. ``120.0``) to bias
+            toward a specific tempo centre.
 
     Returns:
         The corrected tempo in BPM.
     """
     if primary_bpm <= 0:
-        return target  # Fallback
+        return 120.0  # Fallback for invalid input
+
+    # Resolve effective target: default to the detected value itself
+    effective_target = target if target is not None else primary_bpm
 
     # Already in range -- trust the detector and return as-is.
     # Ratio correction should only kick in for out-of-range values;
@@ -69,15 +88,15 @@ def _pick_best_tempo(
     # Generate candidates from all ratios, preserving ratio order
     candidates = [primary_bpm * r for r in _TEMPO_RATIOS]
 
-    # Prefer candidates in the typical song range
+    # Prefer candidates in the acceptable range
     in_range = [c for c in candidates if low <= c <= high]
 
     if in_range:
-        # Pick the one closest to target BPM.
+        # Pick the one closest to the effective target.
         # Because _TEMPO_RATIOS is ordered by simplicity and min()
         # is stable (returns the first minimum), simpler ratios win
         # ties automatically.
-        return min(in_range, key=lambda x: abs(x - target))
+        return min(in_range, key=lambda x: abs(x - effective_target))
 
     # Nothing in range -- use the primary as-is
     return primary_bpm
