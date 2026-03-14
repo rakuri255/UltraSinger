@@ -7,7 +7,7 @@ from dataclasses_json import dataclass_json
 @dataclass_json
 @dataclass
 class PitchedData:
-    """Pitched data from crepe"""
+    """Pitched data from pitch detection (SwiftF0)"""
 
     times: list[float]
     frequencies: list[float]

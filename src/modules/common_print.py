@@ -42,11 +42,6 @@ def print_help() -> None:
     --whisper_compute_type  Change to "int8" if low on GPU mem (may reduce accuracy) >> ((default) is "float16" for cuda devices, "int8" for cpu)
     --keep_numbers          Numbers will be transcribed as numerics instead of as words >> True|False >> ((default) is False)
     
-    [pitcher]
-    # Default is crepe
-    --crepe            tiny|full >> ((default) is full)
-    --crepe_step_size  unit is miliseconds >> ((default) is 10)
-    
     [extra]
     --bpm                   Override auto-detected BPM with a manual value (e.g., --bpm 340)
     --disable_hyphenation   Disable word hyphenation. Hyphenation is enabled by default.
@@ -72,7 +67,6 @@ def print_help() -> None:
     [device]
     --force_cpu             Force all steps to be processed on CPU.
     --force_whisper_cpu     Force whisper transcription to be processed on CPU.
-    --force_crepe_cpu       Force crepe pitch detection to be processed on CPU.
     """
     print(help_string)
 

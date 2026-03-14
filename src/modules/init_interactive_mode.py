@@ -121,13 +121,8 @@ def configure_additional_options(console, settings, header):
         # Force Whisper CPU Usage  
         settings.force_whisper_cpu = console.input(  
             f"{header} Force [green]Whisper CPU usage[/green]? ([bright_green]y[/bright_green]/[bright_red]n[/bright_red], default '[bright_red]n[/bright_red]'): "  
-        ).strip().lower() == 'y'  
-  
-        # Force Crepe CPU Usage  
-        settings.force_crepe_cpu = console.input(  
-            f"{header} Force [green]Crepe CPU usage[/green]? ([bright_green]y[/bright_green]/[bright_red]n[/bright_red], default '[bright_red]n[/bright_red]'): "  
-        ).strip().lower() == 'y'  
-  
+        ).strip().lower() == 'y'
+
         # Keep Cache  
         settings.keep_cache = console.input(  
             f"{header} Keep [green]cache[/green] after execution? ([bright_green]y[/bright_green]/[bright_red]n[/bright_red], default '[bright_red]n[/bright_red]'): "  

@@ -9,7 +9,7 @@ from src.modules.plot import plot
 
 class PitcherTest(unittest.TestCase):
     @pytest.mark.skip(reason="Skipping this FUNCTION level test, can be used for manual tests")
-    def test_get_pitch_with_crepe_file(self):
+    def test_get_pitch_with_file(self):
         # Arrange
         test_dir = os.path.dirname(os.path.abspath(__file__))
         root_dir = os.path.abspath(test_dir + "/../../..")
@@ -19,7 +19,7 @@ class PitcherTest(unittest.TestCase):
 
         # Act
         pitched_data = test_subject.get_pitch_with_file(test_file_abs_path)
-        # test_subject.get_pitch_with_crepe_file(test_file_abs_path, 'full', 'cpu', batch_size=1024)
+        # test_subject.get_pitch_with_file(test_file_abs_path)
         plot(pitched_data, test_output, title="pitching test")
         print("done")
 

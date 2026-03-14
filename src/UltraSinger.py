@@ -862,10 +862,6 @@ def init_settings(argv: list[str]) -> Settings:
             settings.keep_numbers = True
         elif opt in ("--language"):
             settings.language = arg
-        elif opt in ("--crepe"):
-            settings.crepe_model_capacity = arg
-        elif opt in ("--crepe_step_size"):
-            settings.crepe_step_size = int(arg)
         elif opt in ("--plot"):
             settings.create_plot = True
         elif opt in ("--midi"):
@@ -885,8 +881,6 @@ def init_settings(argv: list[str]) -> Settings:
             os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
         elif opt in ("--force_whisper_cpu"):
             settings.force_whisper_cpu = True
-        elif opt in ("--force_crepe_cpu"):
-            settings.force_crepe_cpu = True
         elif opt in ("--format_version"):
             if arg == FormatVersion.V0_3_0.value:
                 settings.format_version = FormatVersion.V0_3_0
@@ -952,8 +946,6 @@ def arg_options():
         "ofile=",
         "bpm=",
         "octave=",
-        "crepe=",
-        "crepe_step_size=",
         "demucs=",
         "whisper=",
         "whisper_align_model=",
@@ -969,7 +961,6 @@ def arg_options():
         "ignore_audio",
         "force_cpu",
         "force_whisper_cpu",
-        "force_crepe_cpu",
         "format_version=",
         "keep_cache",
         "musescore_path=",
