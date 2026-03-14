@@ -73,9 +73,8 @@ def _read_txt_lines(path: Path) -> tuple[list[str], str]:
       2. Windows-1252      — Western European (ö ü ä é è ñ ł etc.)
       3. Latin-1           — never fails (maps all 256 byte values)
 
-    We detect "bad" UTF-8 decoding by checking for the replacement
-    character U+FFFD which appears when errors="replace" substitutes
-    undecodable bytes.
+    Decoding uses strict mode: invalid bytes raise ``UnicodeDecodeError``
+    which triggers the next fallback encoding automatically.
 
     The returned encoding distinguishes ``"utf-8-sig"`` (BOM present)
     from ``"utf-8"`` (no BOM) so that writers can preserve the original
@@ -87,9 +86,6 @@ def _read_txt_lines(path: Path) -> tuple[list[str], str]:
     for enc in _TXT_ENCODINGS:
         try:
             text = raw.decode(enc)
-            # If the codec had to replace bytes we get U+FFFD — try next
-            if "\ufffd" in text and enc != _TXT_ENCODINGS[-1]:
-                continue
             # Report "utf-8" when no BOM was present, even though the
             # utf-8-sig codec decoded successfully (it accepts both).
             if enc == "utf-8-sig" and not has_bom:
