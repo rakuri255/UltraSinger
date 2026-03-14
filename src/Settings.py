@@ -30,6 +30,7 @@ class Settings:
     bpm_override = None  # Manual BPM override (float), skips auto-detection when set
     octave_shift = None  # Manual octave shift (int), shifts all notes by N octaves after detection
     vocal_center_correction = True  # Safety-net octave correction for consistently wrong-octave detection
+    onset_correction = True  # Snap note start times to detected audio onsets
 
     # Process data Paths
     input_file_path = ""

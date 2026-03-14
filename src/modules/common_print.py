@@ -49,6 +49,7 @@ def print_help() -> None:
     --disable_hyphenation   Disable word hyphenation. Hyphenation is enabled by default.
     --disable_separation    Disable track separation. Track separation is enabled by default.
     --disable_karaoke       Disable creation of karaoke style txt file. Karaoke is enabled by default.
+    --disable_onset_correction  Disable onset-based timing correction. Enabled by default.
     --create_audio_chunks   Enable creation of audio chunks. Audio chunks are disabled by default.
     --keep_cache            Keep cache folder after creation. Cache folder is removed by default.
     --plot                  Enable creation of plots. Plots are disabled by default.
