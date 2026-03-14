@@ -1,16 +1,45 @@
 """YouTube Downloader"""
 
 import os
+import re
+
 import yt_dlp
 
 from modules.os_helper import sanitize_filename, get_unused_song_output_dir
 from modules import os_helper
 from modules.ProcessData import MediaInfo
 from modules.Audio.bpm import get_bpm_from_file
-from modules.console_colors import ULTRASINGER_HEAD
+from modules.console_colors import ULTRASINGER_HEAD, red_highlighted
 from modules.Image.image_helper import save_image
 from modules.musicbrainz_client import search_musicbrainz
 from modules.ffmpeg_helper import separate_audio_video
+
+
+def strip_unmatched_suffixes(track: str, video_title: str) -> str:
+    """Remove trailing parenthetical suffixes from the YT Music track name
+    that do not appear in the actual video title.
+
+    YouTube Music metadata sometimes adds qualifiers like '(live)' or
+    '(acoustic)' that do not match the uploaded video.  By cross-checking
+    against the video title we can strip these misleading suffixes while
+    keeping legitimate ones like '(feat. …)'.
+
+    Only *trailing* parenthesised groups are considered so that inner parts
+    of a title (e.g. 'Song (Part 2) - Remix') are never touched.
+    """
+    # Iteratively strip trailing (...) groups that are absent from the title
+    while True:
+        m = re.search(r'\s*\(([^)]+)\)\s*$', track)
+        if not m:
+            break
+        suffix_content = m.group(1).strip()
+        if suffix_content.lower() in video_title.lower():
+            break  # suffix is present in video title → keep it
+        print(
+            f"{ULTRASINGER_HEAD} {red_highlighted(f'Stripped YT Music suffix \"({suffix_content})\" – not in video title')}"
+        )
+        track = track[: m.start()].strip()
+    return track
 
 
 def get_youtube_title(url: str, cookiefile: str = None) -> tuple[str, str]:
@@ -25,7 +54,10 @@ def get_youtube_title(url: str, cookiefile: str = None) -> tuple[str, str]:
         )
 
     if "artist" in result:
-        return result["artist"].strip(), result["track"].strip()
+        track = result["track"].strip()
+        video_title = result.get("title", "")
+        track = strip_unmatched_suffixes(track, video_title)
+        return result["artist"].strip(), track
     if "-" in result["title"]:
         return result["title"].split("-")[0].strip(), result["title"].split("-")[1].strip()
     return result["channel"].strip(), result["title"].strip()
