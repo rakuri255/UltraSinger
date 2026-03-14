@@ -154,6 +154,8 @@ def run() -> tuple[str, Score, Score]:
         print(f"{ULTRASINGER_HEAD} {bright_green_highlighted('Option:')} {cyan_highlighted(f'LLM lyric correction enabled (model: {settings.llm_model})')}")
     if settings.syllable_split:
         print(f"{ULTRASINGER_HEAD} {bright_green_highlighted('Option:')} {cyan_highlighted('Syllable-level note splitting enabled')}")
+    if settings.vocal_gap_fill:
+        print(f"{ULTRASINGER_HEAD} {bright_green_highlighted('Option:')} {cyan_highlighted('Vocal gap fill enabled')}")
 
     process_data = InitProcessData()
 
@@ -212,6 +214,16 @@ def run() -> tuple[str, Score, Score]:
 
     # Pitch audio
     process_data.pitched_data = pitch_audio(process_data.process_data_paths)
+
+    # Fill vocal gaps (insert placeholder notes for un-transcribed vocalizations)
+    if not settings.ignore_audio and settings.vocal_gap_fill:
+        try:
+            from modules.Audio.vocal_gap_fill import fill_vocal_gaps
+            process_data.transcribed_data = fill_vocal_gaps(
+                process_data.transcribed_data, process_data.pitched_data
+            )
+        except Exception as e:
+            print(f"{ULTRASINGER_HEAD} Vocal gap fill skipped: {e}")
 
     # Allowed keys for quantization
     allowed_notes_for_key = None
@@ -998,6 +1010,8 @@ def init_settings(argv: list[str]) -> Settings:
             settings.onset_correction = False
         elif opt in ("--syllable_split"):
             settings.syllable_split = True
+        elif opt in ("--vocal_gap_fill"):
+            settings.vocal_gap_fill = True
         elif opt in ("--ffmpeg"):
             settings.user_ffmpeg_path = arg
         elif opt in ("--denoise_nr"):
@@ -1063,6 +1077,7 @@ def arg_options():
         "disable_vocal_center",
         "disable_onset_correction",
         "syllable_split",
+        "vocal_gap_fill",
         "interactive",
         "cookiefile=",
         "ffmpeg=",

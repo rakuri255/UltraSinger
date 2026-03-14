@@ -32,6 +32,7 @@ class Settings:
     vocal_center_correction = True  # Safety-net octave correction for consistently wrong-octave detection
     onset_correction = True  # Snap note start times to detected audio onsets
     syllable_split = False  # Preserve syllable-level note splits at pitch changes
+    vocal_gap_fill = False  # Fill un-transcribed vocal gaps with placeholder notes
 
     # Process data Paths
     input_file_path = ""
