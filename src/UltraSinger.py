@@ -152,6 +152,8 @@ def run() -> tuple[str, Score, Score]:
         print(f"{ULTRASINGER_HEAD} {bright_green_highlighted('Option:')} {cyan_highlighted(f'Octave shift: {settings.octave_shift:+d}')}")
     if settings.llm_correct_lyrics:
         print(f"{ULTRASINGER_HEAD} {bright_green_highlighted('Option:')} {cyan_highlighted(f'LLM lyric correction enabled (model: {settings.llm_model})')}")
+    if settings.syllable_split:
+        print(f"{ULTRASINGER_HEAD} {bright_green_highlighted('Option:')} {cyan_highlighted('Syllable-level note splitting enabled')}")
 
     process_data = InitProcessData()
 
@@ -244,9 +246,12 @@ def run() -> tuple[str, Score, Score]:
 
     # Merge syllable segments
     if not settings.ignore_audio:
-        process_data.midi_segments, process_data.transcribed_data = merge_syllable_segments(process_data.midi_segments,
-                                                                                        process_data.transcribed_data,
-                                                                                        process_data.media_info.bpm)
+        process_data.midi_segments, process_data.transcribed_data = merge_syllable_segments(
+            process_data.midi_segments,
+            process_data.transcribed_data,
+            process_data.media_info.bpm,
+            preserve_syllables=settings.syllable_split,
+        )
 
     # Create plot
     if settings.create_plot:
@@ -347,13 +352,19 @@ def split_syllables_into_segments(
 
 def merge_syllable_segments(midi_segments: list[MidiSegment],
                             transcribed_data: list[TranscribedData],
-                            real_bpm: float) -> tuple[list[MidiSegment], list[TranscribedData]]:
+                            real_bpm: float,
+                            preserve_syllables: bool = False) -> tuple[list[MidiSegment], list[TranscribedData]]:
     """Merge sub-segments of a syllable where the pitch is the same
 
     This function handles three cases:
     1. Merge consecutive ~ segments with the SAME pitch (same note held)
     2. Detect and merge SLIDES: short ~ segments with ±1-2 semitone jumps between syllables
     3. Merge ANY consecutive segments (including regular syllables) with the SAME pitch into one word
+
+    When *preserve_syllables* is ``True``, case 3 is skipped so that
+    hyphenated syllables stay as separate notes even when they share
+    the same pitch.  After the main merge loop, any surviving ``~``
+    markers are absorbed into adjacent real syllables.
     """
 
     sixteenth_note = get_sixteenth_note_second(real_bpm)
@@ -403,7 +414,8 @@ def merge_syllable_segments(midi_segments: list[MidiSegment],
             not is_tilde_segment and  # Not a ~ segment
             is_same_note and
             not has_breath_pause and
-            not previous_data.is_word_end):  # Don't merge across word boundaries
+            not previous_data.is_word_end and  # Don't merge across word boundaries
+            not preserve_syllables):  # Skip when preserving syllables
             should_merge_same_pitch = True
 
         should_merge_tilde = (is_tilde_segment and
@@ -469,7 +481,54 @@ def merge_syllable_segments(midi_segments: list[MidiSegment],
 
         previous_data = data
 
+    # When preserving syllables, absorb any surviving ~ markers into
+    # adjacent real segments so no tilde text appears in the output.
+    if preserve_syllables:
+        new_midi_notes, new_data = _absorb_tilde_segments(new_midi_notes, new_data)
+
     return new_midi_notes, new_data
+
+
+def _absorb_tilde_segments(
+    midi_segments: list[MidiSegment],
+    transcribed_data: list[TranscribedData],
+) -> tuple[list[MidiSegment], list[TranscribedData]]:
+    """Absorb surviving ``~`` segments into the nearest real syllable.
+
+    After the main merge loop with ``preserve_syllables=True``, some
+    ``~`` markers may survive when they have a large pitch jump from
+    the previous segment.  This function merges each ``~`` into the
+    adjacent segment whose pitch matches best (preferring the next
+    real syllable, falling back to the previous one).
+    """
+    if not transcribed_data:
+        return midi_segments, transcribed_data
+
+    result_data: list[TranscribedData] = []
+    result_midi: list[MidiSegment] = []
+
+    for i, data in enumerate(transcribed_data):
+        is_tilde = str(data.word).strip() == "~"
+        if not is_tilde:
+            result_data.append(data)
+            result_midi.append(midi_segments[i])
+            continue
+
+        # Try to absorb into previous segment
+        if result_data:
+            result_data[-1].end = data.end
+            result_midi[-1].end = data.end
+            # Carry over word_end and trailing space
+            if str(data.word).endswith(" "):
+                if not result_data[-1].word.endswith(" "):
+                    result_data[-1].word += " "
+                result_data[-1].is_word_end = True
+        else:
+            # No previous segment — keep as-is (shouldn't normally happen)
+            result_data.append(data)
+            result_midi.append(midi_segments[i])
+
+    return result_midi, result_data
 
 
 def create_audio_chunks(process_data):
@@ -937,6 +996,8 @@ def init_settings(argv: list[str]) -> Settings:
             settings.vocal_center_correction = False
         elif opt in ("--disable_onset_correction"):
             settings.onset_correction = False
+        elif opt in ("--syllable_split"):
+            settings.syllable_split = True
         elif opt in ("--ffmpeg"):
             settings.user_ffmpeg_path = arg
         elif opt in ("--denoise_nr"):
@@ -1001,6 +1062,7 @@ def arg_options():
         "disable_quantization",
         "disable_vocal_center",
         "disable_onset_correction",
+        "syllable_split",
         "interactive",
         "cookiefile=",
         "ffmpeg=",

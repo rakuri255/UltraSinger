@@ -55,6 +55,7 @@ def print_help() -> None:
     --plot                  Enable creation of plots. Plots are disabled by default.
     --disable_quantization  Disable key quantization. Key quantization is enabled by default and removes slides and out-of-key notes.
     --disable_vocal_center  Disable vocal-centre octave correction. Enabled by default.
+    --syllable_split        Preserve syllable-level note splits at pitch changes (experimental). Disabled by default.
     --format_version        0.3.0|1.0.0|1.1.0|1.2.0 >> ((default) is 1.2.0)
     --musescore_path        path to MuseScore executable
     --keep_numbers          Transcribe numbers as digits and not words
