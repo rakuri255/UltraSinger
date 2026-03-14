@@ -94,7 +94,6 @@ def create_ultrastar_txt(
             if ultrastar_class.tags is not None:
                 file.write(f"#{UltrastarTxtTag.TAGS.value}:{ultrastar_class.tags}\n")
         file.write(f"#{UltrastarTxtTag.CREATOR.value}:{ultrastar_class.creator}\n")
-        file.write(f"#{UltrastarTxtTag.COMMENT.value}:{ultrastar_class.comment}\n")
 
         # Write the singing part
         previous_end_beat = 0
@@ -252,11 +251,10 @@ def add_score_to_ultrastar_txt(ultrastar_file_output: str, score: Score) -> None
         text = file.read()
     text = text.split("\n")
 
+    score_suffix = f" | Score: total: {score.score}, notes: {score.notes} line: {score.line_bonus}, golden: {score.golden}"
     for i, line in enumerate(text):
-        if line.startswith(f"#{UltrastarTxtTag.COMMENT.value}:"):
-            text[
-                i
-            ] = f"{line} | Score: total: {score.score}, notes: {score.notes} line: {score.line_bonus}, golden: {score.golden}"
+        if line.startswith(f"#{UltrastarTxtTag.CREATOR.value}:"):
+            text[i] = f"{line}{score_suffix}"
             break
 
         if line.startswith((
@@ -267,7 +265,7 @@ def add_score_to_ultrastar_txt(ultrastar_file_output: str, score: Score) -> None
                 f"{UltrastarTxtNoteTypeTag.RAP_GOLDEN.value} ")):
             text.insert(
                 i,
-                f"#{UltrastarTxtTag.COMMENT.value}: UltraSinger [GitHub] | Score: total: {score.score}, notes: {score.notes} line: {score.line_bonus}, golden: {score.golden}",
+                f"#{UltrastarTxtTag.CREATOR.value}:UltraSinger [GitHub]{score_suffix}",
             )
             break
 

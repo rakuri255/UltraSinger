@@ -126,7 +126,6 @@ class TestCreateUltrastarTxt(unittest.TestCase):
             f"#{UltrastarTxtTag.BPM.value}:420.0\n",
             f"#{UltrastarTxtTag.GAP.value}:500\n",
             f"#{UltrastarTxtTag.CREATOR.value}:{default_ultrastar_class.creator}\n",
-            f"#{UltrastarTxtTag.COMMENT.value}:{default_ultrastar_class.comment}\n",
             ": 0 56 1 UltraSinger \n",
             ": 70 42 2 is \n",
             ": 140 56 3 cool! \n",
@@ -159,7 +158,6 @@ class TestCreateUltrastarTxt(unittest.TestCase):
         if version.parse(ver) >= version.parse("1.1.0"):
             expected_calls.append(f"#{UltrastarTxtTag.TAGS.value}:{default_ultrastar_class.tags}\n")
         expected_calls.append(f"#{UltrastarTxtTag.CREATOR.value}:{default_ultrastar_class.creator}\n")
-        expected_calls.append(f"#{UltrastarTxtTag.COMMENT.value}:{default_ultrastar_class.comment}\n")
         expected_calls.append(": 0 56 1 UltraSinger \n")
         expected_calls.append(": 70 42 2 is \n")
         expected_calls.append(": 140 56 3 cool! \n")

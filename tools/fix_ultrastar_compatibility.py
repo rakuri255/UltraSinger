@@ -1,6 +1,6 @@
-"""Fix UltraStar song compatibility: audio format conversion and encoding normalization.
+"""Fix UltraStar song compatibility: audio format conversion, tag cleanup, and encoding normalization.
 
-Scans a directory tree for UltraStar TXT files and fixes two categories of
+Scans a directory tree for UltraStar TXT files and fixes three categories of
 compatibility issues:
 
 1. Audio Format Conversion:
@@ -9,7 +9,11 @@ compatibility issues:
    using FFmpeg, and the TXT file references are updated accordingly.
    Original audio files are preserved (never deleted).
 
-2. Encoding Normalization (--normalize-encoding):
+2. Non-Standard Tag Removal (always):
+   Tags not part of the official UltraStar format specification (e.g. #COMMENT:)
+   are removed. These cause warnings in modern players like UltraStar Play.
+
+3. Encoding Normalization (--normalize-encoding):
    TXT files in legacy encodings (CP1252, Latin-1, etc.) are converted to UTF-8
    for universal compatibility across all UltraStar derivatives (USDX, UltraStar
    Play, Performous, Vocaluxe). The deprecated #ENCODING: tag is removed.
@@ -122,6 +126,7 @@ class SongInfo:
     audio_files: list[AudioFileInfo] = field(default_factory=list)
     file_encoding: str = "utf-8"          # detected encoding of the TXT file
     has_encoding_tag: bool = False         # True if #ENCODING: tag is present
+    has_comment_tag: bool = False          # True if #COMMENT: tag is present
 
     @property
     def display_name(self) -> str:
@@ -152,6 +157,7 @@ class ConversionResult:
     encoding_normalized: bool = False      # True if encoding was converted to UTF-8
     encoding_from: str | None = None       # original encoding if normalized
     encoding_tag_removed: bool = False     # True if #ENCODING: tag was removed
+    comment_tag_removed: bool = False      # True if #COMMENT: tag was removed
 
 
 # ---------------------------------------------------------------------------
@@ -211,6 +217,8 @@ def parse_song_info(txt_path: Path) -> SongInfo | None:
 
         if tag_part == "#ENCODING:":
             info.has_encoding_tag = True
+        if tag_part == "#COMMENT:":
+            info.has_comment_tag = True
 
         if not value:
             continue
@@ -351,8 +359,7 @@ def update_txt_tags(txt_path: Path, replacements: dict[str, str]) -> None:
 
     if updated:
         # Preserve original encoding — use detected encoding, not UTF-8
-        write_enc = detected_enc if detected_enc != "utf-8-sig" else "utf-8-sig"
-        with open(txt_path, "w", encoding=write_enc, newline="") as f:
+        with open(txt_path, "w", encoding=detected_enc, newline="") as f:
             f.writelines(new_lines)
 
 
@@ -403,6 +410,42 @@ def normalize_txt_encoding(txt_path: Path) -> tuple[bool, bool]:
 
 
 # ---------------------------------------------------------------------------
+# Non-standard tag removal
+# ---------------------------------------------------------------------------
+
+# Tags that are not part of any official UltraStar format specification
+# and cause warnings in modern players (e.g. UltraStar Play).
+_NON_STANDARD_TAGS = {"#COMMENT:"}
+
+
+def remove_non_standard_tags(txt_path: Path) -> bool:
+    """Remove non-standard tags (e.g. #COMMENT:) from a TXT file.
+
+    Returns True if any tags were removed.
+    """
+    lines, detected_enc = _read_txt_lines(txt_path)
+
+    new_lines = []
+    removed = False
+    for line in lines:
+        stripped = line.strip()
+        if stripped.startswith("#"):
+            colon_idx = stripped.find(":")
+            if colon_idx >= 0:
+                tag_part = stripped[: colon_idx + 1].upper()
+                if tag_part in _NON_STANDARD_TAGS:
+                    removed = True
+                    continue  # skip this line
+        new_lines.append(line)
+
+    if removed:
+        with open(txt_path, "w", encoding=detected_enc, newline="") as f:
+            f.writelines(new_lines)
+
+    return removed
+
+
+# ---------------------------------------------------------------------------
 # Song processing
 # ---------------------------------------------------------------------------
 
@@ -418,6 +461,17 @@ def process_song(
     and remove the deprecated #ENCODING: tag.
     """
     result = ConversionResult(song_info=song_info)
+
+    # --- Non-standard tag removal (always, unconditionally) ---
+    if song_info.has_comment_tag:
+        if not dry_run:
+            try:
+                removed = remove_non_standard_tags(song_info.txt_path)
+                result.comment_tag_removed = removed
+            except OSError as e:
+                result.warnings.append(f"#COMMENT removal failed: {e}")
+        else:
+            result.comment_tag_removed = True
 
     # --- Encoding normalization ---
     needs_encoding_fix = normalize_encoding and (
@@ -435,7 +489,7 @@ def process_song(
         if not dry_run:
             try:
                 normalize_txt_encoding(song_info.txt_path)
-            except Exception as e:
+            except OSError as e:
                 result.warnings.append(f"Encoding normalization failed: {e}")
                 result.encoding_normalized = False
                 result.encoding_tag_removed = False
@@ -579,6 +633,7 @@ def print_summary(
 
     enc_normalized = sum(1 for r in results if r.encoding_normalized)
     enc_tag_removed = sum(1 for r in results if r.encoding_tag_removed)
+    comment_removed = sum(1 for r in results if r.comment_tag_removed)
 
     print()
     if dry_run:
@@ -600,6 +655,11 @@ def print_summary(
         print(f"  Errors:                 {errors:>5}")
     if skipped:
         print(f"  Skipped (no audio):     {skipped:>5}")
+    if comment_removed:
+        if dry_run:
+            print(f"  #COMMENT: would drop:   {comment_removed:>5}")
+        else:
+            print(f"  #COMMENT: removed:      {comment_removed:>5}")
 
     if normalize_encoding:
         print("  " + "-" * 40)
@@ -777,6 +837,8 @@ def main(argv: list[str] | None = None) -> int:
                     f"  Encoding fixed:  {result.song_info.display_name}"
                     f"  ({result.encoding_from} → utf-8)"
                 )
+            if result.comment_tag_removed:
+                print(f"  #COMMENT removed: {result.song_info.display_name}")
 
     # Output statistics
     print_summary(results, args.dry_run, args.normalize_encoding)

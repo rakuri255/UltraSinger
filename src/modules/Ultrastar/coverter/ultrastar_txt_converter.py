@@ -80,7 +80,6 @@ def create_ultrastar_txt_from_automation(
         cover if os_helper.check_file_exists(os.path.join(song_folder_output_path, cover)) else None
     )
     ultrastar_txt.creator = f"{ultrastar_txt.creator} {app_version}"
-    ultrastar_txt.comment = f"{ultrastar_txt.comment} {app_version}"
 
     # Additional data
     ultrastar_txt.title = media_info.title

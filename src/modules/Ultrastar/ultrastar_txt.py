@@ -135,7 +135,6 @@ class UltrastarTxtValue:
     instrumental = None
     tags = None
     creator = "UltraSinger [GitHub]"
-    comment = "UltraSinger [GitHub]"
     UltrastarNoteLines: List[UltrastarNoteLine] = field(default_factory=list)
 
 
