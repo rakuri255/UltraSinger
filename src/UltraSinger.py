@@ -916,8 +916,8 @@ def init_settings(argv: list[str]) -> Settings:
             settings.cookiefile = arg
         elif opt in ("--interactive"):
             settings.interactive_mode = True
-        elif opt in ("--quantize_to_key"):
-            settings.quantize_to_key = arg
+        elif opt in ("--disable_quantization"):
+            settings.quantize_to_key = False
         elif opt in ("--ffmpeg"):
             settings.user_ffmpeg_path = arg
         elif opt in ("--denoise_nr"):
@@ -974,7 +974,7 @@ def arg_options():
         "keep_cache",
         "musescore_path=",
         "keep_numbers",
-        "quantize_to_key",
+        "disable_quantization",
         "interactive",
         "cookiefile=",
         "ffmpeg=",
