@@ -68,6 +68,12 @@ def print_help() -> None:
     [yt-dlp]
     --cookiefile            File name where cookies should be read from and dumped to.
     
+    [llm]
+    --llm_correct           Enable LLM-based lyric correction (requires API key)
+    --llm_api_base_url      OpenAI-compatible API base URL >> ((default) is https://api.openai.com/v1)
+    --llm_api_key           API key for LLM service (or set LLM_API_KEY env var)
+    --llm_model             LLM model name >> ((default) is gpt-4o-mini)
+
     [device]
     --force_cpu             Force all steps to be processed on CPU.
     --force_whisper_cpu     Force whisper transcription to be processed on CPU.

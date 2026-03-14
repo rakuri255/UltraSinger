@@ -4,7 +4,7 @@ import copy
 import getopt
 import os
 import sys
-import Levenshtein
+
 import librosa
 
 from packaging import version
@@ -119,24 +119,6 @@ def add_hyphen_to_data(
     return new_data
 
 
-# Todo: Unused
-def correct_words(recognized_words, word_list_file):
-    """Docstring"""
-    with open(word_list_file, "r", encoding="utf-8") as file:
-        text = file.read()
-    word_list = text.split()
-
-    for i, rec_word in enumerate(recognized_words):
-        if rec_word.word in word_list:
-            continue
-
-        closest_word = min(
-            word_list, key=lambda x: Levenshtein.distance(rec_word.word, x)
-        )
-        print(recognized_words[i].word + " - " + closest_word)
-        recognized_words[i].word = closest_word
-    return recognized_words
-
 
 def remove_unecessary_punctuations(transcribed_data: list[TranscribedData]) -> None:
     """Remove unecessary punctuations from transcribed data"""
@@ -168,6 +150,8 @@ def run() -> tuple[str, Score, Score]:
         print(f"{ULTRASINGER_HEAD} {bright_green_highlighted('Option:')} {cyan_highlighted(f'BPM override: {settings.bpm_override}')}")
     if settings.octave_shift is not None:
         print(f"{ULTRASINGER_HEAD} {bright_green_highlighted('Option:')} {cyan_highlighted(f'Octave shift: {settings.octave_shift:+d}')}")
+    if settings.llm_correct_lyrics:
+        print(f"{ULTRASINGER_HEAD} {bright_green_highlighted('Option:')} {cyan_highlighted(f'LLM lyric correction enabled (model: {settings.llm_model})')}")
 
     process_data = InitProcessData()
 
@@ -551,6 +535,24 @@ def TranscribeAudio(process_data):
         process_data.media_info.language = transcription_result.detected_language
 
     process_data.transcribed_data = transcription_result.transcribed_data
+
+    # LLM lyric correction (optional, before punctuation removal for context)
+    if settings.llm_correct_lyrics:
+        try:
+            from modules.Speech_Recognition.llm_corrector import correct_lyrics_with_llm, LLMConfig
+            llm_config = LLMConfig(
+                api_base_url=settings.llm_api_base_url,
+                api_key=settings.llm_api_key or os.environ.get("LLM_API_KEY", ""),
+                model=settings.llm_model,
+                language=process_data.media_info.language,
+                artist=process_data.media_info.artist,
+                title=process_data.media_info.title,
+            )
+            process_data.transcribed_data = correct_lyrics_with_llm(
+                process_data.transcribed_data, llm_config
+            )
+        except Exception as e:
+            print(f"{ULTRASINGER_HEAD} LLM lyric correction skipped: {e}")
 
     # Hyphen
     # Todo: Is it really unnecessary?
@@ -951,6 +953,14 @@ def init_settings(argv: list[str]) -> Settings:
             settings.denoise_noise_floor = val
         elif opt in ("--disable_denoise_track_noise"):
             settings.denoise_track_noise = False
+        elif opt in ("--llm_correct"):
+            settings.llm_correct_lyrics = True
+        elif opt in ("--llm_api_base_url"):
+            settings.llm_api_base_url = arg
+        elif opt in ("--llm_api_key"):
+            settings.llm_api_key = arg
+        elif opt in ("--llm_model"):
+            settings.llm_model = arg
     if settings.output_folder_path == "":
         if settings.input_file_path.startswith("https:"):
             dirname = os.getcwd()
@@ -997,6 +1007,10 @@ def arg_options():
         "denoise_nr=",
         "denoise_nf=",
         "disable_denoise_track_noise",
+        "llm_correct",
+        "llm_api_base_url=",
+        "llm_api_key=",
+        "llm_model=",
     ]
     return long, short
 

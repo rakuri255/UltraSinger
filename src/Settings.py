@@ -62,6 +62,12 @@ class Settings:
     # yt-dlp
     cookiefile = None
 
+    # LLM lyric correction
+    llm_correct_lyrics = False  # Enable LLM-based lyric post-correction
+    llm_api_base_url: str = "https://api.openai.com/v1"
+    llm_api_key: str | None = None  # API key (or set LLM_API_KEY env var)
+    llm_model: str = "gpt-4o-mini"  # Default to cheap, fast model
+
     # Denoise
     denoise_noise_reduction = 20  # Noise reduction in dB (0.01-97, default: 20). Previous default was 70 which destroyed vocal nuances needed by Whisper.
     denoise_noise_floor = -80  # Noise floor in dB (-80 to -20, default: -80)
