@@ -41,6 +41,7 @@ from modules.Midi.midi_creator import (
     apply_octave_shift,
     correct_global_octave,
     correct_octave_outliers,
+    correct_vocal_center,
     create_midi_file,
 )
 from modules.Midi.MidiSegment import MidiSegment
@@ -234,6 +235,11 @@ def run() -> tuple[str, Score, Score]:
 
     # Correct local octave outliers
     process_data.midi_segments = correct_octave_outliers(process_data.midi_segments)
+
+    # Safety-net: shift notes toward vocal centre if still concentrated
+    # outside the expected range (catches 100%-consistent wrong-octave)
+    if settings.vocal_center_correction:
+        process_data.midi_segments = correct_vocal_center(process_data.midi_segments)
 
     # Apply manual octave shift (after automatic correction, so user gets final say)
     if settings.octave_shift is not None:
@@ -912,6 +918,8 @@ def init_settings(argv: list[str]) -> Settings:
             settings.interactive_mode = True
         elif opt in ("--disable_quantization"):
             settings.quantize_to_key = False
+        elif opt in ("--disable_vocal_center"):
+            settings.vocal_center_correction = False
         elif opt in ("--ffmpeg"):
             settings.user_ffmpeg_path = arg
         elif opt in ("--denoise_nr"):
@@ -966,6 +974,7 @@ def arg_options():
         "musescore_path=",
         "keep_numbers",
         "disable_quantization",
+        "disable_vocal_center",
         "interactive",
         "cookiefile=",
         "ffmpeg=",

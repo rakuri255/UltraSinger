@@ -10,6 +10,7 @@ from src.modules.Midi.midi_creator import (
     apply_octave_shift,
     correct_global_octave,
     correct_octave_outliers,
+    correct_vocal_center,
     confidence_weighted_median_note,
 )
 
@@ -470,6 +471,184 @@ class TestApplyOctaveShift(unittest.TestCase):
         midis_after = self._get_midis(segs)
         intervals_after = [midis_after[i+1] - midis_after[i] for i in range(len(midis_after)-1)]
         self.assertEqual(intervals_before, intervals_after)
+
+
+class TestCorrectVocalCenter(unittest.TestCase):
+    """Tests for correct_vocal_center() — safety-net for consistent wrong-octave."""
+
+    @staticmethod
+    def _make_segs(notes: list[str]) -> list[MidiSegment]:
+        return [
+            MidiSegment(note=n, start=float(i), end=float(i + 1), word=f"w{i} ")
+            for i, n in enumerate(notes)
+        ]
+
+    @staticmethod
+    def _get_midis(segs: list[MidiSegment]) -> list[int]:
+        return [librosa.note_to_midi(s.note) for s in segs]
+
+    # -- edge cases -----------------------------------------------------------
+
+    def test_empty_list_returns_empty(self):
+        result = correct_vocal_center([])
+        self.assertEqual(result, [])
+
+    # -- normal range (no shift) ----------------------------------------------
+
+    def test_notes_in_normal_range_unchanged(self):
+        """Notes with median around C4-D4 (MIDI 60-62) should not be shifted."""
+        segs = self._make_segs(["C4", "D4", "E4", "C4", "D4"])
+        result = correct_vocal_center(segs)
+        midis = self._get_midis(result)
+        self.assertEqual(midis, [60, 62, 64, 60, 62])
+
+    def test_notes_at_threshold_boundaries_unchanged(self):
+        """Median exactly at low_threshold (55) should not trigger shift."""
+        # G3 = MIDI 55 — right at the boundary
+        segs = self._make_segs(["G3", "G3", "A3", "G3", "G3"])
+        result = correct_vocal_center(segs)
+        midis = self._get_midis(result)
+        # Median is 55 (G3), which is >= low_threshold → no shift
+        self.assertEqual(midis, [55, 55, 57, 55, 55])
+
+    def test_notes_at_high_boundary_unchanged(self):
+        """Median exactly at high_threshold (79) should not trigger shift."""
+        # G5 = MIDI 79 — right at the boundary
+        segs = self._make_segs(["G5", "G5", "F5", "G5", "G5"])
+        result = correct_vocal_center(segs)
+        midis = self._get_midis(result)
+        self.assertEqual(midis, [79, 79, 77, 79, 79])
+
+    # -- already in valid centre → no shift ------------------------------------
+
+    def test_no_shift_valid_center(self):
+        """Notes already in valid mid-range should not be shifted."""
+        # F#3 = MIDI 54, just inside the broader 48-84 range but
+        # below the default low_threshold of 55.  However, 80% are not
+        # concentrated below 55 because the median check is the first
+        # gate (median must be < low_threshold OR > high_threshold).
+        # Use notes that sit inside 55-79 (centre band).
+        segs = self._make_segs(["G3", "A3", "B3", "G3", "A3"])
+        # G3=55, A3=57, B3=59 → median = 57, within [55, 79] → no shift
+        result = correct_vocal_center(segs)
+        midis = self._get_midis(result)
+        self.assertEqual(midis, [55, 57, 59, 55, 57])
+
+    def test_no_shift_centre_band_high(self):
+        """Notes near the top of the centre band should not be shifted."""
+        segs = self._make_segs(["E5", "F5", "G5", "E5", "F5"])
+        # E5=76, F5=77, G5=79 → median = 77, within [55, 79] → no shift
+        result = correct_vocal_center(segs)
+        midis = self._get_midis(result)
+        self.assertEqual(midis, [76, 77, 79, 76, 77])
+
+    # -- all notes low octave → shift up --------------------------------------
+
+    def test_all_notes_low_shifted_up(self):
+        """All notes around MIDI 48-54 (consistently wrong octave) → shift +12."""
+        # C3=48, D3=50, E3=52, F3=53, G3=55 → but we need median < 55
+        # Use all MIDI 48-52 notes so median < 55
+        segs = self._make_segs(["C3", "D3", "E3", "C3", "D3"])
+        # Median = 50 (D3), 100% below 55 → triggers shift
+        result = correct_vocal_center(segs)
+        midis = self._get_midis(result)
+        self.assertEqual(midis, [60, 62, 64, 60, 62])
+
+    def test_all_notes_very_low_shifted_up(self):
+        """All notes around MIDI 42 (very wrong octave) → shift +12."""
+        segs = self._make_segs(["F#2", "G2", "A2", "F#2", "G2"])
+        result = correct_vocal_center(segs)
+        midis = self._get_midis(result)
+        # All should shift up by 12
+        expected = [42 + 12, 43 + 12, 45 + 12, 42 + 12, 43 + 12]
+        self.assertEqual(midis, expected)
+
+    # -- all notes high octave → shift down -----------------------------------
+
+    def test_all_notes_high_shifted_down(self):
+        """All notes around MIDI 80-86 (consistently wrong octave) → shift -12."""
+        # A5=81, B5=83, C6=84 → median > 79, all above 79
+        segs = self._make_segs(["A5", "B5", "C6", "A5", "B5"])
+        result = correct_vocal_center(segs)
+        midis = self._get_midis(result)
+        self.assertEqual(midis, [69, 71, 72, 69, 71])
+
+    # -- concentration threshold not met → no shift ---------------------------
+
+    def test_low_concentration_not_shifted(self):
+        """If only 70% of notes are below threshold, don't shift (need 80%)."""
+        # 7 low + 3 normal = 70% below → below 80% threshold
+        low_notes = ["C3"] * 7   # MIDI 48
+        normal_notes = ["C4"] * 3  # MIDI 60
+        segs = self._make_segs(low_notes + normal_notes)
+        result = correct_vocal_center(segs)
+        midis = self._get_midis(result)
+        # Median is 48, 70% below 55 → NOT enough, no shift
+        self.assertEqual(midis, [48] * 7 + [60] * 3)
+
+    def test_exactly_80_percent_does_not_trigger(self):
+        """Exactly 80% concentration should NOT trigger (need >80%)."""
+        # 8 low + 2 normal = 80% below → exactly at threshold, not exceeded
+        low_notes = ["C3"] * 8   # MIDI 48
+        normal_notes = ["C4"] * 2  # MIDI 60
+        segs = self._make_segs(low_notes + normal_notes)
+        result = correct_vocal_center(segs)
+        midis = self._get_midis(result)
+        # Median is 48, 80% below 55 → exactly at threshold, NO shift
+        self.assertEqual(midis, [48] * 8 + [60] * 2)
+
+    def test_above_80_percent_triggers_shift(self):
+        """More than 80% concentration should trigger the shift."""
+        # 9 low + 1 normal = 90% below → exceeds 80% threshold
+        low_notes = ["C3"] * 9   # MIDI 48
+        normal_notes = ["C4"] * 1  # MIDI 60
+        segs = self._make_segs(low_notes + normal_notes)
+        result = correct_vocal_center(segs)
+        midis = self._get_midis(result)
+        # Median is 48, 90% below 55 → triggers shift +12
+        self.assertEqual(midis, [60] * 9 + [72] * 1)
+
+    # -- preserves intervals --------------------------------------------------
+
+    def test_shift_preserves_intervals(self):
+        """Relative intervals between notes must be preserved after shift."""
+        segs = self._make_segs(["C3", "E3", "G3", "C3", "E3"])
+        midis_before = self._get_midis(segs)
+        intervals_before = [
+            midis_before[i + 1] - midis_before[i]
+            for i in range(len(midis_before) - 1)
+        ]
+
+        result = correct_vocal_center(segs)
+        midis_after = self._get_midis(result)
+        intervals_after = [
+            midis_after[i + 1] - midis_after[i]
+            for i in range(len(midis_after) - 1)
+        ]
+
+        self.assertEqual(intervals_before, intervals_after)
+
+    # -- custom thresholds ----------------------------------------------------
+
+    def test_custom_thresholds(self):
+        """Custom low/high thresholds should be respected."""
+        # MIDI 60 notes, with custom high_threshold=58
+        segs = self._make_segs(["C4", "D4", "C4", "D4", "C4"])
+        # Median = 60, above custom high=58, all 5/5 > 58
+        result = correct_vocal_center(segs, high_threshold=58)
+        midis = self._get_midis(result)
+        # Should shift down by 12
+        self.assertEqual(midis, [48, 50, 48, 50, 48])
+
+    # -- word and timing preserved --------------------------------------------
+
+    def test_preserves_word_and_timing(self):
+        """Shift should preserve word text and timing data."""
+        seg = MidiSegment(note="C3", start=1.5, end=2.5, word="hello ")
+        correct_vocal_center([seg])
+        self.assertEqual(seg.word, "hello ")
+        self.assertEqual(seg.start, 1.5)
+        self.assertEqual(seg.end, 2.5)
 
 
 class TestConfidenceWeightedMedianNote(unittest.TestCase):

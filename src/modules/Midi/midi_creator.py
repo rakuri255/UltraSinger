@@ -230,6 +230,102 @@ def create_repitched_midi_segments_from_ultrastar_txt(pitched_data: PitchedData,
     return midi_segments
 
 
+def correct_vocal_center(
+    midi_segments: list[MidiSegment],
+    low_threshold: int = 55,
+    high_threshold: int = 79,
+    concentration_pct: float = 0.80,
+) -> list[MidiSegment]:
+    """Safety-net octave correction for consistently wrong-octave detection.
+
+    :func:`correct_global_octave` catches cases where the median falls
+    *outside* the broad vocal range (MIDI 48-84).  However, when *all*
+    detected pitches are consistently one octave too low (or too high),
+    the median can land just inside that range, and
+    :func:`correct_octave_outliers` cannot help either because there
+    are no outliers to compare against.
+
+    This function uses a **tighter** expected centre band (default
+    MIDI 55-79, roughly G3-G5) and a concentration threshold.  If more
+    than *concentration_pct* of all notes cluster below *low_threshold*
+    (or above *high_threshold*), it shifts **all** notes by one octave
+    toward the centre.
+
+    Run this **after** both :func:`correct_global_octave` and
+    :func:`correct_octave_outliers` as a final safety net.
+
+    Args:
+        midi_segments: List of MIDI segments with ``.note`` attributes.
+        low_threshold: Notes below this are considered suspiciously low.
+        high_threshold: Notes above this are considered suspiciously high.
+        concentration_pct: Minimum fraction of notes that must be
+            outside the threshold to trigger a shift (0.0-1.0).
+
+    Returns:
+        The same list, with notes shifted in-place when triggered.
+    """
+    if not midi_segments:
+        return midi_segments
+
+    midi_values: list[int] = []
+    for seg in midi_segments:
+        try:
+            midi_values.append(librosa.note_to_midi(seg.note))
+        except (ValueError, TypeError):
+            pass
+
+    if not midi_values:
+        return midi_segments
+
+    median_midi = float(np.median(midi_values))
+
+    # Already in the expected centre band — nothing to do
+    if low_threshold <= median_midi <= high_threshold:
+        return midi_segments
+
+    total = len(midi_values)
+
+    # Check for suspiciously low concentration
+    if median_midi < low_threshold:
+        below = sum(1 for v in midi_values if v < low_threshold)
+        if below / total > concentration_pct:
+            shift = 12
+            print(
+                f"{ULTRASINGER_HEAD} Vocal-centre correction: "
+                f"shifting all notes by {blue_highlighted('+12')} semitones "
+                f"(median MIDI {median_midi:.0f}, "
+                f"{below}/{total} notes below {low_threshold})"
+            )
+            for seg in midi_segments:
+                try:
+                    current = librosa.note_to_midi(seg.note)
+                    seg.note = librosa.midi_to_note(current + shift)
+                except (ValueError, TypeError):
+                    pass
+            return midi_segments
+
+    # Check for suspiciously high concentration
+    if median_midi > high_threshold:
+        above = sum(1 for v in midi_values if v > high_threshold)
+        if above / total > concentration_pct:
+            shift = -12
+            print(
+                f"{ULTRASINGER_HEAD} Vocal-centre correction: "
+                f"shifting all notes by {blue_highlighted('-12')} semitones "
+                f"(median MIDI {median_midi:.0f}, "
+                f"{above}/{total} notes above {high_threshold})"
+            )
+            for seg in midi_segments:
+                try:
+                    current = librosa.note_to_midi(seg.note)
+                    seg.note = librosa.midi_to_note(current + shift)
+                except (ValueError, TypeError):
+                    pass
+            return midi_segments
+
+    return midi_segments
+
+
 def apply_octave_shift(
     midi_segments: list[MidiSegment],
     octaves: int,
