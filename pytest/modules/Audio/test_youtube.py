@@ -148,10 +148,12 @@ class TestGetYoutubeTitle(unittest.TestCase):
         url = "   https://fakeUrl   "
 
         # Act
-        result = get_youtube_title(url)
+        artist, title, video_title = get_youtube_title(url)
 
         # Assert
-        self.assertEqual(result, ("Test Artist", "Test Track"))
+        self.assertEqual(artist, "Test Artist")
+        self.assertEqual(title, "Test Track")
+        self.assertEqual(video_title, "Test Artist - Test Track")
         mock_youtube_dl.assert_called_once()
 
     @patch("yt_dlp.YoutubeDL")
@@ -164,10 +166,11 @@ class TestGetYoutubeTitle(unittest.TestCase):
             "channel": "Electric Callboy",
         }
 
-        artist, title = get_youtube_title("https://fakeUrl")
+        artist, title, video_title = get_youtube_title("https://fakeUrl")
 
         self.assertEqual(artist, "Electric Callboy")
         self.assertEqual(title, "Pump It")
+        self.assertEqual(video_title, "Electric Callboy - PUMP IT (OFFICIAL VIDEO)")
 
     @patch("yt_dlp.YoutubeDL")
     def test_get_youtube_title_keeps_matching_suffix(self, mock_youtube_dl):
@@ -179,7 +182,7 @@ class TestGetYoutubeTitle(unittest.TestCase):
             "channel": "ArtistChannel",
         }
 
-        artist, title = get_youtube_title("https://fakeUrl")
+        artist, title, _video_title = get_youtube_title("https://fakeUrl")
 
         self.assertEqual(artist, "Artist")
         self.assertEqual(title, "Song (Live)")
@@ -192,10 +195,11 @@ class TestGetYoutubeTitle(unittest.TestCase):
             "channel": "SomeChannel",
         }
 
-        artist, title = get_youtube_title("https://fakeUrl")
+        artist, title, video_title = get_youtube_title("https://fakeUrl")
 
         self.assertEqual(artist, "Some Artist")
         self.assertEqual(title, "Some Song")
+        self.assertEqual(video_title, "Some Artist - Some Song")
 
     @patch("yt_dlp.YoutubeDL")
     def test_get_youtube_title_multi_dash_preserves_title(self, mock_youtube_dl):
@@ -205,7 +209,7 @@ class TestGetYoutubeTitle(unittest.TestCase):
             "channel": "ArtistChannel",
         }
 
-        artist, title = get_youtube_title("https://fakeUrl")
+        artist, title, _video_title = get_youtube_title("https://fakeUrl")
 
         self.assertEqual(artist, "Artist Name")
         self.assertEqual(title, "Song - Part 2")
@@ -218,10 +222,11 @@ class TestGetYoutubeTitle(unittest.TestCase):
             "channel": "MyChannel",
         }
 
-        artist, title = get_youtube_title("https://fakeUrl")
+        artist, title, video_title = get_youtube_title("https://fakeUrl")
 
         self.assertEqual(artist, "MyChannel")
         self.assertEqual(title, "Just A Title")
+        self.assertEqual(video_title, "Just A Title")
 
     @patch("yt_dlp.YoutubeDL")
     def test_get_youtube_title_artist_without_track_falls_through(self, mock_youtube_dl):
@@ -232,7 +237,7 @@ class TestGetYoutubeTitle(unittest.TestCase):
             "channel": "SomeChannel",
         }
 
-        artist, title = get_youtube_title("https://fakeUrl")
+        artist, title, _video_title = get_youtube_title("https://fakeUrl")
 
         # Should fall through to title-split logic
         self.assertEqual(artist, "Some Artist")
@@ -248,7 +253,7 @@ class TestGetYoutubeTitle(unittest.TestCase):
             "channel": "SomeChannel",
         }
 
-        artist, title = get_youtube_title("https://fakeUrl")
+        artist, title, _video_title = get_youtube_title("https://fakeUrl")
 
         # Should fall through to title-split logic
         self.assertEqual(artist, "Some Artist")

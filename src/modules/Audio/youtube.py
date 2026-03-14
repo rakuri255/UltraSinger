@@ -68,8 +68,14 @@ def strip_unmatched_suffixes(track: str, video_title: str) -> str:
     return track
 
 
-def get_youtube_title(url: str, cookiefile: str = None) -> tuple[str, str]:
-    """Get the title of the YouTube video"""
+def get_youtube_title(url: str, cookiefile: str | None = None) -> tuple[str, str, str]:
+    """Get the title of the YouTube video.
+
+    Returns:
+        A 3-tuple of (artist, track, video_title).  *video_title* is the
+        raw title string from the YouTube video page, useful for
+        cross-checking metadata from other sources (e.g. MusicBrainz).
+    """
 
     ydl_opts = {
         "cookiefile": cookiefile,
@@ -79,17 +85,16 @@ def get_youtube_title(url: str, cookiefile: str = None) -> tuple[str, str]:
             url, download=False  # We just want to extract the info
         )
 
+    video_title = (result.get("title") or "").strip()
     artist = (result.get("artist") or "").strip()
     track = (result.get("track") or "").strip()
     if artist and track:
-        video_title = result.get("title") or ""
-        return artist, strip_unmatched_suffixes(track, video_title)
-    title = (result.get("title") or "").strip()
+        return artist, strip_unmatched_suffixes(track, video_title), video_title
     channel = (result.get("channel") or "").strip()
-    if "-" in title:
-        parts = title.split("-", 1)
-        return parts[0].strip(), parts[1].strip()
-    return channel, title
+    if "-" in video_title:
+        parts = video_title.split("-", 1)
+        return parts[0].strip(), parts[1].strip(), video_title
+    return channel, video_title, video_title
 
 
 def __download_youtube_video_with_audio(url: str, clear_filename: str, output_path: str, cookiefile: str = None) -> str:
@@ -148,10 +153,15 @@ def __start_download(ydl_opts, url: str) -> None:
 
 def download_from_youtube(input_url: str, output_folder_path: str, cookiefile: str = None) -> tuple[str, str, str, MediaInfo]:
     """Download from YouTube"""
-    (artist, title) = get_youtube_title(input_url, cookiefile)
+    (artist, title, video_title) = get_youtube_title(input_url, cookiefile)
 
     # Get additional data for song
     song_info = search_musicbrainz(title, artist)
+
+    # MusicBrainz may re-introduce suffixes that were already stripped from
+    # the yt-dlp metadata (e.g. "(live)" when the video is not actually live).
+    # Cross-check the MusicBrainz title against the video title as well.
+    song_info.title = strip_unmatched_suffixes(song_info.title, video_title)
 
     basename_without_ext = sanitize_filename(f"{song_info.artist} - {song_info.title}")
     song_output = os.path.join(output_folder_path, basename_without_ext)
