@@ -26,7 +26,7 @@ from enum import Enum
 from torch.cuda import OutOfMemoryError
 
 from modules.Speech_Recognition.TranscriptionResult import TranscriptionResult
-from modules.console_colors import ULTRASINGER_HEAD, blue_highlighted, red_highlighted
+from modules.console_colors import ULTRASINGER_HEAD, blue_highlighted, gold_highlighted, red_highlighted
 from modules.Speech_Recognition.TranscribedData import TranscribedData, from_whisper
 
 #Addition for numbers to words
@@ -128,6 +128,18 @@ def transcribe_with_whisper(
         detected_language = result["language"]
         if language is None:
             language = detected_language
+            print(
+                f"{ULTRASINGER_HEAD} Detected language: "
+                f"{blue_highlighted(language)}"
+            )
+        elif language != detected_language:
+            print(
+                f"{ULTRASINGER_HEAD} {gold_highlighted('Warning:')} "
+                f"Detected language {blue_highlighted(detected_language)} "
+                f"differs from specified {blue_highlighted(language)}. "
+                f"Using {blue_highlighted(language)} for alignment. "
+                f"Consider omitting --language for auto-detection."
+            )
 
         # load alignment model and metadata
         try:
