@@ -32,6 +32,11 @@ RUN uv pip install --system --python 3.12 -e .
 # Install PyTorch with CUDA support (override the CPU version from pyproject.toml)
 RUN uv pip install --system --python 3.12 torch==2.8.0 torchvision==0.23.0 torchaudio==2.8.0 --index-url https://download.pytorch.org/whl/cu128 --reinstall
 
+# Remove torchcodec — pulled in by pyannote-audio but incompatible with PyTorch 2.8.x
+# (DLL init crash on Windows, missing symbols on some Linux configs).
+# pyannote-audio falls back to torchaudio gracefully.
+RUN uv pip uninstall --system torchcodec 2>/dev/null || true
+
 # copy sources late to allow for caching of layers which contain all the dependencies
 COPY . /app/UltraSinger
 

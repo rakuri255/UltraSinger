@@ -67,3 +67,9 @@ explicit = true
 torch = [{ index = "pytorch" }]
 torchaudio = [{ index = "pytorch" }]
 torchvision = [{ index = "pytorch" }]
+
+[tool.uv]
+# torchcodec (pulled in by pyannote-audio) is incompatible with PyTorch 2.8.x
+# on Windows (DLL init crash at shutdown). pyannote-audio gracefully falls back
+# to torchaudio when torchcodec is absent, so no functionality is lost.
+override-dependencies = ["torchcodec; python_version < '0'"]

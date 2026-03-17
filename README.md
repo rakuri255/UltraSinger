@@ -71,7 +71,7 @@ This will help me a lot to keep this project alive and improve it.
 
 ### Installation
 
-* Install Python 3.12 **(older/newer versions may have compatibility issues)**. [Download](https://www.python.org/downloads/)
+* Install Python 3.12 or 3.13. [Download](https://www.python.org/downloads/)
 * Also download or install ffmpeg with PATH. [Download](https://www.ffmpeg.org/download.html)
 * Go to folder `install` and run install script for your OS:
   * Choose `GPU` if you have an NVIDIA CUDA GPU.
