@@ -5,6 +5,16 @@ import getopt
 import os
 import sys
 
+# Reconfigure console streams to UTF-8 on Windows to prevent UnicodeEncodeError
+# when printing non-ASCII characters (e.g. ♪ from Whisper transcriptions)
+if sys.platform == "win32":
+    for stream in (sys.stdout, sys.stderr):
+        if hasattr(stream, "reconfigure"):
+            try:
+                stream.reconfigure(encoding="utf-8", errors="replace")
+            except Exception:
+                pass
+
 import librosa
 
 from packaging import version
