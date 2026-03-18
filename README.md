@@ -61,6 +61,10 @@ This will help me a lot to keep this project alive and improve it.
     - [🎵 Octave Shift](#-octave-shift)
     - [Sheet Music](#sheet-music)
     - [Format Version](#format-version)
+    - [🧪 Experimental Features](#-experimental-features)
+      - [LLM Lyric Correction](#llm-lyric-correction---llm_correct)
+      - [Syllable-Level Note Splitting](#syllable-level-note-splitting---syllable_split)
+      - [Vocal Gap Fill](#vocal-gap-fill---vocal_gap_fill)
     - [🏆 Ultrastar Score Calculation](#-ultrastar-score-calculation)
     - [📟 Use GPU](#-use-gpu)
       - [Considerations for Windows users](#considerations-for-windows-users)
@@ -135,6 +139,14 @@ _Not all options working now!_
     --musescore_path        path to MuseScore executable
     --keep_numbers          Transcribe numbers as digits and not words
     --ffmpeg                Path to ffmpeg and ffprobe executable
+
+    [experimental]
+    --llm_correct           Enable LLM-based lyric post-correction (disabled by default)
+    --llm_api_base_url      LLM API base URL >> ((default) is https://api.openai.com/v1)
+    --llm_api_key           LLM API key (or set LLM_API_KEY env var)
+    --llm_model             LLM model name >> ((default) is gpt-4o-mini)
+    --syllable_split        Split word-level notes into syllable-level notes (disabled by default)
+    --vocal_gap_fill        Fill un-transcribed vocal gaps with placeholder notes (disabled by default)
 
     [yt-dlp]
     --cookiefile            File name where cookies should be read from
@@ -286,6 +298,66 @@ You can choose between different format versions. The default is `1.2.0`.
 
 ```commandline
 -i XYZ --format_version 1.2.0
+```
+
+### 🧪 Experimental Features
+
+These features are experimental and disabled by default. They may change or be removed in future versions.
+
+#### LLM Lyric Correction (`--llm_correct`)
+
+Post-corrects WhisperX transcription using an OpenAI-compatible LLM API. The LLM sees sentence-level context and fixes misheard or misspelled words while preserving all timing data. If the API is unreachable or returns an error, the original lyrics are kept unchanged (fail-open).
+
+Related flags:
+* `--llm_api_base_url` -- Base URL of the API (default: `https://api.openai.com/v1`)
+* `--llm_api_key` -- API key (can also be set via `LLM_API_KEY` environment variable)
+* `--llm_model` -- Model name (default: `gpt-4o-mini`)
+
+**Model recommendations based on benchmark testing:**
+
+| Scenario | Provider | Model | Notes |
+|----------|----------|-------|-------|
+| Free + best quality | Groq | `qwen/qwen3-32b` | 99% accuracy, 0 degradations |
+| Free + fastest | Groq | `meta-llama/llama-4-scout-17b-16e-instruct` | 96% accuracy, 0.2s latency |
+| Free + safe | Groq | `llama-3.3-70b-versatile` | 90% accuracy, 0 degradations |
+| Commercial (default) | OpenAI | `gpt-4o-mini` | Good quality, pay-per-use |
+| Local (Ollama) | Ollama | >=32B models recommended | 8B models may degrade lyrics |
+
+```bash
+# With Groq (free, recommended)
+ultrasinger -i song.mp3 --llm_correct \
+  --llm_api_base_url https://api.groq.com/openai/v1 \
+  --llm_api_key gsk_xxx \
+  --llm_model qwen/qwen3-32b
+
+# With OpenAI
+ultrasinger -i song.mp3 --llm_correct --llm_api_key sk-xxx
+
+# With local Ollama (>=32B model recommended)
+ultrasinger -i song.mp3 --llm_correct \
+  --llm_api_base_url http://localhost:11434/v1 \
+  --llm_api_key ollama \
+  --llm_model qwen2.5:32b
+
+# API key via environment variable
+export LLM_API_KEY=gsk_xxx
+ultrasinger -i song.mp3 --llm_correct --llm_api_base_url https://api.groq.com/openai/v1
+```
+
+#### Syllable-Level Note Splitting (`--syllable_split`)
+
+Splits word-level notes into syllable-level notes using hyphenation (pyhyphen). This produces output closer to how commercial karaoke games like SingStar format their songs, where each syllable gets its own note instead of one note per word.
+
+```commandline
+-i XYZ --syllable_split
+```
+
+#### Vocal Gap Fill (`--vocal_gap_fill`)
+
+Detects unrecognized vocal segments between transcribed words -- such as ad-libs, melismas, or sustained vowels ("oohs") -- and fills them with placeholder notes. Uses SwiftF0 pitch confidence to distinguish singing from silence. Gaps are filled with `~` marker notes.
+
+```commandline
+-i XYZ --vocal_gap_fill
 ```
 
 ### 🏆 Ultrastar Score Calculation
