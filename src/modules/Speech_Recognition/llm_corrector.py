@@ -179,7 +179,7 @@ def _call_llm_api(user_prompt: str, config: LLMConfig) -> str:
     headers = {
         "Content-Type": "application/json",
         "Authorization": f"Bearer {config.api_key}",
-        "User-Agent": "UltraSinger/1.0",
+        "User-Agent": "Mozilla/5.0 (compatible; UltraSinger/1.0)",
     }
 
     data = json.dumps(payload).encode("utf-8")
