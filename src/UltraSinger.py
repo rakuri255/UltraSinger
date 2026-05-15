@@ -668,7 +668,7 @@ def infos_from_audio_video_input_file() -> tuple[str, str, str, MediaInfo]:
             if audio_file.tag.best_release_date:
                 year = audio_file.tag.best_release_date.year
             if audio_file.tag.genre:
-                genres = ', '.join(genres) if genres else None
+                genres = audio_file.tag.genre.name
             if audio_file.tag.images:
                 cover_image_data = audio_file.tag.images[0].image_data
     except Exception:
@@ -679,6 +679,8 @@ def infos_from_audio_video_input_file() -> tuple[str, str, str, MediaInfo]:
         file_artist = "Unknown Artist"
     if not file_title:
         file_title = basename_without_ext
+    if not genres:
+        genres = None
     
     basename_without_ext = f"{file_artist} - {file_title}"
 
