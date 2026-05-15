@@ -668,7 +668,7 @@ def infos_from_audio_video_input_file() -> tuple[str, str, str, MediaInfo]:
             if audio_file.tag.best_release_date:
                 year = audio_file.tag.best_release_date.year
             if audio_file.tag.genre:
-                genres = [audio_file.tag.genre.name]
+                genres = audio_file.tag.genre.name
             if audio_file.tag.images:
                 cover_image_data = audio_file.tag.images[0].image_data
     except Exception:
