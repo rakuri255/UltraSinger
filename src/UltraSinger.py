@@ -1,6 +1,7 @@
 """UltraSinger uses AI to automatically create UltraStar song files"""
 
 import copy
+import eyed3
 import getopt
 import os
 import sys
@@ -64,7 +65,6 @@ from modules.Ultrastar.ultrastar_parser import parse_ultrastar_txt
 from modules.common_print import print_support, print_help, print_version
 from modules.os_helper import check_file_exists, get_unused_song_output_dir
 from modules.plot import create_plots
-from modules.musicbrainz_client import search_musicbrainz
 from modules.sheet import create_sheet
 from modules.ProcessData import ProcessData, ProcessDataPaths, MediaInfo
 from modules.DeviceDetection.device_detection import check_gpu_support
@@ -646,6 +646,8 @@ def transcribe_audio(cache_folder_path: str, processing_audio_path: str) -> Tran
 
 def infos_from_audio_video_input_file() -> tuple[str, str, str, MediaInfo]:
     """Infos from audio/video input file"""
+    import eyed3
+    
     basename = os.path.basename(settings.input_file_path)
     basename_without_ext = os.path.splitext(basename)[0]
 
@@ -655,8 +657,32 @@ def infos_from_audio_video_input_file() -> tuple[str, str, str, MediaInfo]:
     else:
         title = basename_without_ext
 
-    song_info = search_musicbrainz(title, artist)
-    basename_without_ext = f"{song_info.artist} - {song_info.title}"
+    # Read ID3 tags from file
+    file_artist, file_title, year, genres, cover_image_data = None, None, None, [], None
+    
+    try:
+        audio_file = eyed3.load(settings.input_file_path)
+        if audio_file is not None and audio_file.tag is not None:
+            file_artist = audio_file.tag.artist or artist or "Unknown Artist"
+            file_title = audio_file.tag.title or title
+            if audio_file.tag.best_release_date:
+                year = audio_file.tag.best_release_date.year
+            if audio_file.tag.genre:
+                genres = audio_file.tag.genre.name
+            if audio_file.tag.images:
+                cover_image_data = audio_file.tag.images[0].image_data
+    except Exception:
+        file_artist = artist or "Unknown Artist"
+        file_title = title
+    
+    if not file_artist:
+        file_artist = "Unknown Artist"
+    if not file_title:
+        file_title = basename_without_ext
+    if not genres:
+        genres = None
+    
+    basename_without_ext = f"{file_artist} - {file_title}"
 
     song_folder_output_path = os.path.join(settings.output_folder_path, basename_without_ext)
     song_folder_output_path = get_unused_song_output_dir(song_folder_output_path)
@@ -686,20 +712,20 @@ def infos_from_audio_video_input_file() -> tuple[str, str, str, MediaInfo]:
         )
         ultrastar_audio_input_path = os.path.join(song_folder_output_path, basename_with_ext)
 
-    # Todo: Read ID3 tags
-    if song_info.cover_image_data is not None:
-        save_image(song_info.cover_image_data, basename_without_ext, song_folder_output_path)
+    # Save cover image from ID3 tags
+    if cover_image_data is not None:
+        save_image(cover_image_data, basename_without_ext, song_folder_output_path)
 
     return (
         basename_without_ext,
         song_folder_output_path,
         ultrastar_audio_input_path,
         MediaInfo(
-            artist=song_info.artist,
-            title=song_info.title,
-            year=song_info.year,
-            genre=song_info.genres,
-            cover_url=song_info.cover_url,
+            artist=file_artist,
+            title=file_title,
+            year=year,
+            genre=genres,
+            cover_url=None,
             audio_extension=audio_ext,
             video_extension=video_ext
         ),

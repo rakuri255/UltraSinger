@@ -22,7 +22,7 @@ dependencies = [
     "demucs",
     "ffmpeg-python",
     "matplotlib",
-    "musicbrainzngs",
+    "eyed3",
     "python-Levenshtein",
     "pretty-midi",
     "unidecode",
