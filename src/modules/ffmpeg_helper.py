@@ -70,9 +70,8 @@ def remove_audio_from_video(input_video_path: str, output_video_path: str) -> No
     if result.returncode != 0:
         raise Exception(f"FFmpeg audio removal failed: {result.stderr}")
 
-
 def is_video_file(file_path: str) -> bool:
-    """Check if file contains video streams using ffprobe"""
+    """Check if file contains video streams using ffprobe (excluding attached pictures)"""
     try:
         _, ffprobe_path = get_ffmpeg_and_ffprobe_paths()
 
@@ -80,13 +79,27 @@ def is_video_file(file_path: str) -> bool:
             ffprobe_path,
             "-v", "error",
             "-select_streams", "v:0",
-            "-show_entries", "stream=codec_type",
+            "-show_entries", "stream=codec_type,disposition",
             "-of", "default=noprint_wrappers=1:nokey=1",
             file_path
         ]
 
         result = subprocess.run(cmd, capture_output=True, text=True)
-        return result.returncode == 0 and result.stdout.strip() == "video"
+        
+        if result.returncode != 0 or not result.stdout.strip():
+            return False
+        
+        # Parse output to check for actual video (not attached picture)
+        lines = result.stdout.strip().split('\n')
+        if len(lines) < 2:
+            return False
+            
+        codec_type = lines[0].strip()
+        disposition = lines[1].strip() if len(lines) > 1 else ""
+        
+        # Return True only if it's video AND not an attached picture
+        return codec_type == "video" and "attached_pic" not in disposition
+        
     except Exception:
         return False
 
