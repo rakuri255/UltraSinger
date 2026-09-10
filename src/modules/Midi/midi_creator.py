@@ -28,6 +28,15 @@ def create_midi_instrument(midi_segments: list[MidiSegment]) -> object:
     velocity = 100
 
     for i, midi_segment in enumerate(midi_segments):
+        # Syllable splitting and segment merging can produce segments whose end is equal to
+        # or earlier than their start. pretty_midi rejects a negative length with
+        # "Note end time must be greater than start time", which used to abort the whole run
+        # *after* the UltraStar file had already been written. Skip such segments instead;
+        # their lyric event is still emitted by __create_midi().
+        if midi_segment.end <= midi_segment.start:
+            print(f"{ULTRASINGER_HEAD} WARNING: skipping degenerate midi segment [{i}] "
+                  f"word={midi_segment.word!r} start={midi_segment.start} end={midi_segment.end}")
+            continue
         note = pretty_midi.Note(velocity, librosa.note_to_midi(midi_segment.note), midi_segment.start, midi_segment.end)
         instrument.notes.append(note)
 
@@ -130,6 +139,12 @@ def create_midi_note_from_pitched_data(start_time: float, end_time: float, pitch
 
     start = find_nearest_index(pitched_data.times, start_time)
     end = find_nearest_index(pitched_data.times, end_time)
+
+    # Surface degenerate segments early - they are the root cause of the guard in
+    # create_midi_instrument().
+    if end_time <= start_time:
+        print(f"{ULTRASINGER_HEAD} WARNING: degenerate transcript segment word={word!r} "
+              f"start={start_time} end={end_time}")
 
     if start == end:
         freqs = [pitched_data.frequencies[start]]
