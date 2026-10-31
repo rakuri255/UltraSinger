@@ -33,11 +33,10 @@ def beat_to_second(beat: float, real_bpm: float) -> float:
     return seconds
 
 
-def midi_note_to_ultrastar_note(midi_note: int) -> int:
-    """Converts Midi note to UltraStar note"""
-
-    # C4 == 48 in Midi
-    ultrastar_note = midi_note - 48
+def midi_note_to_ultrastar_note(midi_note: int, octave_offset: int = 0) -> int:
+    """Converts Midi note to UltraStar note with optional octave offset"""
+    # Base UltraStar reference with octave offset adjustment
+    ultrastar_note = (midi_note - 48) + (octave_offset * 12)
     return ultrastar_note
 
 

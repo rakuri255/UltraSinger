@@ -1,6 +1,10 @@
 from dataclasses import dataclass
 
-from dataclasses_json import dataclass_json
+try:
+    from dataclasses_json import dataclass_json
+except Exception:
+    def dataclass_json(cls):
+        return cls
 
 
 @dataclass_json
@@ -14,6 +18,8 @@ class TranscribedData:
     end: float = 0
     is_hyphen: bool = False
     is_word_end: bool = True
+    is_line_end: bool = False
+    chars: list[dict] = None
 
 
 def from_whisper(whisper_dict) -> TranscribedData:
@@ -26,4 +32,6 @@ def from_whisper(whisper_dict) -> TranscribedData:
         transcribed_data.start = whisper_dict["start"]
     if "end" in whisper_dict:
         transcribed_data.end = whisper_dict["end"]
+    if "chars" in whisper_dict:
+        transcribed_data.chars = whisper_dict["chars"]
     return transcribed_data

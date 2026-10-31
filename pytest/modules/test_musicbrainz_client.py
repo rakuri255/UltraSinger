@@ -2,7 +2,10 @@
 
 import unittest
 from unittest.mock import patch
-from src.modules.musicbrainz_client import search_musicbrainz
+try:
+    from modules.musicbrainz_client import search_musicbrainz
+except ModuleNotFoundError:
+    from src.modules.musicbrainz_client import search_musicbrainz
 
 
 class TestGetMusicInfos(unittest.TestCase):

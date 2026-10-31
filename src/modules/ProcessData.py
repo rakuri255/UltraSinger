@@ -39,5 +39,6 @@ class ProcessData:
     pitched_data: Optional[PitchedData] = None
     midi_segments: Optional[List[MidiSegment]] = field(default_factory=list)
     parsed_file: Optional[UltrastarTxtValue] = None
+    lyrics_file_path: Optional[str] = None
 
 

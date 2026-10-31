@@ -1,5 +1,7 @@
-import librosa
-import pretty_midi
+try:
+    import pretty_midi
+except Exception:
+    pretty_midi = None
 
 from modules.Midi.MidiSegment import MidiSegment
 from modules.Ultrastar.coverter.ultrastar_converter import midi_note_to_ultrastar_note, ultrastar_note_to_midi_note, \
@@ -8,11 +10,11 @@ from modules.Ultrastar.ultrastar_txt import UltrastarTxtValue
 from modules.console_colors import ULTRASINGER_HEAD
 
 
-def convert_midi_note_to_ultrastar_note(midi_segment: MidiSegment) -> int:
-    """Convert midi notes to ultrastar notes"""
-
-    note_number_librosa = librosa.note_to_midi(midi_segment.note)
-    ultrastar_note = midi_note_to_ultrastar_note(note_number_librosa)
+def convert_midi_note_to_ultrastar_note(midi_segment: MidiSegment, octave_offset: int = 0) -> int:
+    """Convert midi notes to ultrastar notes with optional octave offset"""
+    clean_note = str(midi_segment.note).replace("♯", "#").replace("♭", "b")
+    note_number = pretty_midi.note_name_to_number(clean_note)
+    ultrastar_note = midi_note_to_ultrastar_note(note_number, octave_offset)
     return ultrastar_note
 
 
@@ -54,7 +56,7 @@ def ultrastar_to_midi_segments(ultrastar_txt: UltrastarTxtValue) -> list[MidiSeg
         start_time = get_start_time_from_ultrastar(ultrastar_txt, i)
         end_time = get_end_time_from_ultrastar(ultrastar_txt, i)
         midi_segments.append(
-            MidiSegment(librosa.midi_to_note(ultrastar_note_to_midi_note(data.pitch)),
+            MidiSegment(pretty_midi.note_number_to_name(ultrastar_note_to_midi_note(data.pitch)),
                         start_time,
                         end_time,
                         data.word,

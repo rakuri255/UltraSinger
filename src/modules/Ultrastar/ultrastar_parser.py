@@ -53,6 +53,12 @@ def parse(input_file: str) -> UltrastarTxtValue:
                 ultrastar_class.cover = line.split(":")[1].replace("\n", "")
             elif line.startswith(f"#{UltrastarTxtTag.BACKGROUND.value}"):
                 ultrastar_class.background = line.split(":")[1].replace("\n", "")
+            elif line.startswith(f"#{UltrastarTxtTag.GENRE.value}"):
+                ultrastar_class.genre = line.split(":", 1)[1].strip()
+            elif line.startswith(f"#{UltrastarTxtTag.YEAR.value}"):
+                ultrastar_class.year = line.split(":", 1)[1].strip()
+            elif line.startswith(f"#{UltrastarTxtTag.LANGUAGE.value}"):
+                ultrastar_class.language = line.split(":", 1)[1].strip()
         elif line.startswith(
             (
                 f"{UltrastarTxtNoteTypeTag.FREESTYLE.value} ",

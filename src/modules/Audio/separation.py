@@ -47,17 +47,52 @@ def separate_vocal_from_audio(cache_folder_path: str,
                               create_karaoke: bool,
                               pytorch_device: str,
                               model: DemucsModel,
-                              skip_cache: bool = False) -> str:
-    """Separate vocal from audio"""
-    demucs_output_folder = os.path.splitext(os.path.basename(audio_output_file_path))[0]
-    audio_separation_path = os.path.join(cache_folder_path, "separated", model.value, demucs_output_folder)
+                              skip_cache: bool = False,
+                              separator_name: str = "bs_roformer",
+                              bs_roformer_model: str = None,
+                              dereverb_engine: str = "none") -> str:
+    """Separate vocal from audio using selected separator strategy (BS-Roformer, Mel-Band Roformer, HTDemucs, SCNet, Demucs) with optional de-reverb post-processing."""
+    from modules.Audio.Separators import SeparatorFactory, apply_dereverb_filter
+
+    strategy_name = (separator_name or "bs_roformer").lower()
+    model_str = bs_roformer_model if strategy_name in ["bs-roformer", "bs_roformer", "roformer", "mel_roformer", "mel-roformer", "mel_band_roformer"] else (model.value if hasattr(model, "value") else str(model))
+
+    song_stem = os.path.splitext(os.path.basename(audio_output_file_path))[0]
+    subfolder = strategy_name.replace("-", "_")
+    audio_separation_path = os.path.join(cache_folder_path, "separated", subfolder, song_stem)
 
     vocals_path = os.path.join(audio_separation_path, "vocals.wav")
     instrumental_path = os.path.join(audio_separation_path, "no_vocals.wav")
+
     if use_separated_vocal or create_karaoke:
         cache_available = check_file_exists(vocals_path) and check_file_exists(instrumental_path)
         if skip_cache or not cache_available:
-            separate_audio(audio_output_file_path, cache_folder_path, model, pytorch_device)
+            separator = SeparatorFactory.get_separator(strategy_name)
+            v_path, i_path = separator.separate(
+                input_audio_path=audio_output_file_path,
+                cache_dir=cache_folder_path,
+                device=pytorch_device,
+                model_name=model_str,
+            )
+
+            # Ensure vocals.wav and no_vocals.wav are in audio_separation_path
+            if v_path != vocals_path and os.path.isfile(v_path):
+                import shutil
+                os.makedirs(audio_separation_path, exist_ok=True)
+                shutil.copy2(v_path, vocals_path)
+            if i_path != instrumental_path and os.path.isfile(i_path):
+                import shutil
+                os.makedirs(audio_separation_path, exist_ok=True)
+                shutil.copy2(i_path, instrumental_path)
+
+            # Apply surgical De-Reverb / De-Echo filter if requested
+            if dereverb_engine and dereverb_engine.lower() not in ("none", "false", "0", ""):
+                apply_dereverb_filter(
+                    input_vocal_path=vocals_path,
+                    output_vocal_path=vocals_path,
+                    dereverb_engine=dereverb_engine,
+                    device=pytorch_device,
+                )
         else:
             print(f"{ULTRASINGER_HEAD} {green_highlighted('cache')} reusing cached separated vocals")
 
