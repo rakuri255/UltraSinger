@@ -1,7 +1,11 @@
 """Pitched data"""
 from dataclasses import dataclass
 
-from dataclasses_json import dataclass_json
+try:
+    from dataclasses_json import dataclass_json
+except Exception:
+    def dataclass_json(cls):
+        return cls
 
 
 @dataclass_json

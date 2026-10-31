@@ -445,6 +445,9 @@ class TestCreateUltrastarTxt(unittest.TestCase):
         self.assertEqual(format_separated_string('rock/pop/rock-pop,'), 'Rock, Pop, Rock-Pop')
         self.assertEqual(format_separated_string('rock,pop/rock-pop;80s,'), 'Rock, Pop, Rock-Pop, 80s')
         self.assertEqual(format_separated_string('rock, pop, rock-pop, '), 'Rock, Pop, Rock-Pop')
+        self.assertEqual(format_separated_string('Merengue/House/Hip Hop'), 'Merengue, House, Hip Hop')
+        self.assertEqual(format_separated_string('r&b/edm/hip-hop'), 'R&B, EDM, Hip-Hop')
+        self.assertEqual(format_separated_string('k-pop, lo-fi; synthwave'), 'K-Pop, Lo-Fi, Synthwave')
 
 
 if __name__ == "__main__":

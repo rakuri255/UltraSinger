@@ -1,5 +1,6 @@
 """Whisper Speech Recognition Module"""
 import os
+import gc
 import inspect
 import textwrap
 
@@ -14,20 +15,24 @@ import torch
 # Monkey-patch torch.load to use weights_only=False for compatibility with older models
 # This is necessary because PyTorch 2.6+ changed the default to weights_only=True
 # but WhisperX/Pyannote models were saved with pickle and require weights_only=False
-_original_torch_load = torch.load
+import torch.serialization
+_original_torch_load = getattr(torch, "_orig_torch_load", torch.load)
+torch._orig_torch_load = _original_torch_load
 def _patched_torch_load(*args, **kwargs):
     # Force weights_only=False regardless of what was passed
     kwargs['weights_only'] = False
     return _original_torch_load(*args, **kwargs)
 torch.load = _patched_torch_load
+torch.serialization.load = _patched_torch_load
 
 import whisperx
 from enum import Enum
 from torch.cuda import OutOfMemoryError
 
 from modules.Speech_Recognition.TranscriptionResult import TranscriptionResult
-from modules.console_colors import ULTRASINGER_HEAD, blue_highlighted, red_highlighted
+from modules.console_colors import ULTRASINGER_HEAD, blue_highlighted, red_highlighted, cyan_highlighted
 from modules.Speech_Recognition.TranscribedData import TranscribedData, from_whisper
+from modules.Speech_Recognition.genre_profiles import resolve_genre_profile
 
 #Addition for numbers to words
 import re
@@ -49,6 +54,8 @@ class WhisperModel(Enum):
     LARGE_V1 = "large-v1"
     LARGE_V2 = "large-v2"
     LARGE_V3 = "large-v3"
+    LARGE_V3_TURBO = "large-v3-turbo"
+    TURBO = "turbo"
 
 #Addition for numbers to words (Using previous code from louispan in PR#135)
 def number_to_words(line,language='en'):
@@ -97,11 +104,14 @@ def transcribe_with_whisper(
     compute_type: str = None,
     language: str = None,
     keep_numbers: bool = False,
+    genre: str = None,
+    aligner_engine: str = "wav2vec2",
 ) -> TranscriptionResult:
     """Transcribe with whisper"""
     # Info: Regardless of the audio sampling rate used in the original audio file, whisper resample the audio signal to 16kHz (via ffmpeg). So the standard input from (44.1 or 48 kHz) should work.
+    genre_display = f" | genre: {blue_highlighted(genre.strip())}" if genre else ""
     print(
-        f"{ULTRASINGER_HEAD} Loading {blue_highlighted('whisper')} with model {blue_highlighted(model.value)} and {red_highlighted(device)} as worker"
+        f"{ULTRASINGER_HEAD} Loading {blue_highlighted('whisper')} with model {blue_highlighted(model.value)} and {red_highlighted(device)} as worker{genre_display}"
     )
     if alignment_model is not None:
         print(f"{ULTRASINGER_HEAD} using alignment model {blue_highlighted(alignment_model)}")
@@ -112,9 +122,60 @@ def transcribe_with_whisper(
         compute_type = "float16" if device == "cuda" else "int8"
 
     try:
+        torch.load = _patched_torch_load
+        torch.serialization.load = _patched_torch_load
         torch.cuda.empty_cache()
+
+        genre_profile = resolve_genre_profile(genre)
+        print(
+            f"{ULTRASINGER_HEAD} Applying acoustic profile: {blue_highlighted(genre_profile.name)} "
+            f"(family: {cyan_highlighted(genre_profile.family)}, VAD: {genre_profile.vad_onset}/{genre_profile.vad_offset}, Anti-Solo: {genre_profile.no_speech_threshold})"
+        )
+
+        whisper_lang = None
+        if language:
+            clean_lang = language.strip().lower().replace("_", "-")
+            base_code = clean_lang.split("-")[0]
+            if len(base_code) == 2 and base_code.isalpha():
+                whisper_lang = base_code
+            else:
+                try:
+                    import langcodes
+                    tag_lang = langcodes.Language.get(clean_lang).language
+                    if tag_lang and len(tag_lang) == 2:
+                        whisper_lang = tag_lang
+                    else:
+                        whisper_lang = langcodes.find(clean_lang).language
+                except Exception:
+                    whisper_lang = base_code
+            language = whisper_lang
+
+        base_prompt = genre_profile.get_initial_prompt(whisper_lang)
+        if whisper_lang and (whisper_lang.lower().startswith("es") or whisper_lang.lower() in ("spanish", "español")):
+            vocal_suffix = "Vocalizaciones y tarareos: ah, oh, uh, eh, mmm, la la la, yeah, oh."
+        else:
+            vocal_suffix = "Vocalizations and humming: ah, oh, uh, eh, mmm, la la la, yeah, woah."
+
+        initial_prompt = f"{base_prompt} {vocal_suffix}"
+
+        asr_options = {
+            "initial_prompt": initial_prompt,
+            "condition_on_previous_text": False,
+            "no_speech_threshold": genre_profile.no_speech_threshold,
+            "compression_ratio_threshold": 2.20,
+        }
+        vad_options = {
+            "vad_onset": genre_profile.vad_onset,
+            "vad_offset": genre_profile.vad_offset,
+        }
+
         loaded_whisper_model = whisperx.load_model(
-            model.value, language=language, device=device, compute_type=compute_type
+            model.value,
+            language=whisper_lang,
+            device=device,
+            compute_type=compute_type,
+            asr_options=asr_options,
+            vad_options=vad_options,
         )
 
         audio = whisperx.load_audio(audio_path)
@@ -125,46 +186,76 @@ def transcribe_with_whisper(
             audio, batch_size=batch_size, language=language
         )
 
+        # Filter out hallucinated non-speech/instrumental segments
+        valid_segments = [
+            s for s in result.get("segments", [])
+            if s.get("no_speech_prob", 0.0) <= 0.50
+        ]
+        if valid_segments:
+            result["segments"] = valid_segments
+
         detected_language = result["language"]
         if language is None:
             language = detected_language
 
-        # load alignment model and metadata
-        try:
-            model_a, metadata = whisperx.load_align_model(
-                language_code=language, device=device, model_name=alignment_model
-            )
-        except ValueError as ve:
-            print(
-                f"{red_highlighted(f'{ve}')}"
-                f"\n"
-                f"{ULTRASINGER_HEAD} {red_highlighted('Error:')} Unknown language. "
-                f"Try add it with --align_model [huggingface]."
-            )
-            raise ve
-
-        #Addition for numbers to words (Using previous code from louispan in PR#135)
+        # Addition for numbers to words (Using previous code from louispan in PR#135)
         if keep_numbers == False: 
             for obj in result["segments"]:
-                obj["text"] = number_to_words(obj["text"],language)
+                obj["text"] = number_to_words(obj["text"], language)
 
-        # align whisper output
-        result_aligned = whisperx.align(
-            result["segments"],
-            model_a,
-            metadata,
-            audio,
-            device,
-            return_char_alignments=False,
-        )
+        result_aligned = None
+        model_a = None
+
+        # Check for MMS-FA forced aligner (torchaudio.pipelines.MMS_FA for sustained vocal vowels)
+        if aligner_engine and "mms" in aligner_engine.lower():
+            try:
+                from modules.Speech_Recognition.mms_aligner import align_segments_with_mms_fa
+                mms_aligned = align_segments_with_mms_fa(result["segments"], audio_path, device=device)
+                if mms_aligned:
+                    result_aligned = {"segments": mms_aligned}
+            except Exception as mms_err:
+                print(f"{ULTRASINGER_HEAD} MMS-FA notice: {mms_err}. Using Wav2Vec2.")
+
+        # Default alignment model: Wav2Vec2 via WhisperX
+        if result_aligned is None:
+            try:
+                model_a, metadata = whisperx.load_align_model(
+                    language_code=language, device=device, model_name=alignment_model
+                )
+            except ValueError as ve:
+                print(
+                    f"{red_highlighted(f'{ve}')}"
+                    f"\n"
+                    f"{ULTRASINGER_HEAD} {red_highlighted('Error:')} Unknown language. "
+                    f"Try add it with --align_model [huggingface]."
+                )
+                raise ve
+
+            # align whisper output with character-level timestamps
+            result_aligned = whisperx.align(
+                result["segments"],
+                model_a,
+                metadata,
+                audio,
+                device,
+                return_char_alignments=True,
+            )
 
         transcribed_data = convert_to_transcribed_data(result_aligned)
 
+        # Free GPU VRAM immediately so subsequent stages (e.g. pitch detection) have full memory
+        try:
+            del loaded_whisper_model
+            if model_a is not None:
+                del model_a
+        except Exception:
+            pass
+        gc.collect()
+        if torch.cuda.is_available():
+            torch.cuda.empty_cache()
+
         return TranscriptionResult(transcribed_data, detected_language)
     except ValueError as value_error:
-        # Restore original torch.load in case of error
-        torch.load = _original_torch_load
-
         if (
             "Requested float16 compute type, but the target device or backend do not support efficient float16 computation."
             in str(value_error.args[0])
@@ -176,24 +267,14 @@ def transcribe_with_whisper(
 
         raise value_error
     except OutOfMemoryError as oom_exception:
-        # Restore original torch.load in case of error
-        torch.load = _original_torch_load
-
         print(oom_exception)
         print(MEMORY_ERROR_MESSAGE)
         raise oom_exception
     except Exception as exception:
-        # Restore original torch.load in case of error
-        torch.load = _original_torch_load
-
         if "CUDA failed with error out of memory" in str(exception.args[0]):
             print(exception)
             print(MEMORY_ERROR_MESSAGE)
         raise exception
-    finally:
-        # Restore original torch.load after models are loaded
-        # This ensures other modules (like pitch detection) are not affected by the monkey-patch
-        torch.load = _original_torch_load
 
 
 def convert_to_transcribed_data(result_aligned):

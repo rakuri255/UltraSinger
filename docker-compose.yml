@@ -1,0 +1,24 @@
+services:
+  ultrasinger:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: ultrasinger-local
+    volumes:
+      - ./input:/input
+      - ./output:/output
+      - ./cache:/home/ultrasinger/.cache
+      - ./src:/app/UltraSinger/src
+      - ./pytest:/app/UltraSinger/pytest
+      - ./outputTestQA:/outputTestQA:ro
+    environment:
+      - PYTHONWARNINGS=ignore::SyntaxWarning
+      - HF_HOME=/home/ultrasinger/.cache/huggingface
+      - TORCH_HOME=/home/ultrasinger/.cache/torch
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [ gpu ]

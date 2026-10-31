@@ -7,7 +7,7 @@ import pytest
 
 
 class DenoiseTest(unittest.TestCase):
-    @pytest.mark.skip(reason="Skipping this FUNCTION level test, can be used for manual tests")
+    @unittest.skip(reason="Skipping this FUNCTION level test, can be used for manual tests")
     def test_ffmpeg_reduce_noise(self):
         # Arrange
         test_dir = os.path.dirname(os.path.abspath(__file__))

@@ -29,23 +29,36 @@ def print_help() -> None:
 
 
     [separation]
-    # Default is htdemucs
+    # Default is bs_roformer
+    --separator-engine, --separator  Vocal separation engine > bs_roformer|mel_roformer|htdemucs|scnet|demucs >> ((default) is bs_roformer)
+    --dereverb            Surgical de-reverb/de-echo post-filter > none|uvr_dereverb|kim_vocal_2 >> ((default) is none)
     --demucs              Model name htdemucs|htdemucs_ft|htdemucs_6s|hdemucs_mmi|mdx|mdx_extra|mdx_q|mdx_extra_q >> ((default) is htdemucs)
+    --bs_roformer_model   BS-Roformer model checkpoint >> ((default) is model_bs_roformer_ep_317_sdr_12.9755.ckpt)
 
-    [transcription]
-    # Default is whisper
-    --whisper               Multilingual model > tiny|base|small|medium|large-v1|large-v2|large-v3  >> ((default) is large-v2)
-                            English-only model > tiny.en|base.en|small.en|medium.en
-    --whisper_align_model   Use other languages model for Whisper provided from huggingface.co
-    --language              Override the language detected by whisper, does not affect transcription but steps after transcription
-    --whisper_batch_size    Reduce if low on GPU mem >> ((default) is 16)
-    --whisper_compute_type  Change to "int8" if low on GPU mem (may reduce accuracy) >> ((default) is "float16" for cuda devices, "int8" for cpu)
-    --keep_numbers          Numbers will be transcribed as numerics instead of as words >> True|False >> ((default) is False)
+    [transcription & alignment]
+    # Default is whisper_v2 and wav2vec2
+    --asr-engine          ASR Engine > whisper_v2|whisper_turbo >> ((default) is whisper_v2)
+    --aligner-engine      Phonetic Aligner > wav2vec2|mms_fa >> ((default) is wav2vec2)
+    --whisper             Multilingual model > tiny|base|small|medium|large-v1|large-v2|large-v3|large-v3-turbo >> ((default) is large-v2)
+                          English-only model > tiny.en|base.en|small.en|medium.en
+    --whisper_align_model Use other languages model for Whisper provided from huggingface.co
+    --language            Override the language detected by whisper, does not affect transcription but steps after transcription
+    --whisper_batch_size  Reduce if low on GPU mem >> ((default) is 16)
+    --whisper_compute_type Change to "int8" if low on GPU mem (may reduce accuracy) >> ((default) is "float16" for cuda devices, "int8" for cpu)
+    --keep_numbers        Numbers will be transcribed as numerics instead of as words >> True|False >> ((default) is False)
     
-    [pitcher]
-    # Default is crepe
-    --crepe            tiny|full >> ((default) is full)
-    --crepe_step_size  unit is miliseconds >> ((default) is 10)
+    [pitcher & midi]
+    # Default pitcher is rmvpe, default midi-engine is basic_pitch
+    --pitch-engine, --pitcher Pitch detection engine > rmvpe|crepe|swiftf0|basic-pitch >> ((default) is rmvpe)
+    --midi-engine         MIDI transcription engine > basic_pitch|some|omnizart >> ((default) is basic_pitch)
+    --magenta-humanize    Apply MusicVAE / Performance RNN humanization (micro-timing and expressive dynamics)
+    --crepe_model         CREPE model capacity > tiny|small|medium|large|full >> ((default) is full)
+    
+    [duet]
+    --duet                Enable duet mode (automatically separates song into P1 and P2 singers)
+    --duet-engine         Duet diarization engine > mfcc_kmeans|ecapa_embeddings >> ((default) is mfcc_kmeans)
+    --p1_name             Display name for Player 1 (default is "Singer 1")
+    --p2_name             Display name for Player 2 (default is "Singer 2")
     
     [extra]
     --disable_hyphenation   Disable word hyphenation. Hyphenation is enabled by default.
@@ -57,7 +70,24 @@ def print_help() -> None:
     --quantize_to_key       Quantize notes to the detected musical key. This removes slides and out-of-key notes.
     --format_version        0.3.0|1.0.0|1.1.0|1.2.0 >> ((default) is 1.2.0)
     --musescore_path        path to MuseScore executable
+    --genre                 Specify musical genre (e.g. "Hip Hop/R&B", "Rock", "Pop"). Also auto-detected from GENRE.txt
     --keep_numbers          Transcribe numbers as digits and not words
+    --disable_onset_snapping Disable acoustic onset snapping. Onset snapping is enabled by default.
+    --onset_window_ms       Maximum window in ms to snap syllables to detected onsets >> ((default) is 120)
+    --bpm                   Manually specify song BPM (overrides automatic BPM detection)
+    --octave_offset         Manual octave shift integer e.g. -1, 0, 1 >> ((default) is auto)
+    --disable_auto_octave   Disable automatic octave centering on UltraStar staff lines
+    --disable_trim_energy   Disable RMS voice energy tail trimming
+    --disable_click_track   Disable generation of [Sync_Test].mp3 verification audio
+    --disable_auto_calibrate_gap Disable auto-calibration of first syllable start (#GAP) to acoustic onset
+    --duet                  Enable duet mode (automatically separates song into P1 and P2 singers)
+    --p1_name               Display name for Player 1 (default is "Singer 1")
+    --p2_name               Display name for Player 2 (default is "Singer 2")
+    --keep_input_names      Preserve exact input folder / file names verbatim without normalization.
+    --disable_musicbrainz   Disable MusicBrainz online metadata queries.
+    --to_whisper_out        Only transcribe with Whisper and save to /input/.../whisper.txt without generating /output.
+    --disable_melismas      Disable melisma pitch splitting (forces 1 clean note per syllable, eliminating ~ notes).
+    --melisma_threshold     Minimum semitone deviation to trigger a melisma split (default: 1.8, filters out vibrato).
     --ffmpeg                Path to ffmpeg and ffprobe executable
 
     [yt-dlp]

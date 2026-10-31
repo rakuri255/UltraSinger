@@ -18,3 +18,8 @@ test_output
 output
 /UltraSinger*.spec
 /registry_path.txt
+
+# local mounts
+entrada/
+salida/
+cache/

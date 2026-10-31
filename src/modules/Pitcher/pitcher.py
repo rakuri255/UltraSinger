@@ -2,7 +2,6 @@
 import numpy as np
 
 from scipy.io import wavfile
-from swift_f0 import SwiftF0
 
 from modules.console_colors import ULTRASINGER_HEAD, blue_highlighted
 from modules.Pitcher.pitched_data import PitchedData
@@ -13,6 +12,7 @@ def _get_detector():
     """Lazy initialize SwiftF0 detector"""
     global _swift_f0_detector
     if _swift_f0_detector is None:
+        from swift_f0 import SwiftF0
         # Initialize for general music/speech (wide frequency range) fmin=46.875, fmax=2093.75
         # For speech only: fmin=65, fmax=400
         _swift_f0_detector = SwiftF0(fmin=46.875, fmax=2093.75, confidence_threshold=0.9)
@@ -20,36 +20,17 @@ def _get_detector():
 
 
 def get_pitch_with_file(
-    filename: str
+    filename: str,
+    pitcher_name: str = "swiftf0",
+    device: str = "cpu",
+    **kwargs
 ) -> PitchedData:
-    """Pitch detection using SwiftF0"""
+    """Pitch detection using selected Strategy (SwiftF0, CREPE, or RMVPE)."""
+    from modules.Pitcher.Extractors import PitcherFactory
 
-    print(
-        f"{ULTRASINGER_HEAD} Pitching with {blue_highlighted('SwiftF0')}"
-    )
-    sample_rate, audio = wavfile.read(filename)
-
-    # Convert stereo to mono if needed
-    if len(audio.shape) > 1:
-        audio = np.mean(audio, axis=1)
-
-    # Normalize audio to float32 based on dtype
-    if audio.dtype == np.uint8:
-        # uint8: range [0, 255] -> subtract 128 and divide by 128
-        audio = (audio.astype(np.float32) - 128.0) / 128.0
-    elif audio.dtype in [np.int16, np.int32, np.int64]:
-        # Signed integers: use iinfo to get max value and normalize
-        dtype_info = np.iinfo(audio.dtype)
-        max_val = max(abs(dtype_info.min), abs(dtype_info.max))
-        audio = audio.astype(np.float32) / float(max_val)
-    elif audio.dtype == np.float64:
-        # float64: cast to float32
-        audio = audio.astype(np.float32)
-    elif audio.dtype != np.float32:
-        # Fallback for other types: assume int16 range
-        audio = audio.astype(np.float32) / 32768.0
-
-    return get_pitch_with_swift_f0(audio, sample_rate)
+    strategy = (pitcher_name or "swiftf0").lower()
+    pitcher = PitcherFactory.get_pitcher(strategy, **kwargs)
+    return pitcher.extract_pitch(filename, device=device)
 
 
 def get_pitch_with_swift_f0(
