@@ -131,6 +131,7 @@ _Not all options working now!_
     --musescore_path        path to MuseScore executable
     --keep_numbers          Transcribe numbers as digits and not words
     --ffmpeg                Path to ffmpeg and ffprobe executable
+    --metadata_source       auto|tags|musicbrainz - where artist, title, year and genre come from >> ((default) is auto)
 
     [yt-dlp]
     --cookiefile            File name where cookies should be read from
@@ -157,6 +158,9 @@ default (Full Automatic Mode) - Creates all, depending on command line options
 ```commandline
 -i "input/music.mp3"
 ```
+
+Artist, title, year and genre are taken from the embedded tags of the file (ID3 or other container tags) and are used to search [MusicBrainz](https://musicbrainz.org/). If MusicBrainz finds nothing, the embedded tags are used. Without tags, the file name (`Artist - Title.mp3`) is used for the search.
+Use `--metadata_source tags` to only use the embedded tags (no MusicBrainz lookup) or `--metadata_source musicbrainz` to ignore them.
 
 ##### Youtube
 

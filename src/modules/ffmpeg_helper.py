@@ -1,5 +1,6 @@
 """FFmpeg helper module."""
 
+import json
 import os
 import shutil
 import subprocess
@@ -166,3 +167,32 @@ def separate_audio_video(video_with_audio_path: str, basename_without_ext: str, 
 
     return audio_file_path, final_video_path, audio_ext, video_ext
 
+
+def get_media_tags(file_path: str) -> dict[str, str]:
+    """Read container/ID3 metadata tags (artist, title, date, genre, ...) using ffprobe.
+
+    Tag names are returned lower-cased. Returns an empty dict on failure.
+    """
+    try:
+        _, ffprobe_path = get_ffmpeg_and_ffprobe_paths()
+
+        cmd = [
+            ffprobe_path,
+            "-v", "error",
+            "-show_entries", "format_tags",
+            "-of", "json",
+            file_path
+        ]
+
+        result = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8", errors="replace")
+        if result.returncode != 0:
+            return {}
+
+        tags = json.loads(result.stdout).get("format", {}).get("tags", {})
+        return {
+            str(key).lower(): str(value).strip()
+            for key, value in tags.items()
+            if value is not None and str(value).strip()
+        }
+    except Exception:
+        return {}

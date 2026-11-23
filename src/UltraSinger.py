@@ -64,7 +64,7 @@ from modules.Ultrastar.ultrastar_parser import parse_ultrastar_txt
 from modules.common_print import print_support, print_help, print_version
 from modules.os_helper import check_file_exists, get_unused_song_output_dir
 from modules.plot import create_plots
-from modules.musicbrainz_client import search_musicbrainz
+from modules.musicbrainz_client import search_musicbrainz, SongInfo
 from modules.sheet import create_sheet
 from modules.ProcessData import ProcessData, ProcessDataPaths, MediaInfo
 from modules.DeviceDetection.device_detection import check_gpu_support
@@ -74,6 +74,7 @@ from modules.ffmpeg_helper import (
     get_ffmpeg_and_ffprobe_paths,
     is_video_file,
     separate_audio_video,
+    get_media_tags,
 )
 
 from Settings import Settings
@@ -649,14 +650,39 @@ def infos_from_audio_video_input_file() -> tuple[str, str, str, MediaInfo]:
     basename = os.path.basename(settings.input_file_path)
     basename_without_ext = os.path.splitext(basename)[0]
 
+    # Embedded metadata (ID3/container tags) is preferred over the file name, see --metadata_source
+    media_tags = {} if settings.metadata_source == "musicbrainz" else get_media_tags(settings.input_file_path)
+    tag_artist = media_tags.get("artist") or media_tags.get("album_artist")
+    tag_title = media_tags.get("title")
+    has_file_tags = bool(tag_artist and tag_title)
+
     artist, title = None, None
-    if " - " in basename_without_ext:
+    if has_file_tags:
+        artist, title = tag_artist, tag_title
+    elif " - " in basename_without_ext:
         artist, title = basename_without_ext.split(" - ", 1)
     else:
         title = basename_without_ext
 
-    song_info = search_musicbrainz(title, artist)
-    basename_without_ext = f"{song_info.artist} - {song_info.title}"
+    if settings.metadata_source == "tags":
+        song_info = SongInfo(title=title, artist=artist if artist else "Unknown Artist")
+        use_file_tags = has_file_tags
+    else:
+        song_info = search_musicbrainz(title, artist)
+        # Musicbrainz found nothing: fall back to the embedded tags if available
+        use_file_tags = has_file_tags and song_info.artist == "Unknown Artist"
+
+    if use_file_tags:
+        print(f"{ULTRASINGER_HEAD} Using embedded file tags: Artist={blue_highlighted(tag_artist)} Title={blue_highlighted(tag_title)}")
+        song_info.artist = tag_artist
+        song_info.title = tag_title
+        tag_date = media_tags.get("date") or media_tags.get("year")
+        if tag_date and song_info.year is None:
+            song_info.year = tag_date.split("-")[0].strip()
+        if media_tags.get("genre") and song_info.genres is None:
+            song_info.genres = media_tags.get("genre")
+
+    basename_without_ext = os_helper.sanitize_filename(f"{song_info.artist} - {song_info.title}")
 
     song_folder_output_path = os.path.join(settings.output_folder_path, basename_without_ext)
     song_folder_output_path = get_unused_song_output_dir(song_folder_output_path)
@@ -855,6 +881,13 @@ def init_settings(argv: list[str]) -> Settings:
             settings.quantize_to_key = arg
         elif opt in ("--ffmpeg"):
             settings.user_ffmpeg_path = arg
+        elif opt in ("--metadata_source"):
+            if arg not in ("auto", "tags", "musicbrainz"):
+                print(
+                    f"{ULTRASINGER_HEAD} {red_highlighted('Error: Metadata source')} {blue_highlighted(arg)} {red_highlighted('is not supported. Use auto|tags|musicbrainz.')}"
+                )
+                sys.exit(1)
+            settings.metadata_source = arg
     if settings.output_folder_path == "":
         if settings.input_file_path.startswith("https:"):
             dirname = os.getcwd()
@@ -896,7 +929,8 @@ def arg_options():
         "quantize_to_key",
         "interactive",
         "cookiefile=",
-        "ffmpeg="
+        "ffmpeg=",
+        "metadata_source="
     ]
     return long, short
 
