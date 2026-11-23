@@ -9,6 +9,13 @@ from modules.Pitcher.pitched_data import PitchedData
 
 _swift_f0_detector = None
 
+# Realistic range for a sung fundamental frequency: C2 (65.4 Hz) to C6 (1046.5 Hz).
+# SwiftF0 itself reports pitches up to ~2093 Hz, but above C6 these are almost always
+# harmonics locked on during distorted, screamed or breathy parts (and UltraStar's own
+# microphone pitch detection does not go that high either).
+VOCAL_FMIN = 65.0
+VOCAL_FMAX = 1050.0
+
 def _get_detector():
     """Lazy initialize SwiftF0 detector"""
     global _swift_f0_detector
@@ -68,7 +75,11 @@ def get_pitch_with_swift_f0(
     # Convert to PitchedData format
     times = [float(t) for t in result.timestamps]
     frequencies = [float(f) for f in result.pitch_hz]
-    confidence = [float(c) for c in result.confidence]
+    # Frames outside the vocal range are not trustworthy -> confidence 0
+    confidence = [
+        float(c) if VOCAL_FMIN <= f <= VOCAL_FMAX else 0.0
+        for f, c in zip(frequencies, result.confidence)
+    ]
 
     return PitchedData(times, frequencies, confidence)
 
