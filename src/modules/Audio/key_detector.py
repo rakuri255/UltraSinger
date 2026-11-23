@@ -25,15 +25,27 @@ def detect_key_from_audio(audio_path: str) -> tuple[str, str]:
     """
     print(f"{ULTRASINGER_HEAD} Detecting musical key")
 
-    y, sr = librosa.load(audio_path, sr=None, duration=60.0)  # Analyze first 60 seconds
-    chroma = librosa.feature.chroma_cqt(y=y, sr=sr)
+    # Analyze the whole song. Only looking at the beginning is unreliable, because the
+    # processed vocal track is muted where nobody sings (often the whole intro).
+    y, sr = librosa.load(audio_path, sr=22050)
+    hop_length = 512
+    chroma = librosa.feature.chroma_cqt(y=y, sr=sr, hop_length=hop_length)
+
+    # Ignore silent (muted) frames, their chroma is just noise
+    rms = librosa.feature.rms(y=y, frame_length=2048, hop_length=hop_length)[0]
+    frame_count = min(chroma.shape[1], rms.shape[0])
+    voiced = rms[:frame_count] > 1e-3
+    if np.count_nonzero(voiced) > 10:
+        chroma = chroma[:, :frame_count][:, voiced]
+
     chroma_avg = np.mean(chroma, axis=1)
     chroma_avg = chroma_avg / np.sum(chroma_avg)
 
-    major_template = np.array([1, 0, 1, 0, 1, 1, 0, 1, 0, 1, 0, 1])  # Major scale pattern
-    minor_template = np.array([1, 0, 1, 1, 0, 1, 0, 1, 1, 0, 1, 0])  # Minor scale pattern
-    major_template = major_template / np.sum(major_template)
-    minor_template = minor_template / np.sum(minor_template)
+    # Krumhansl-Schmuckler key profiles. Unlike binary scale templates they weight the
+    # tonic/fifth higher, which makes the result much more stable and allows to
+    # distinguish relative major/minor keys.
+    major_template = np.array([6.35, 2.23, 3.48, 2.33, 4.38, 4.09, 2.52, 5.19, 2.39, 3.66, 2.29, 2.88])
+    minor_template = np.array([6.33, 2.68, 3.52, 5.38, 2.60, 3.53, 2.54, 4.75, 3.98, 2.69, 3.34, 3.17])
 
     best_correlation = -1
     best_key = None
