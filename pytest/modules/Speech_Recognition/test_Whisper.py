@@ -2,7 +2,12 @@
 
 import unittest
 from src.modules.Speech_Recognition.TranscribedData import TranscribedData
-from src.modules.Speech_Recognition.Whisper import convert_to_transcribed_data, number_to_words
+import numpy as np
+from src.modules.Speech_Recognition.Whisper import (
+    convert_to_transcribed_data,
+    number_to_words,
+    detect_language_on_vocals,
+)
 
 class ConvertToTranscribedDataTest(unittest.TestCase):
     def test_convert_to_transcribed_data(self):
@@ -80,5 +85,62 @@ class ConvertToTranscribedDataTest(unittest.TestCase):
 
         # Assert
         self.assertEqual(result, expected_output)
+
+
+class _FakeCTranslateModel:
+    def __init__(self, results):
+        self.results = list(results)
+        self.calls = 0
+
+    def detect_language(self, encoder_output):
+        result = self.results[self.calls]
+        self.calls += 1
+        return [result]
+
+
+class _FakeWhisperModel:
+    """Mimics the parts of whisperx's FasterWhisperPipeline used for language detection"""
+
+    def __init__(self, results):
+        self.feat_kwargs = {"feature_size": 80}
+        self.model = _FakeCTranslateModel(results)
+
+    def encode(self, segment):
+        return segment
+
+
+class _FakePipeline:
+    def __init__(self, results):
+        self.model = _FakeWhisperModel(results)
+
+
+class DetectLanguageOnVocalsTest(unittest.TestCase):
+    sample_rate = 16000
+
+    def _audio(self, silence_seconds, voiced_seconds):
+        rng = np.random.default_rng(0)
+        silence = np.zeros(silence_seconds * self.sample_rate, dtype=np.float32)
+        voiced = (rng.standard_normal(voiced_seconds * self.sample_rate) * 0.1).astype(np.float32)
+        return np.concatenate([silence, voiced])
+
+    def test_sums_language_probabilities_of_vocal_windows(self):
+        # 20 s muted intro + 70 s of "singing" -> 2 windows of 30 s singing
+        pipeline = _FakePipeline([
+            [("<|nn|>", 0.6), ("<|en|>", 0.4)],
+            [("<|en|>", 0.9), ("<|nn|>", 0.1)],
+        ])
+
+        language = detect_language_on_vocals(pipeline, self._audio(20, 70))
+
+        self.assertEqual("en", language)
+        self.assertEqual(2, pipeline.model.model.calls)
+
+    def test_returns_none_with_too_little_singing(self):
+        pipeline = _FakePipeline([])
+
+        self.assertIsNone(detect_language_on_vocals(pipeline, self._audio(30, 2)))
+        self.assertEqual(0, pipeline.model.model.calls)
+
+
 if __name__ == "__main__":
     unittest.main()

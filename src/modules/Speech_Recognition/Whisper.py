@@ -7,6 +7,7 @@ import textwrap
 # CUDA_MODULE_LOADING=LAZY allows PyTorch to continue even if some cuDNN modules are not found
 #os.environ['CUDA_MODULE_LOADING'] = 'LAZY'
 
+import numpy as np
 import torch
 
 # Fix for PyTorch 2.6+ compatibility with omegaconf and old models
@@ -22,6 +23,7 @@ def _patched_torch_load(*args, **kwargs):
 torch.load = _patched_torch_load
 
 import whisperx
+from whisperx.audio import SAMPLE_RATE, N_SAMPLES, log_mel_spectrogram
 from enum import Enum
 from torch.cuda import OutOfMemoryError
 
@@ -119,6 +121,9 @@ def transcribe_with_whisper(
 
         audio = whisperx.load_audio(audio_path)
 
+        if language is None:
+            language = detect_language_on_vocals(loaded_whisper_model, audio)
+
         print(f"{ULTRASINGER_HEAD} Transcribing {audio_path}")
 
         result = loaded_whisper_model.transcribe(
@@ -194,6 +199,55 @@ def transcribe_with_whisper(
         # Restore original torch.load after models are loaded
         # This ensures other modules (like pitch detection) are not affected by the monkey-patch
         torch.load = _original_torch_load
+
+
+def detect_language_on_vocals(loaded_whisper_model, audio, max_windows: int = 3):
+    """Detect the language only on parts of the audio that contain singing.
+
+    whisperx detects the language on the first 30 seconds of the audio. For songs this is
+    often an instrumental intro (muted before transcription), which makes the detection
+    close to random. Instead, silent frames are dropped and the language probabilities of
+    up to `max_windows` 30 second windows of singing are summed up.
+    Returns None if detection fails, so whisperx falls back to its own detection.
+    """
+    try:
+        sample_rate = SAMPLE_RATE
+        window_samples = N_SAMPLES  # 30 seconds
+        frame = sample_rate // 10  # 100 ms
+
+        usable = len(audio) - len(audio) % frame
+        if usable == 0:
+            return None
+        frames = audio[:usable].reshape(-1, frame)
+        rms = np.sqrt(np.mean(frames.astype(np.float32) ** 2, axis=1))
+        voiced = frames[rms > 1e-3].reshape(-1)
+        if voiced.shape[0] < sample_rate * 5:
+            # Not enough singing to do better than whisperx itself
+            return None
+
+        model_n_mels = loaded_whisper_model.model.feat_kwargs.get("feature_size") or 80
+        language_scores = {}
+        window_count = min(max_windows, max(1, voiced.shape[0] // window_samples))
+        for i in range(window_count):
+            window = voiced[i * window_samples:(i + 1) * window_samples]
+            padding = max(0, window_samples - window.shape[0])
+            segment = log_mel_spectrogram(window, n_mels=model_n_mels, padding=padding)
+            encoder_output = loaded_whisper_model.model.encode(segment)
+            results = loaded_whisper_model.model.model.detect_language(encoder_output)
+            for language_token, probability in results[0]:
+                language_code = language_token[2:-2]
+                language_scores[language_code] = language_scores.get(language_code, 0.0) + probability
+
+        language = max(language_scores, key=language_scores.get)
+        probability = language_scores[language] / window_count
+        print(
+            f"{ULTRASINGER_HEAD} Detected language {blue_highlighted(language)} "
+            f"({probability:.2f}) on {window_count} vocal window(s)"
+        )
+        return language
+    except Exception as exception:
+        print(f"{ULTRASINGER_HEAD} {red_highlighted('Language detection on vocals failed:')} {exception}")
+        return None
 
 
 def convert_to_transcribed_data(result_aligned):
