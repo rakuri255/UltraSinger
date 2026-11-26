@@ -6,8 +6,6 @@ import subprocess
 import tempfile
 import unittest
 
-import pytest
-
 from modules.ffmpeg_helper import is_video_file
 
 FFMPEG_AVAILABLE = shutil.which("ffmpeg") is not None and shutil.which("ffprobe") is not None
@@ -17,7 +15,7 @@ def _ffmpeg(*args):
     subprocess.run(["ffmpeg", "-v", "error", "-y", *args], check=True)
 
 
-@pytest.mark.skipif(not FFMPEG_AVAILABLE, reason="ffmpeg/ffprobe not available")
+@unittest.skipIf(not FFMPEG_AVAILABLE, "ffmpeg/ffprobe not available")
 class IsVideoFileTest(unittest.TestCase):
     def setUp(self):
         self.tmp = tempfile.mkdtemp()
