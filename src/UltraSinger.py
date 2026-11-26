@@ -654,10 +654,12 @@ def infos_from_audio_video_input_file() -> tuple[str, str, str, MediaInfo]:
     media_tags = {} if settings.metadata_source == "musicbrainz" else get_media_tags(settings.input_file_path)
     tag_artist = media_tags.get("artist") or media_tags.get("album_artist")
     tag_title = media_tags.get("title")
-    has_file_tags = bool(tag_artist and tag_title)
+    tag_date = media_tags.get("date") or media_tags.get("year")
+    tag_genre = media_tags.get("genre")
 
     artist, title = None, None
-    if has_file_tags:
+    if tag_artist and tag_title:
+        # Only complete tags replace the file name as search terms
         artist, title = tag_artist, tag_title
     elif " - " in basename_without_ext:
         artist, title = basename_without_ext.split(" - ", 1)
@@ -666,21 +668,23 @@ def infos_from_audio_video_input_file() -> tuple[str, str, str, MediaInfo]:
 
     if settings.metadata_source == "tags":
         song_info = SongInfo(title=title, artist=artist if artist else "Unknown Artist")
-        use_file_tags = has_file_tags
+        use_file_tags = True
     else:
         song_info = search_musicbrainz(title, artist)
         # Musicbrainz found nothing: fall back to the embedded tags if available
-        use_file_tags = has_file_tags and song_info.artist == "Unknown Artist"
+        use_file_tags = song_info.artist == "Unknown Artist"
 
-    if use_file_tags:
-        print(f"{ULTRASINGER_HEAD} Using embedded file tags: Artist={blue_highlighted(tag_artist)} Title={blue_highlighted(tag_title)}")
-        song_info.artist = tag_artist
-        song_info.title = tag_title
-        tag_date = media_tags.get("date") or media_tags.get("year")
+    if use_file_tags and (tag_artist or tag_title or tag_date or tag_genre):
+        # Each available tag is used on its own, missing ones keep the file name based value
+        if tag_artist:
+            song_info.artist = tag_artist
+        if tag_title:
+            song_info.title = tag_title
         if tag_date and song_info.year is None:
             song_info.year = tag_date.split("-")[0].strip()
-        if media_tags.get("genre") and song_info.genres is None:
-            song_info.genres = media_tags.get("genre")
+        if tag_genre and song_info.genres is None:
+            song_info.genres = tag_genre
+        print(f"{ULTRASINGER_HEAD} Using embedded file tags: Artist={blue_highlighted(song_info.artist)} Title={blue_highlighted(song_info.title)}")
 
     basename_without_ext = os_helper.sanitize_filename(f"{song_info.artist} - {song_info.title}")
 

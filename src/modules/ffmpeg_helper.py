@@ -169,8 +169,10 @@ def separate_audio_video(video_with_audio_path: str, basename_without_ext: str, 
 
 
 def get_media_tags(file_path: str) -> dict[str, str]:
-    """Read container/ID3 metadata tags (artist, title, date, genre, ...) using ffprobe.
+    """Read metadata tags (artist, title, date, genre, ...) using ffprobe.
 
+    Container tags (ID3, MP4, FLAC, ...) are used first. Tags of the audio streams are
+    used as fallback for missing keys, since Ogg (Vorbis/Opus) stores its tags there.
     Tag names are returned lower-cased. Returns an empty dict on failure.
     """
     try:
@@ -179,7 +181,7 @@ def get_media_tags(file_path: str) -> dict[str, str]:
         cmd = [
             ffprobe_path,
             "-v", "error",
-            "-show_entries", "format_tags",
+            "-show_entries", "format_tags:stream=codec_type:stream_tags",
             "-of", "json",
             file_path
         ]
@@ -188,11 +190,21 @@ def get_media_tags(file_path: str) -> dict[str, str]:
         if result.returncode != 0:
             return {}
 
-        tags = json.loads(result.stdout).get("format", {}).get("tags", {})
-        return {
-            str(key).lower(): str(value).strip()
-            for key, value in tags.items()
-            if value is not None and str(value).strip()
-        }
+        probe = json.loads(result.stdout)
+        tag_sources = [probe.get("format", {}).get("tags", {})]
+        tag_sources += [
+            stream.get("tags", {})
+            for stream in probe.get("streams", [])
+            if stream.get("codec_type") == "audio"
+        ]
+
+        tags = {}
+        for source in tag_sources:
+            for key, value in source.items():
+                key = str(key).lower()
+                if key in tags or value is None or not str(value).strip():
+                    continue
+                tags[key] = str(value).strip()
+        return tags
     except Exception:
         return {}

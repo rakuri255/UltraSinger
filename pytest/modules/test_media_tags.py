@@ -7,25 +7,23 @@ import tempfile
 import unittest
 from unittest import mock
 
-import pytest
-
 from modules.ffmpeg_helper import get_media_tags
 from modules.musicbrainz_client import SongInfo
 
 FFMPEG_AVAILABLE = shutil.which("ffmpeg") is not None and shutil.which("ffprobe") is not None
 
 
-def _create_mp3(path: str, **tags: str) -> None:
+def _create_mp3(path: str, codec: str = "libmp3lame", **tags: str) -> None:
     metadata = []
     for key, value in tags.items():
         metadata += ["-metadata", f"{key}={value}"]
     subprocess.run(
-        ["ffmpeg", "-v", "error", "-y", "-f", "lavfi", "-i", "sine=d=1", "-c:a", "libmp3lame", *metadata, path],
+        ["ffmpeg", "-v", "error", "-y", "-f", "lavfi", "-i", "sine=d=1", "-c:a", codec, *metadata, path],
         check=True,
     )
 
 
-@pytest.mark.skipif(not FFMPEG_AVAILABLE, reason="ffmpeg/ffprobe not available")
+@unittest.skipIf(not FFMPEG_AVAILABLE, "ffmpeg/ffprobe not available")
 class MediaTagsTest(unittest.TestCase):
     def setUp(self):
         self.tmp = tempfile.mkdtemp()
@@ -102,6 +100,40 @@ class MediaTagsTest(unittest.TestCase):
 
         search.assert_called_once_with("File Title", "File Artist")
         self.assertEqual("Unknown Artist", media_info.artist)
+
+    def test_reads_ogg_stream_tags(self):
+        # Ogg (Vorbis/Opus) stores its tags on the audio stream, not on the container
+        for extension, codec in (("ogg", "libvorbis"), ("opus", "libopus")):
+            path = os.path.join(self.tmp, f"song.{extension}")
+            _create_mp3(path, codec=codec, artist="Some Artist", title="Some Title")
+
+            tags = get_media_tags(path)
+
+            self.assertEqual("Some Artist", tags.get("artist"), extension)
+            self.assertEqual("Some Title", tags.get("title"), extension)
+
+    def test_tags_mode_uses_partial_tags(self):
+        mp3 = os.path.join(self.tmp, "File Artist - File Title.mp3")
+        _create_mp3(mp3, title="Some Title", date="2013", genre="Rock")
+
+        basename, media_info, search = self._infos(mp3, "tags", None)
+
+        search.assert_not_called()
+        self.assertEqual("File Artist", media_info.artist)
+        self.assertEqual("Some Title", media_info.title)
+        self.assertEqual("2013", media_info.year)
+        self.assertEqual("Rock", media_info.genre)
+        self.assertEqual("File Artist - Some Title", basename)
+
+    def test_tags_mode_without_tags_uses_file_name(self):
+        mp3 = os.path.join(self.tmp, "File Artist - File Title.mp3")
+        _create_mp3(mp3)
+
+        basename, media_info, search = self._infos(mp3, "tags", None)
+
+        search.assert_not_called()
+        self.assertEqual("File Artist - File Title", basename)
+        self.assertIsNone(media_info.year)
 
 
 if __name__ == "__main__":
