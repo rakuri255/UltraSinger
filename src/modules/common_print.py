@@ -59,6 +59,7 @@ def print_help() -> None:
     --musescore_path        path to MuseScore executable
     --keep_numbers          Transcribe numbers as digits and not words
     --ffmpeg                Path to ffmpeg and ffprobe executable
+    --metadata_source       auto|tags|musicbrainz - where artist, title, year and genre come from >> ((default) is auto)
 
     [yt-dlp]
     --cookiefile            File name where cookies should be read from and dumped to.

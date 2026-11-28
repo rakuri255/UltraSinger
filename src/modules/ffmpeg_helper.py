@@ -1,5 +1,6 @@
 """FFmpeg helper module."""
 
+import json
 import os
 import shutil
 import subprocess
@@ -166,3 +167,44 @@ def separate_audio_video(video_with_audio_path: str, basename_without_ext: str, 
 
     return audio_file_path, final_video_path, audio_ext, video_ext
 
+
+def get_media_tags(file_path: str) -> dict[str, str]:
+    """Read metadata tags (artist, title, date, genre, ...) using ffprobe.
+
+    Container tags (ID3, MP4, FLAC, ...) are used first. Tags of the audio streams are
+    used as fallback for missing keys, since Ogg (Vorbis/Opus) stores its tags there.
+    Tag names are returned lower-cased. Returns an empty dict on failure.
+    """
+    try:
+        _, ffprobe_path = get_ffmpeg_and_ffprobe_paths()
+
+        cmd = [
+            ffprobe_path,
+            "-v", "error",
+            "-show_entries", "format_tags:stream=codec_type:stream_tags",
+            "-of", "json",
+            file_path
+        ]
+
+        result = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8", errors="replace")
+        if result.returncode != 0:
+            return {}
+
+        probe = json.loads(result.stdout)
+        tag_sources = [probe.get("format", {}).get("tags", {})]
+        tag_sources += [
+            stream.get("tags", {})
+            for stream in probe.get("streams", [])
+            if stream.get("codec_type") == "audio"
+        ]
+
+        tags = {}
+        for source in tag_sources:
+            for key, value in source.items():
+                key = str(key).lower()
+                if key in tags or value is None or not str(value).strip():
+                    continue
+                tags[key] = str(value).strip()
+        return tags
+    except Exception:
+        return {}
