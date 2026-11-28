@@ -3,6 +3,7 @@
 import math
 import os
 from collections import Counter
+from typing import Optional
 
 import librosa
 import numpy as np
@@ -16,7 +17,6 @@ from modules.console_colors import (
 )
 from modules.Ultrastar.ultrastar_txt import UltrastarTxtValue
 from modules.Pitcher.pitched_data import PitchedData
-from modules.Pitcher.pitched_data_helper import get_frequencies_with_high_confidence
 from modules.Audio.key_detector import quantize_note_to_key
 
 def create_midi_instrument(midi_segments: list[MidiSegment]) -> object:
@@ -71,6 +71,27 @@ def most_frequent(array: [str]) -> list[tuple[str, int]]:
     return Counter(array).most_common(1)
 
 
+def get_most_confident_note(frequencies: list[float], confidences: list[float],
+                            threshold: float = 0.4) -> Optional[str]:
+    """Pick the note of a segment by a confidence weighted vote over its pitch frames.
+
+    Frames above the confidence threshold are preferred. If there are none, all frames
+    with a confidence above zero vote (weighted by confidence), so a few weak but plausible
+    frames win over unvoiced/out-of-range frames.
+    Returns None if no frame has a confidence above zero.
+    """
+    frames = [(f, c) for f, c in zip(frequencies, confidences) if c > threshold]
+    if not frames:
+        frames = [(f, c) for f, c in zip(frequencies, confidences) if c > 0]
+    if not frames:
+        return None
+
+    weights = Counter()
+    for frequency, confidence in frames:
+        weights[librosa.hz_to_note(float(frequency))] += confidence
+    return weights.most_common(1)[0][0]
+
+
 def find_nearest_index(array: list[float], value: float) -> int:
     """Nearest index in array"""
     idx = np.searchsorted(array, value, side="left")
@@ -105,7 +126,10 @@ def create_midi_notes_from_pitched_data(start_times: list[float], end_times: lis
         end_time = end_times[index]
         word = str(words[index])
 
-        midi_segment = create_midi_note_from_pitched_data(start_time, end_time, pitched_data, word, allowed_notes)
+        # Segments without any usable pitch frame (e.g. a short "~" in a scream) keep the previous pitch
+        fallback_note = midi_segments[-1].note if midi_segments else None
+        midi_segment = create_midi_note_from_pitched_data(start_time, end_time, pitched_data, word, allowed_notes,
+                                                          fallback_note)
         midi_segments.append(midi_segment)
 
         # todo: Progress?
@@ -114,7 +138,8 @@ def create_midi_notes_from_pitched_data(start_times: list[float], end_times: lis
 
 
 def create_midi_note_from_pitched_data(start_time: float, end_time: float, pitched_data: PitchedData, word: str,
-                                        allowed_notes: set[str] = None) -> MidiSegment:
+                                        allowed_notes: set[str] = None,
+                                        fallback_note: Optional[str] = None) -> MidiSegment:
     """Create midi note from pitched data
 
     Args:
@@ -123,6 +148,8 @@ def create_midi_note_from_pitched_data(start_time: float, end_time: float, pitch
         pitched_data: Pitched data containing frequencies and confidence
         word: The word/syllable for this note
         allowed_notes: Optional set of allowed note names (without octave) for key quantization
+        fallback_note: Note used if no pitch frame of the segment is usable. If None, the most
+            frequent raw (unreliable) pitch is used instead.
 
     Returns:
         One MidiSegment
@@ -138,11 +165,12 @@ def create_midi_note_from_pitched_data(start_time: float, end_time: float, pitch
         freqs = pitched_data.frequencies[start:end]
         confs = pitched_data.confidence[start:end]
 
-    conf_f = get_frequencies_with_high_confidence(freqs, confs)
-
-    notes = convert_frequencies_to_notes(conf_f)
-
-    note = most_frequent(notes)[0][0]
+    note = get_most_confident_note(freqs, confs)
+    if note is None:
+        if fallback_note is not None:
+            note = fallback_note
+        else:
+            note = most_frequent(convert_frequencies_to_notes(freqs))[0][0]
 
     if allowed_notes is not None:
         note = quantize_note_to_key(note, allowed_notes)
